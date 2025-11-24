@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YksBuddy - Gizlilik Politikası</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #00D4FF;
+            border-bottom: 3px solid #00D4FF;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #08314A;
+            margin-top: 30px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .last-updated {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        .contact {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gizlilik Politikası</h1>
+        <p class="last-updated">Son Güncelleme: 24 Kasım 2024</p>
+
+        <p>YksBuddy ("uygulama"), kullanıcılarının kişisel verilerinin gizliliğini korumayı taahhüt eder. Bu Gizlilik Politikası, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK), Avrupa Genel Veri Koruma Tüzüğü (GDPR) ilkeleri ve Google Play Geliştirici Politikaları doğrultusunda hazırlanmıştır.</p>
+        
+        <p><strong>Veri Sorumlusu:</strong> Mr.Sefa (uygulama geliştiricisi ve yöneticisi)</p>
+        <p><strong>İletişim:</strong> yksbudyy@gmail.com</p>
+        
+        <p>Amaç, kullanıcıların hangi verilerin toplandığını, nasıl kullanıldığını, kimlerle paylaşıldığını ve haklarının neler olduğunu şeffaf biçimde açıklamaktır.</p>
+
+        <h2>1. Toplanan Kişisel Veriler</h2>
+        <p>YksBuddy uygulaması, kullanıcı deneyimini geliştirmek, hizmetleri sunmak ve güvenliği sağlamak amacıyla aşağıdaki kategorilerde kişisel veri toplar ve işler:</p>
+        
+        <h3>a) Kimlik ve Hesap Bilgileri</h3>
+        <ul>
+            <li>Ad ve soyad (name)</li>
+            <li>Kullanıcı adı (username)</li>
+            <li>E-posta adresi (email)</li>
+            <li>Profil fotoğrafı URL'si (photoURL)</li>
+            <li>Firebase kullanıcı ID'si (uid)</li>
+        </ul>
+        <p><strong>Amaç:</strong> Hesap oluşturma, giriş yapma, kimlik doğrulama, profil yönetimi.</p>
+        <p><strong>Hukuki Sebep:</strong> Açık rıza, sözleşmenin ifası.</p>
+
+        <h3>b) Çalışma ve Performans Verileri</h3>
+        <ul>
+            <li>Çalışma süreleri (studyHours, totalStudyHours)</li>
+            <li>Çözülen soru sayıları (questionsSolved, questionsToday, totalQuestions)</li>
+            <li>Deneme sonuçları (doğru/yanlış/boş)</li>
+            <li>Soru bankası kayıtları (kitap, ders, konu, doğruluk bilgileri)</li>
+            <li>Çalışma oturumları (başlangıç/bitiş zamanı, konu, süre)</li>
+            <li>Hedefler, ilerleme ve başarımlar</li>
+        </ul>
+        <p><strong>Amaç:</strong> Kullanıcının akademik performansını takip etmek, kişisel raporlar ve istatistikler sunmak.</p>
+        <p><strong>Hukuki Sebep:</strong> Sözleşmenin ifası, meşru menfaat.</p>
+
+        <h3>c) Sosyal ve Rekabet Verileri</h3>
+        <ul>
+            <li>Lig seviyesi (league)</li>
+            <li>Puan (totalScore, rank)</li>
+            <li>Arkadaş listesi ve arkadaşlık istekleri</li>
+            <li>Sosyal aktiviteler (başarımlar, deneme tamamlama vb.)</li>
+            <li>Çevrimiçi durum (isOnline, isStudying)</li>
+            <li>Son aktif zaman (lastActive)</li>
+        </ul>
+        <p><strong>Amaç:</strong> Sosyal etkileşimi, rekabeti ve motivasyonu sağlamak.</p>
+        <p><strong>Hukuki Sebep:</strong> Açık rıza, sözleşmenin ifası.</p>
+
+        <h3>d) AI Koç (Gemini API) Verileri</h3>
+        <ul>
+            <li>Gemini API anahtarı (flutter_secure_storage ile şifrelenmiş, yalnızca cihazda tutulur)</li>
+            <li>AI Koç sohbet mesajları (kullanıcı mesajları ve yapay zeka yanıtları)</li>
+            <li>Öğrenci bağlamı (çalışma alışkanlıkları, hedefler, performans verileri)</li>
+        </ul>
+        <p><strong>Amaç:</strong> Kullanıcının öğrenme deneyimini kişiselleştirmek, rehberlik sağlamak.</p>
+        <p><strong>Hukuki Sebep:</strong> Açık rıza.</p>
+
+        <h3>e) Kullanıcı Tercihleri</h3>
+        <ul>
+            <li>"Beni hatırla" tercihi</li>
+            <li>Gizlilik politikası onayı durumu ve tarihi</li>
+            <li>Pomodoro ayarları (çalışma/ara süresi, ses tercihi)</li>
+        </ul>
+        <p><strong>Amaç:</strong> Kullanıcı deneyimini kişisel tercihlere göre özelleştirmek.</p>
+        <p><strong>Hukuki Sebep:</strong> Açık rıza.</p>
+
+        <h3>f) Teknik Veriler</h3>
+        <ul>
+            <li>Cihaz bilgisi (işletim sistemi, cihaz modeli, sürüm bilgisi)</li>
+            <li>Oturum açma/kapanma zamanları</li>
+            <li>Uygulama kullanım istatistikleri</li>
+            <li>Hata ve çökme kayıtları</li>
+        </ul>
+        <p><strong>Amaç:</strong> Güvenlik, performans izleme, hata giderme.</p>
+        <p><strong>Hukuki Sebep:</strong> Meşru menfaat.</p>
+
+        <h2>2. Verilerin Saklandığı Ortamlar</h2>
+        <p>Toplanan kişisel veriler aşağıdaki güvenli ortamlarda saklanır:</p>
+        <ul>
+            <li><strong>Firebase Realtime Database (Google Cloud):</strong> Uygulama verileri</li>
+            <li><strong>Yerel SQLite veritabanı (cihaz içinde):</strong> Kullanıcının kendi cihazına ait çalışma verileri</li>
+            <li><strong>SharedPreferences (cihaz içinde):</strong> Tercih ve oturum bilgileri</li>
+            <li><strong>Flutter Secure Storage (cihaz içinde, şifreli):</strong> API anahtarları gibi kritik veriler</li>
+        </ul>
+        <p>Gemini API anahtarı yalnızca cihazda saklanır ve hiçbir şekilde dış sistemlere gönderilmez.</p>
+        <p>Firebase altyapısı Google tarafından işletildiği için veriler Google'ın yurt dışındaki veri merkezlerinde barındırılabilir. Bu durumda, KVKK Madde 9 uyarınca açık rıza alınmaktadır.</p>
+
+        <h2>3. AI Koç (Gemini API) ve Üçüncü Taraf Hizmetleri</h2>
+        <p>YksBuddy, yapay zeka destekli koçluk özelliğini sağlamak için Google Gemini API hizmetini kullanır.</p>
+        <p>Bu hizmet, Google LLC tarafından sağlanan üçüncü taraf bir sistemdir.</p>
+        <p>Kullanıcının AI Koç ile yaptığı sohbet mesajları, Google'ın sunucularına güvenli bağlantı (TLS) üzerinden iletilir.</p>
+        <p>Bu veriler, Google Gemini API'nin kendi kullanım koşulları ve gizlilik politikası kapsamında işlenir.</p>
+        <p>Google, bu verileri anonimleştirilmiş biçimde analiz edebilir ve hizmet kalitesini artırmak amacıyla işleyebilir.</p>
+        <p>YksBuddy, bu verilere erişim veya kontrol yetkisine sahip değildir.</p>
+        <p>Gemini API'nin doğruluğu, kesintisiz çalışması veya ürettiği cevapların içeriği konusunda YksBuddy herhangi bir garanti vermez.</p>
+        <p><strong>Google'ın güncel Gizlilik Politikası:</strong> <a href="https://policies.google.com/privacy" target="_blank">https://policies.google.com/privacy</a></p>
+        <p><strong>Google Gemini Kullanım Şartları:</strong> <a href="https://ai.google.dev/terms" target="_blank">https://ai.google.dev/terms</a></p>
+
+        <h2>4. Veri Paylaşımı</h2>
+        <p>YksBuddy, kullanıcı verilerini üçüncü taraflara satmaz, kiralamaz veya ticari amaçla paylaşmaz.</p>
+        <p>Veriler yalnızca aşağıdaki istisnai durumlarda paylaşılabilir:</p>
+        <ul>
+            <li>Kanunen yetkili kamu kurumlarının talebi</li>
+            <li>Kullanıcının açık rızası</li>
+            <li>Gemini API'nin gerektirdiği teknik aktarım (sadece AI sohbet mesajları)</li>
+        </ul>
+        <p>Tüm paylaşımlar güvenli (şifreli) bağlantılar üzerinden yapılır.</p>
+
+        <h2>5. Verilerin Saklama Süresi</h2>
+        <p>Kullanıcı hesabı silindiğinde, ilişkili veriler 30 gün içinde sistemlerden tamamen kaldırılır.</p>
+        <p>Yasal yükümlülük kapsamında saklanması gereken veriler (örneğin onay kayıtları) 2 yıl süreyle saklanır.</p>
+        <p>Süresi dolan veriler güvenli biçimde silinir veya anonimleştirilir.</p>
+
+        <h2>6. Kullanıcının Hakları (KVKK Madde 11)</h2>
+        <p>Kullanıcılar, KVKK uyarınca aşağıdaki haklara sahiptir:</p>
+        <ul>
+            <li>Kişisel verilerinin işlenip işlenmediğini öğrenme</li>
+            <li>İşlenmişse buna ilişkin bilgi talep etme</li>
+            <li>İşlenme amacını ve bu amaçlara uygun kullanılıp kullanılmadığını öğrenme</li>
+            <li>Verilerin yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme</li>
+            <li>Verilerin eksik veya yanlış işlenmiş olması hâlinde düzeltilmesini isteme</li>
+            <li>KVKK Madde 7 kapsamında silinmesini veya yok edilmesini talep etme</li>
+            <li>Otomatik sistemlerce yapılan analiz sonucu aleyhine bir sonucun ortaya çıkmasına itiraz etme</li>
+            <li>Kanuna aykırı işleme nedeniyle zarara uğraması hâlinde tazminat talep etme</li>
+        </ul>
+        <p>Bu hakların kullanımı için talepler yksbudyy@gmail.com adresine e-posta yoluyla iletilebilir.</p>
+
+        <h2>7. Veri Güvenliği Önlemleri</h2>
+        <p>YksBuddy, kullanıcı verilerinin korunması için teknik ve idari tedbirleri uygular:</p>
+        <ul>
+            <li>SSL/TLS ile şifreli iletişim</li>
+            <li>AES-256 standardında veri şifreleme</li>
+            <li>Yetkisiz erişimi önleyen kimlik doğrulama katmanları</li>
+            <li>Düzenli güvenlik güncellemeleri</li>
+            <li>Sınırlı erişim politikaları</li>
+        </ul>
+        <p>Veri ihlali durumunda, KVKK Madde 12 gereğince ilgili kullanıcılar ve Kişisel Verileri Koruma Kurumu (KVKK) en kısa sürede bilgilendirilir.</p>
+
+        <h2>8. Çocukların Verileri</h2>
+        <p>YksBuddy, 13 yaş altı çocuklara yönelik değildir.</p>
+        <p>Kasıtlı olarak çocuklardan veri toplanmaz.</p>
+        <p>Bir çocuğa ait veri işlendiği tespit edilirse, ilgili hesap silinir ve veriler derhal yok edilir.</p>
+
+        <h2>9. Politika Değişiklikleri</h2>
+        <p>YksBuddy bu gizlilik politikasını zaman zaman güncelleyebilir.</p>
+        <p>Her güncelleme, uygulama içi bildirim veya web sayfası aracılığıyla duyurulur.</p>
+        <p>Güncellenmiş politika yayımlandığı tarihten itibaren geçerlidir.</p>
+
+        <h2>10. İletişim Bilgileri</h2>
+        <div class="contact">
+            <p><strong>Her türlü soru, görüş veya talep için:</strong></p>
+            <p><strong>E-posta:</strong> yksbudyy@gmail.com</p>
+            <p><strong>Adres:</strong> İstanbul, Türkiye</p>
+        </div>
+
+        <h2>11. Yürürlük</h2>
+        <p>Bu Gizlilik Politikası, YksBuddy uygulamasını kullanmaya başladığınızda yürürlüğe girer. Uygulamayı kullanmaya devam ederek bu politikayı kabul etmiş sayılırsınız.</p>
+        
+        <p><strong>Not:</strong> Bu Gizlilik Politikası, YksBuddy Kullanıcı Sözleşmesi'nin ayrılmaz bir parçasıdır. Kullanıcı Sözleşmesi'ni de okumanız önerilir.</p>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p style="text-align: center; color: #666; font-size: 14px;">
+            © 2024 YksBuddy. Tüm hakları saklıdır.
+        </p>
+    </div>
+</body>
+</html>
+
