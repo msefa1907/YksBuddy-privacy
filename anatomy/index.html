@@ -1,0 +1,2569 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Corpus Anatomi Atlası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: full-bleed WebGL specimen stage; floating instrument panels (layers left, specimen card right, tools bottom). */
+:root {
+  --ink-0: #070b0f;        /* stage */
+  --ink-1: #0e151c;        /* panel */
+  --ink-2: #16202a;        /* raised control */
+  --rule: rgba(176, 198, 214, 0.13);
+  --text: #e4e9ec;
+  --text-dim: #8b9aa6;
+  --bone: #e8dcc0;         /* accent: specimen ivory */
+  --probe: #6fd0e0;        /* selection / focus */
+  --danger: #e0715d;
+  --f-display: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-ui: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --gutter: 16px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--ink-0); color: var(--text); font: 14px/1.45 var(--f-ui); overflow: hidden; -webkit-font-smoothing: antialiased; }
+#stage { position: fixed; inset: 0; background:
+  radial-gradient(120% 90% at 50% 38%, #142231 0%, #0b131b 45%, var(--ink-0) 100%); }
+#stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--probe); outline-offset: 2px; }
+
+.panel { position: fixed; background: color-mix(in srgb, var(--ink-1) 88%, transparent); backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45); }
+
+/* brand */
+#leftCol { position: fixed; top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); width: 268px; bottom: calc(var(--gutter) + 70px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+#leftCol > * { pointer-events: auto; }
+#leftCol .panel { position: relative; }
+#brand { padding: 14px 16px 12px; flex: none; }
+#brand h1 { margin: 0; font: 600 30px/1 var(--f-display); letter-spacing: 0.01em; color: var(--bone); }
+#brand h1 em { font-style: italic; font-weight: 500; color: var(--text); }
+#brand p { margin: 4px 0 0; color: var(--text-dim); font-size: 12px; }
+#stats { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font: 500 11px/1.2 var(--f-data); font-variant-numeric: tabular-nums; }
+#stats div { background: var(--ink-2); border-radius: 6px; padding: 6px 7px; }
+#stats b { display: block; color: var(--text); font-weight: 500; font-size: 13px; }
+#stats span { color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; font-size: 9.5px; }
+#brand .build { margin-top: 8px; height: 2px; background: #1f2a33; border-radius: 2px; overflow: hidden; }
+#brand .build i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bone), var(--probe)); transition: width .2s; }
+#buildInfo { margin-top: 6px; font: 400 10.5px var(--f-data); color: var(--text-dim); letter-spacing: 0.02em; }
+
+/* layers */
+#layers { overflow: auto; padding: 10px 8px 8px; min-height: 0; flex: 0 1 auto; }
+.sec-title { font: 500 10.5px/1 var(--f-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 4px 8px 8px; display: flex; justify-content: space-between; align-items: center; }
+.sec-title button { background: none; border: 0; color: var(--probe); font: 500 10.5px var(--f-data); letter-spacing: 0.06em; padding: 2px 4px; }
+.layer { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 7px; }
+.layer:hover { background: var(--ink-2); }
+.layer .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.layer label { cursor: pointer; user-select: none; }
+.layer .count { color: var(--text-dim); font: 400 11px var(--f-data); margin-left: 6px; }
+.switch { position: relative; width: 30px; height: 17px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.switch i { position: absolute; inset: 0; border-radius: 10px; background: #2a3641; transition: background .15s; pointer-events: none; }
+.switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #9aa8b3; transition: transform .15s, background .15s; }
+.switch input:checked + i { background: color-mix(in srgb, var(--probe) 45%, #1d2a33); }
+.switch input:checked + i::after { transform: translateX(13px); background: #e9f8fb; }
+.layer .op { grid-column: 2 / 4; display: none; align-items: center; gap: 8px; color: var(--text-dim); font: 400 11px var(--f-data); }
+.layer.on .op { display: flex; }
+input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: 18px; }
+input[type=range]::-webkit-slider-runnable-track { height: 3px; background: #2a3641; border-radius: 2px; }
+input[type=range]::-moz-range-track { height: 3px; background: #2a3641; border-radius: 2px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--bone); margin-top: -5px; border: 0; }
+input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: var(--bone); border: 0; }
+
+/* search + info */
+#side { top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: 330px; display: flex; flex-direction: column; gap: 10px; position: fixed; max-height: calc(100% - 2 * var(--gutter) - 70px); }
+#searchBox { position: relative; padding: 0; }
+#search { width: 100%; background: transparent; border: 0; padding: 12px 14px 12px 38px; outline: none; font-size: 14px; }
+#searchBox svg { position: absolute; left: 13px; top: 13px; width: 16px; height: 16px; stroke: var(--text-dim); }
+#results { max-height: 300px; overflow: auto; border-top: 1px solid var(--rule); }
+#results:empty { display: none; }
+#results button { display: grid; grid-template-columns: 10px 1fr; gap: 10px; align-items: baseline; width: 100%; text-align: left; background: none; border: 0; padding: 8px 14px; }
+#results button:hover, #results button.act { background: var(--ink-2); }
+#results .dot { width: 8px; height: 8px; border-radius: 50%; transform: translateY(-1px); }
+#results small { display: block; color: var(--text-dim); font: italic 500 13px var(--f-display); }
+#info { padding: 16px 16px 14px; overflow: auto; position: relative; }
+#info .eyebrow { display: flex; gap: 8px; align-items: center; font: 500 10.5px var(--f-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+#info .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 6px; border-radius: 20px; background: var(--ink-2); color: var(--text); letter-spacing: 0.06em; }
+#info .chip i { width: 8px; height: 8px; border-radius: 50%; }
+#info h2 { margin: 10px 0 2px; font: 600 26px/1.08 var(--f-display); text-wrap: balance; color: var(--bone); }
+#info .latin { font: italic 500 18px/1.2 var(--f-display); color: var(--text); opacity: 0.85; }
+#info p { margin: 12px 0 0; color: #c3cdd4; max-width: 65ch; }
+#info .meta { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+#info .actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.btn { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; color: var(--text); }
+.btn:hover { border-color: color-mix(in srgb, var(--probe) 55%, transparent); }
+.btn.on { background: color-mix(in srgb, var(--probe) 22%, var(--ink-2)); border-color: color-mix(in srgb, var(--probe) 60%, transparent); }
+#info .close { position: absolute; top: 10px; right: 10px; background: none; border: 0; color: var(--text-dim); font-size: 20px; line-height: 1; padding: 4px 8px; }
+#hint { padding: 14px 16px; color: var(--text-dim); font-size: 12.5px; }
+#hint b { color: var(--text); font-weight: 500; }
+
+/* toolbar */
+#tools { left: 50%; transform: translateX(-50%); bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 4px; padding: 6px; max-width: calc(100% - 2 * var(--gutter)); overflow-x: auto; scrollbar-width: none; }
+#tools::-webkit-scrollbar { display: none; }
+#tools .grp { display: flex; gap: 2px; align-items: center; }
+#tools .sep { width: 1px; align-self: stretch; background: var(--rule); margin: 4px 6px; }
+#tools button { background: none; border: 0; border-radius: 7px; padding: 8px 10px; color: var(--text-dim); font-size: 12.5px; white-space: nowrap; }
+#tools button:hover { background: var(--ink-2); color: var(--text); }
+#tools button.on { background: color-mix(in srgb, var(--probe) 20%, var(--ink-2)); color: var(--text); }
+#tools .slider { display: flex; align-items: center; gap: 8px; padding: 0 8px; color: var(--text-dim); font-size: 12px; white-space: nowrap; }
+#tools .slider input { width: 92px; }
+#tools select { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 6px; font-size: 12px; }
+
+#tip { position: fixed; pointer-events: none; z-index: 20; padding: 6px 10px; border-radius: 6px; background: rgba(7, 11, 15, 0.92); border: 1px solid var(--rule); font-size: 12.5px; white-space: nowrap; transform: translate(14px, 14px); }
+#tip small { display: block; font: italic 500 13px var(--f-display); color: var(--text-dim); }
+#labels { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+#labels svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#labels .lb { position: absolute; transform: translate(-50%, -100%); font: 500 11.5px var(--f-ui); color: var(--text); background: rgba(7, 11, 15, 0.78); border: 1px solid var(--rule); padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+
+/* loading */
+#loader { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: radial-gradient(90% 70% at 50% 45%, #0f1a24, var(--ink-0)); transition: opacity .6s; }
+#loader.done { opacity: 0; pointer-events: none; }
+#loader .box { width: min(420px, calc(100% - 2 * var(--gutter))); }
+#loader h1 { margin: 0 0 4px; font: 600 44px/1 var(--f-display); color: var(--bone); }
+#loader h1 em { font-weight: 500; color: var(--text); }
+#loader p { margin: 0 0 22px; color: var(--text-dim); }
+#bar { height: 3px; background: #1f2a33; border-radius: 2px; overflow: hidden; }
+#bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bone), var(--probe)); transition: width .15s; }
+#step { margin-top: 10px; display: flex; justify-content: space-between; font: 400 12px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+#loader .err { color: var(--danger); margin-top: 14px; font: 400 12px var(--f-data); white-space: pre-wrap; }
+
+#tools #mobileBar { display: none; }
+@media (max-width: 860px) {
+  #leftCol { right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; bottom: auto; }
+  #brand { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  #brand .build, #buildInfo { flex-basis: 100%; margin-top: 0; }
+  #brand h1 { font-size: 24px; }
+  #brand p { display: none; }
+  #stats { margin: 0; grid-template-columns: repeat(3, auto); }
+  #stats div { padding: 4px 6px; }
+  #layers, #side { display: none; }
+  body.show-layers #layers { display: block; position: fixed; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 52%; }
+  body.show-info #side { display: flex; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 55%; }
+  #tools #mobileBar { display: flex; }
+  #tools { left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); transform: none; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { #loader, .switch i, .switch i::after { transition: none; } }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="labels"><svg></svg></div>
+
+<div id="leftCol">
+<header id="brand" class="panel">
+  <div>
+    <h1>Corpus <em>Atlas</em></h1>
+    <p>Prosedürel 3B insan anatomisi · tıkla, döndür, katman kaldır</p>
+  </div>
+  <div id="stats">
+    <div><b id="stParts">0</b><span>yapı</span></div>
+    <div><b id="stTris">0</b><span>üçgen</span></div>
+    <div><b id="stFps">–</b><span>fps</span></div>
+  </div>
+  <div class="build"><i id="buildBar"></i></div>
+  <div id="buildInfo">geometri üretiliyor…</div>
+</header>
+
+<nav id="layers" class="panel" aria-label="Katmanlar">
+  <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
+  <div id="layerList"></div>
+</nav>
+</div>
+
+<aside id="side">
+  <div id="searchBox" class="panel">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search" type="search" placeholder="Yapı ara: femur, kalp, siyatik…" autocomplete="off" aria-label="Yapı ara">
+    <div id="results" role="listbox"></div>
+  </div>
+  <section id="info" class="panel" hidden></section>
+  <section id="hint" class="panel"><b>Sol tık</b> yapı seç · <b>sürükle</b> döndür · <b>sağ tık / iki parmak</b> kaydır · <b>tekerlek</b> yakınlaş · <b>çift tık</b> odakla</section>
+</aside>
+
+<div id="tools" class="panel" role="toolbar" aria-label="Görünüm araçları">
+  <div class="grp" id="mobileBar">
+    <button id="mLayers" type="button">Katmanlar</button>
+    <button id="mInfo" type="button">Bilgi</button>
+    <div class="sep"></div>
+  </div>
+  <div class="grp" id="views"></div>
+  <div class="sep"></div>
+  <div class="grp">
+    <button id="tCut" type="button" title="Kesit düzlemi">Kesit</button>
+    <select id="cutAxis" aria-label="Kesit ekseni" hidden>
+      <option value="z">Koronal</option><option value="x">Sagital</option><option value="y">Transvers</option>
+    </select>
+    <div class="slider" id="cutWrap" hidden><input id="cutPos" type="range" min="0" max="1000" value="520" aria-label="Kesit konumu"></div>
+  </div>
+  <div class="slider"><span>Ayrıştır</span><input id="explode" type="range" min="0" max="100" value="0" aria-label="Ayrıştırma miktarı"></div>
+  <div class="sep"></div>
+  <div class="grp">
+    <button id="aHeart" type="button" class="on">Kalp atışı</button>
+    <button id="aBreath" type="button" class="on">Solunum</button>
+    <button id="aFlow" type="button">Kan akışı</button>
+    <button id="aNerve" type="button">Sinir iletimi</button>
+  </div>
+  <div class="sep"></div>
+  <div class="grp">
+    <button id="tLabels" type="button">Etiketler</button>
+    <button id="tSpin" type="button">Döndür</button>
+    <button id="tShadow" type="button" class="on">Gölge</button>
+  </div>
+</div>
+
+<div id="tip" hidden></div>
+
+<div id="loader">
+  <div class="box">
+    <h1>Corpus <em>Atlas</em></h1>
+    <p>Bütün geometri tarayıcınızda sıfırdan hesaplanıyor; hazır model dosyası yok.</p>
+    <div id="bar"><i></i></div>
+    <div id="step"><span id="stepName">Başlatılıyor…</span><span id="stepPct">0%</span></div>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<script type="module" id="app">
+// ---- 00-core.js ----
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// Everything in this atlas is generated procedurally at load time: bones and organs are
+// signed distance fields (SDF) meshed with surface nets, vessels/nerves/ribs are swept
+// tubes and muscles are sheets conformed to the body envelope. Units are metres,
+// +y up, +z anterior, +x is the body's LEFT side. Bilateral parts are modelled on the
+// left side and mirrored.
+
+const TAU = Math.PI * 2;
+const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const vec = (a) => (a.isVector3 ? a.clone() : new THREE.Vector3(a[0], a[1], a[2]));
+const arr = (v) => (v.isVector3 ? [v.x, v.y, v.z] : v);
+const add3 = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub3 = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul3 = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const mix3 = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross3 = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len3 = (a) => Math.sqrt(dot3(a, a));
+const norm3 = (a) => { const l = len3(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const mirX = (p) => [-p[0], p[1], p[2]];
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ---------- Perlin noise ----------
+const _perm = new Uint8Array(512);
+(() => {
+  const r = mulberry32(1337); const p = [...Array(256).keys()];
+  for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = p[i]; p[i] = p[j]; p[j] = t; }
+  for (let i = 0; i < 512; i++) _perm[i] = p[i & 255];
+})();
+const _fade = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+function _grad(h, x, y, z) {
+  const u = h < 8 ? x : y, v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+  return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+}
+function noise3(x, y, z) {
+  let X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+  x -= X; y -= Y; z -= Z; X &= 255; Y &= 255; Z &= 255;
+  const u = _fade(x), v = _fade(y), w = _fade(z), P = _perm;
+  const A = P[X] + Y, AA = P[A] + Z, AB = P[A + 1] + Z, B = P[X + 1] + Y, BA = P[B] + Z, BB = P[B + 1] + Z;
+  return lerp(
+    lerp(lerp(_grad(P[AA] & 15, x, y, z), _grad(P[BA] & 15, x - 1, y, z), u),
+      lerp(_grad(P[AB] & 15, x, y - 1, z), _grad(P[BB] & 15, x - 1, y - 1, z), u), v),
+    lerp(lerp(_grad(P[AA + 1] & 15, x, y, z - 1), _grad(P[BA + 1] & 15, x - 1, y, z - 1), u),
+      lerp(_grad(P[AB + 1] & 15, x, y - 1, z - 1), _grad(P[BB + 1] & 15, x - 1, y - 1, z - 1), u), v), w);
+}
+function fbm3(x, y, z, oct = 4) {
+  let s = 0, a = 0.5, f = 1;
+  for (let i = 0; i < oct; i++) { s += a * noise3(x * f, y * f, z * f); f *= 2.03; a *= 0.5; }
+  return s;
+}
+
+// ---------- SDF toolkit ----------
+// A shape is { f(x,y,z) -> signed distance, b: [minx,miny,minz,maxx,maxy,maxz] }.
+const BIG = 1e3;
+function boxDist(b, x, y, z) {
+  const dx = Math.max(b[0] - x, 0, x - b[3]);
+  const dy = Math.max(b[1] - y, 0, y - b[4]);
+  const dz = Math.max(b[2] - z, 0, z - b[5]);
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+function smin(a, b, k) {
+  if (k <= 0) return a < b ? a : b;
+  const h = Math.max(k - Math.abs(a - b), 0) / k;
+  return Math.min(a, b) - h * h * k * 0.25;
+}
+const smax = (a, b, k) => -smin(-a, -b, k);
+const expandBox = (b, e) => [b[0] - e, b[1] - e, b[2] - e, b[3] + e, b[4] + e, b[5] + e];
+function boxOfPoints(pts, pad = 0) {
+  const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (const p of pts) for (let i = 0; i < 3; i++) { b[i] = Math.min(b[i], p[i] - pad); b[i + 3] = Math.max(b[i + 3], p[i] + pad); }
+  return b;
+}
+
+// orthonormal frame with w along `dir` and u roughly along `hint`
+function frameFrom(dir, hint = [1, 0, 0]) {
+  const w = norm3(dir);
+  let u = sub3(hint, mul3(w, dot3(hint, w)));
+  if (len3(u) < 1e-6) u = Math.abs(w[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  u = norm3(sub3(u, mul3(w, dot3(u, w))));
+  const v = cross3(w, u);
+  return [u, v, w];
+}
+
+const SD = {
+  sphere(c, r) {
+    const [cx, cy, cz] = c;
+    return { f: (x, y, z) => { const dx = x - cx, dy = y - cy, dz = z - cz; return Math.sqrt(dx * dx + dy * dy + dz * dz) - r; }, b: [cx - r, cy - r, cz - r, cx + r, cy + r, cz + r] };
+  },
+  // ellipsoid; optional axes [u,v,w] (orthonormal) with radii r=[ru,rv,rw]
+  ell(c, r, ax) {
+    const [cx, cy, cz] = c; const [a, b, d] = r; const mn = Math.min(a, b, d);
+    const ia = 1 / a, ib = 1 / b, id = 1 / d, ia2 = ia * ia, ib2 = ib * ib, id2 = id * id;
+    if (!ax) {
+      return {
+        f: (x, y, z) => {
+          const px = x - cx, py = y - cy, pz = z - cz;
+          const k0 = Math.sqrt(px * px * ia2 + py * py * ib2 + pz * pz * id2);
+          const k1 = Math.sqrt(px * px * ia2 * ia2 + py * py * ib2 * ib2 + pz * pz * id2 * id2);
+          return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+        }, b: [cx - a, cy - b, cz - d, cx + a, cy + b, cz + d]
+      };
+    }
+    const [U, Vv, W] = ax;
+    const ex = Math.abs(U[0]) * a + Math.abs(Vv[0]) * b + Math.abs(W[0]) * d;
+    const ey = Math.abs(U[1]) * a + Math.abs(Vv[1]) * b + Math.abs(W[1]) * d;
+    const ez = Math.abs(U[2]) * a + Math.abs(Vv[2]) * b + Math.abs(W[2]) * d;
+    return {
+      f: (x, y, z) => {
+        const px = x - cx, py = y - cy, pz = z - cz;
+        const lu = px * U[0] + py * U[1] + pz * U[2], lv = px * Vv[0] + py * Vv[1] + pz * Vv[2], lw = px * W[0] + py * W[1] + pz * W[2];
+        const k0 = Math.sqrt(lu * lu * ia2 + lv * lv * ib2 + lw * lw * id2);
+        const k1 = Math.sqrt(lu * lu * ia2 * ia2 + lv * lv * ib2 * ib2 + lw * lw * id2 * id2);
+        return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+      }, b: [cx - ex, cy - ey, cz - ez, cx + ex, cy + ey, cz + ez]
+    };
+  },
+  // ellipsoid whose long axis (radius rl) runs from point a to b direction; cross radii r1 (along hint) r2
+  ellAlong(c, dir, rl, r1, r2, hint = [1, 0, 0]) {
+    const [u, v, w] = frameFrom(dir, hint);
+    return SD.ell(c, [r1, r2, rl], [u, v, w]);
+  },
+  // round cone between points a,b with radii r1,r2 (Inigo Quilez)
+  cone(a, b, r1, r2) {
+    if (r2 === undefined) r2 = r1;
+    const [ax, ay, az] = a; const bax = b[0] - ax, bay = b[1] - ay, baz = b[2] - az;
+    const l2 = bax * bax + bay * bay + baz * baz; const rr = r1 - r2; const a2 = l2 - rr * rr; const il2 = 1 / l2;
+    const bb = [Math.min(a[0] - r1, b[0] - r2), Math.min(a[1] - r1, b[1] - r2), Math.min(a[2] - r1, b[2] - r2),
+      Math.max(a[0] + r1, b[0] + r2), Math.max(a[1] + r1, b[1] + r2), Math.max(a[2] + r1, b[2] + r2)];
+    if (a2 <= 1e-12) { const big = r1 > r2 ? SD.sphere(a, r1) : SD.sphere(b, r2); return big; }
+    return {
+      f: (x, y, z) => {
+        const pax = x - ax, pay = y - ay, paz = z - az;
+        const yy = pax * bax + pay * bay + paz * baz; const zz = yy - l2;
+        const qx = pax * l2 - bax * yy, qy = pay * l2 - bay * yy, qz = paz * l2 - baz * yy;
+        const x2 = qx * qx + qy * qy + qz * qz; const y2 = yy * yy * l2; const z2 = zz * zz * l2;
+        const k = Math.sign(rr) * rr * rr * x2;
+        if (Math.sign(zz) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - r2;
+        if (Math.sign(yy) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - r1;
+        return (Math.sqrt(x2 * a2 * il2) + yy * rr) * il2 - r1;
+      }, b: bb
+    };
+  },
+  // rounded box with half-size h, optional axes, rounding r
+  box(c, h, ax, r = 0) {
+    const [cx, cy, cz] = c; const [hx, hy, hz] = [h[0] - r, h[1] - r, h[2] - r];
+    const [U, Vv, W] = ax || [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    const ex = Math.abs(U[0]) * h[0] + Math.abs(Vv[0]) * h[1] + Math.abs(W[0]) * h[2];
+    const ey = Math.abs(U[1]) * h[0] + Math.abs(Vv[1]) * h[1] + Math.abs(W[1]) * h[2];
+    const ez = Math.abs(U[2]) * h[0] + Math.abs(Vv[2]) * h[1] + Math.abs(W[2]) * h[2];
+    return {
+      f: (x, y, z) => {
+        const px = x - cx, py = y - cy, pz = z - cz;
+        const qx = Math.abs(px * U[0] + py * U[1] + pz * U[2]) - hx;
+        const qy = Math.abs(px * Vv[0] + py * Vv[1] + pz * Vv[2]) - hy;
+        const qz = Math.abs(px * W[0] + py * W[1] + pz * W[2]) - hz;
+        const ox = Math.max(qx, 0), oy = Math.max(qy, 0), oz = Math.max(qz, 0);
+        return Math.sqrt(ox * ox + oy * oy + oz * oz) + Math.min(Math.max(qx, qy, qz), 0) - r;
+      }, b: [cx - ex, cy - ey, cz - ez, cx + ex, cy + ey, cz + ez]
+    };
+  },
+  // torus in plane perpendicular to axis n, major R minor r
+  torus(c, n, R, r) {
+    const [u, v, w] = frameFrom(n);
+    const e = R + r;
+    return {
+      f: (x, y, z) => {
+        const px = x - c[0], py = y - c[1], pz = z - c[2];
+        const lu = px * u[0] + py * u[1] + pz * u[2], lv = px * v[0] + py * v[1] + pz * v[2], lw = px * w[0] + py * w[1] + pz * w[2];
+        const q = Math.sqrt(lu * lu + lv * lv) - R;
+        return Math.sqrt(q * q + lw * lw) - r;
+      }, b: [c[0] - e, c[1] - e, c[2] - e, c[0] + e, c[1] + e, c[2] + e]
+    };
+  },
+  // half-space: points with dot(p - o, n) > 0 are outside
+  plane(o, n) {
+    const nn = norm3(n); const d = dot3(o, nn);
+    return { f: (x, y, z) => x * nn[0] + y * nn[1] + z * nn[2] - d, b: [-BIG, -BIG, -BIG, BIG, BIG, BIG] };
+  },
+  // chain of round cones through points with per-point radii (smooth tube)
+  tube(pts, radii, k = 0) {
+    const parts = [];
+    for (let i = 0; i < pts.length - 1; i++) parts.push(SD.cone(pts[i], pts[i + 1], radii[i], radii[i + 1]));
+    return parts.length === 1 ? parts[0] : U(k, parts);
+  },
+  // thin plate: 2D polygon (in local u,v) extruded along w with thickness th(u,v);
+  // map(x,y,z) -> [u,v,w] gives local coords (can be curved). Box must be supplied.
+  // edge = [extra thickness at the rim, falloff width] thickens borders (crests, margins).
+  plate(poly, map, th, box, round = 0.0015, edge = null) {
+    const P = poly.flat();
+    const thf = typeof th === 'function' ? th : () => th;
+    const eAdd = edge ? edge[0] : 0, eW = edge ? edge[1] : 1;
+    let u0 = Infinity, v0 = Infinity, u1 = -Infinity, v1 = -Infinity;
+    for (const [u, v] of poly) { u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
+    return {
+      f: (x, y, z) => {
+        const q = map(x, y, z);
+        const tb = thf(q[0], q[1]);
+        const twc = Math.abs(q[2]) - (tb + eAdd) * 0.5;
+        const du = Math.max(u0 - q[0], 0, q[0] - u1), dv = Math.max(v0 - q[1], 0, q[1] - v1);
+        const db = Math.sqrt(du * du + dv * dv);
+        if (twc > 0.005 || db > 0.005) return Math.max(twc, db) * 0.8;
+        const d2 = sdPolygon(q[0], q[1], P);
+        const t = tb + (eAdd ? eAdd * Math.exp(Math.min(d2, 0) / eW) : 0);
+        const dw = Math.abs(q[2]) - t * 0.5 + round;
+        const d2r = d2 + round;
+        const ox = Math.max(d2r, 0), oy = Math.max(dw, 0);
+        return Math.min(Math.max(d2r, dw), 0) + Math.sqrt(ox * ox + oy * oy) - round;
+      }, b: box
+    };
+  },
+};
+
+function sdPolygon(px, py, P) {
+  const n = P.length / 2;
+  let d = (px - P[0]) * (px - P[0]) + (py - P[1]) * (py - P[1]); let s = 1;
+  for (let i = 0, j = n - 1; i < n; j = i, i++) {
+    const vix = P[2 * i], viy = P[2 * i + 1], vjx = P[2 * j], vjy = P[2 * j + 1];
+    const ex = vjx - vix, ey = vjy - viy, wx = px - vix, wy = py - viy;
+    const t = clamp((wx * ex + wy * ey) / (ex * ex + ey * ey), 0, 1);
+    const bx = wx - ex * t, by = wy - ey * t;
+    const dd = bx * bx + by * by; if (dd < d) d = dd;
+    const c1 = py >= viy, c2 = py < vjy, c3 = ex * wy > ey * wx;
+    if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
+  }
+  return s * Math.sqrt(d);
+}
+
+// smooth closed outline through control points (Catmull-Rom), returns [[u,v],...]
+function smoothOutline(ctrl, per = 8) {
+  const out = []; const n = ctrl.length;
+  for (let i = 0; i < n; i++) {
+    const p0 = ctrl[(i - 1 + n) % n], p1 = ctrl[i], p2 = ctrl[(i + 1) % n], p3 = ctrl[(i + 2) % n];
+    for (let s = 0; s < per; s++) {
+      const t = s / per, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  return out;
+}
+
+// union with bounding-box culling; large unions are split into a box hierarchy
+function boxDist2(b, x, y, z) {
+  const dx = Math.max(b[0] - x, 0, x - b[3]);
+  const dy = Math.max(b[1] - y, 0, y - b[4]);
+  const dz = Math.max(b[2] - z, 0, z - b[5]);
+  return dx * dx + dy * dy + dz * dz;
+}
+function U(k, ...shapes) {
+  shapes = shapes.flat(Infinity).filter(Boolean);
+  if (shapes.length === 1) return shapes[0];
+  const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (const s of shapes) for (let i = 0; i < 3; i++) { b[i] = Math.min(b[i], s.b[i]); b[i + 3] = Math.max(b[i + 3], s.b[i + 3]); }
+  if (shapes.length > 6) {
+    const ext = [b[3] - b[0], b[4] - b[1], b[5] - b[2]]; const ax = ext.indexOf(Math.max(...ext));
+    const sorted = shapes.slice().sort((p, q) => (p.b[ax] + p.b[ax + 3]) - (q.b[ax] + q.b[ax + 3]));
+    const mid = sorted.length >> 1;
+    return U(k, U(k, sorted.slice(0, mid)), U(k, sorted.slice(mid)));
+  }
+  const n = shapes.length; const fs = shapes.map(s => s.f); const bs = shapes.map(s => s.b);
+  const bd = new Float64Array(n);
+  return {
+    f: (x, y, z) => {
+      // evaluate the nearest child first, then only children whose box can still matter
+      let m = 0;
+      for (let i = 0; i < n; i++) { bd[i] = boxDist2(bs[i], x, y, z); if (bd[i] < bd[m]) m = i; }
+      let d = fs[m](x, y, z);
+      for (let i = 0; i < n; i++) {
+        if (i === m) continue;
+        const lim = d + k;
+        if (lim <= 0 || bd[i] >= lim * lim) continue;
+        d = smin(d, fs[i](x, y, z), k);
+      }
+      return d;
+    }, b: expandBox(b, k * 0.3)
+  };
+}
+// subtract b (and more) from a
+function Sub(a, k, ...cut) {
+  cut = cut.flat(Infinity).filter(Boolean);
+  const cf = cut.map(s => s.f), cb = cut.map(s => s.b);
+  return {
+    f: (x, y, z) => {
+      let d = a.f(x, y, z);
+      for (let i = 0; i < cf.length; i++) {
+        if (boxDist(cb[i], x, y, z) + d >= k) continue;
+        d = smax(d, -cf[i](x, y, z), k);
+      }
+      return d;
+    }, b: a.b
+  };
+}
+function I(k, a, ...others) {
+  const b = a.b.slice();
+  for (const o of others) for (let i = 0; i < 3; i++) { b[i] = Math.max(b[i], o.b[i]); b[i + 3] = Math.min(b[i + 3], o.b[i + 3]); }
+  const fs = others.map(o => o.f);
+  return { f: (x, y, z) => { let d = a.f(x, y, z); for (const f of fs) d = smax(d, f(x, y, z), k); return d; }, b };
+}
+const Round = (s, r) => ({ f: (x, y, z) => s.f(x, y, z) - r, b: expandBox(s.b, r) });
+const Shell = (s, t) => ({ f: (x, y, z) => Math.abs(s.f(x, y, z)) - t, b: expandBox(s.b, t) });
+function Disp(s, fn, amp) { return { f: (x, y, z) => s.f(x, y, z) + fn(x, y, z), b: expandBox(s.b, amp) }; }
+function MirX(s) { return { f: (x, y, z) => s.f(-x, y, z), b: [-s.b[3], s.b[1], s.b[2], -s.b[0], s.b[4], s.b[5]] }; }
+function SymX(s) { const m = Math.max(Math.abs(s.b[0]), Math.abs(s.b[3])); return { f: (x, y, z) => s.f(Math.abs(x), y, z), b: [-m, s.b[1], s.b[2], m, s.b[4], s.b[5]] }; }
+// shape defined in a local frame (origin o, axes ax=[X,Y,Z]) placed into world
+function Place(s, o, ax) {
+  const [X, Y, Z] = ax;
+  const cs = [];
+  for (let i = 0; i < 8; i++) {
+    const l = [(i & 1) ? s.b[3] : s.b[0], (i & 2) ? s.b[4] : s.b[1], (i & 4) ? s.b[5] : s.b[2]];
+    cs.push([o[0] + X[0] * l[0] + Y[0] * l[1] + Z[0] * l[2], o[1] + X[1] * l[0] + Y[1] * l[1] + Z[1] * l[2], o[2] + X[2] * l[0] + Y[2] * l[1] + Z[2] * l[2]]);
+  }
+  return {
+    f: (x, y, z) => {
+      const px = x - o[0], py = y - o[1], pz = z - o[2];
+      return s.f(px * X[0] + py * X[1] + pz * X[2], px * Y[0] + py * Y[1] + pz * Y[2], px * Z[0] + py * Z[1] + pz * Z[2]);
+    }, b: boxOfPoints(cs)
+  };
+}
+
+// ---------- Surface nets mesher ----------
+const _tet = [[1, -1, -1], [-1, -1, 1], [-1, 1, -1], [1, 1, 1]];
+function sdfGrad(f, x, y, z, e) {
+  let gx = 0, gy = 0, gz = 0;
+  for (let k = 0; k < 4; k++) { const t = _tet[k]; const v = f(x + t[0] * e, y + t[1] * e, z + t[2] * e); gx += t[0] * v; gy += t[1] * v; gz += t[2] * v; }
+  const l = Math.sqrt(gx * gx + gy * gy + gz * gz) || 1;
+  return [gx / l, gy / l, gz / l];
+}
+
+const STATS = { evals: 0, tris: 0, meshes: 0 };
+
+// Adaptive sampling: blocks whose corners prove (via the Lipschitz bound) that no surface
+// passes through them are filled by interpolation; only a thin band around the surface is
+// evaluated exactly. opts: { ao: distance, aoMin, color(x,y,z,n)->[r,g,b], keepField, lip }
+function meshSDF(shape, h, opts = {}) {
+  const f = shape.f;
+  const b = opts.box || shape.b;
+  const pad = 2.5 * h;
+  const x0 = b[0] - pad, y0 = b[1] - pad, z0 = b[2] - pad;
+  const nx = Math.ceil((b[3] + pad - x0) / h) + 1, ny = Math.ceil((b[4] + pad - y0) / h) + 1, nz = Math.ceil((b[5] + pad - z0) / h) + 1;
+  const sy = nx, sz = nx * ny, N = nx * ny * nz;
+  if (N > 6e7) throw new Error('grid too large ' + N);
+  const vals = new Float32Array(N); const done = new Uint8Array(N);
+  const L = opts.lip || 1.35;
+  let evals = 0;
+  const node = (ix, iy, iz) => {
+    const i = ix + iy * sy + iz * sz;
+    if (!done[i]) { vals[i] = f(x0 + ix * h, y0 + iy * h, z0 + iz * h); done[i] = 1; evals++; }
+    return vals[i];
+  };
+  const farB = [];
+  const block = (bx, by, bz, s) => {
+    const ex = Math.min(bx + s, nx - 1), ey = Math.min(by + s, ny - 1), ez = Math.min(bz + s, nz - 1);
+    if (ex <= bx || ey <= by || ez <= bz) return;
+    let mn = Infinity, neg = 0;
+    for (let c = 0; c < 8; c++) {
+      const v = node((c & 1) ? ex : bx, (c & 2) ? ey : by, (c & 4) ? ez : bz);
+      const a = v < 0 ? -v : v; if (a < mn) mn = a; if (v < 0) neg++;
+    }
+    const dx = ex - bx, dy = ey - by, dz = ez - bz;
+    if ((neg === 0 || neg === 8) && mn > Math.sqrt(dx * dx + dy * dy + dz * dz) * h * L) { farB.push(bx, by, bz, ex, ey, ez); return; }
+    if (s <= 2) {
+      for (let iz = bz; iz <= ez; iz++) for (let iy = by; iy <= ey; iy++) for (let ix = bx; ix <= ex; ix++) node(ix, iy, iz);
+      return;
+    }
+    const hs = s >> 1;
+    for (let k = 0; k < 8; k++) block(bx + ((k & 1) ? hs : 0), by + ((k & 2) ? hs : 0), bz + ((k & 4) ? hs : 0), hs);
+  };
+  const S0 = 16;
+  for (let bz = 0; bz < nz - 1; bz += S0) for (let by = 0; by < ny - 1; by += S0) for (let bx = 0; bx < nx - 1; bx += S0) block(bx, by, bz, S0);
+  // fill skipped nodes by trilinear interpolation of their block corners
+  for (let q = 0; q < farB.length; q += 6) {
+    const bx = farB[q], by = farB[q + 1], bz = farB[q + 2], ex = farB[q + 3], ey = farB[q + 4], ez = farB[q + 5];
+    const c000 = vals[bx + by * sy + bz * sz], c100 = vals[ex + by * sy + bz * sz], c010 = vals[bx + ey * sy + bz * sz], c110 = vals[ex + ey * sy + bz * sz];
+    const c001 = vals[bx + by * sy + ez * sz], c101 = vals[ex + by * sy + ez * sz], c011 = vals[bx + ey * sy + ez * sz], c111 = vals[ex + ey * sy + ez * sz];
+    const ix0 = 1 / (ex - bx), iy0 = 1 / (ey - by), iz0 = 1 / (ez - bz);
+    for (let iz = bz; iz <= ez; iz++) {
+      const tz = (iz - bz) * iz0;
+      for (let iy = by; iy <= ey; iy++) {
+        const ty = (iy - by) * iy0;
+        const a0 = lerp(lerp(c000, c010, ty), lerp(c001, c011, ty), tz), a1 = lerp(lerp(c100, c110, ty), lerp(c101, c111, ty), tz);
+        let i = bx + iy * sy + iz * sz;
+        for (let ix = bx; ix <= ex; ix++, i++) if (!done[i]) { vals[i] = lerp(a0, a1, (ix - bx) * ix0); done[i] = 2; }
+      }
+    }
+  }
+  STATS.evals += evals;
+  // one vertex per surface cell
+  const cx = nx - 1, cy = ny - 1, czn = nz - 1;
+  const cellIdx = new Int32Array(cx * cy * czn).fill(-1);
+  const pos = [];
+  const off = [0, 1, sy, sy + 1, sz, sz + 1, sz + sy, sz + sy + 1];
+  const EA = [0, 2, 4, 6, 0, 1, 4, 5, 0, 1, 2, 3], EB = [1, 3, 5, 7, 2, 3, 6, 7, 4, 5, 6, 7];
+  const cv = new Float64Array(8);
+  const keep = opts.keep || null;
+  for (let iz = 0; iz < czn; iz++) for (let iy = 0; iy < cy; iy++) {
+    let i = iy * sy + iz * sz;
+    for (let ix = 0; ix < cx; ix++, i++) {
+      if (!done[i]) continue;
+      if (keep && !keep(x0 + (ix + 0.5) * h, y0 + (iy + 0.5) * h, z0 + (iz + 0.5) * h)) continue;
+      let mask = 0;
+      for (let c = 0; c < 8; c++) { const v = vals[i + off[c]]; cv[c] = v; if (v < 0) mask |= 1 << c; }
+      if (mask === 0 || mask === 255) continue;
+      let px = 0, py = 0, pz = 0, cnt = 0;
+      for (let e = 0; e < 12; e++) {
+        const a = EA[e], bb = EB[e]; const va = cv[a], vb = cv[bb];
+        if ((va < 0) === (vb < 0)) continue;
+        const t = va / (va - vb);
+        px += (a & 1) + ((bb & 1) - (a & 1)) * t;
+        py += ((a >> 1) & 1) + (((bb >> 1) & 1) - ((a >> 1) & 1)) * t;
+        pz += ((a >> 2) & 1) + (((bb >> 2) & 1) - ((a >> 2) & 1)) * t;
+        cnt++;
+      }
+      cellIdx[ix + iy * cx + iz * cx * cy] = pos.length / 3;
+      pos.push(x0 + (ix + px / cnt) * h, y0 + (iy + py / cnt) * h, z0 + (iz + pz / cnt) * h);
+    }
+  }
+  const idx = [];
+  const cell = (ix, iy, iz) => cellIdx[ix + iy * cx + iz * cx * cy];
+  const quad = (a, b2, c, d) => { if (a >= 0 && b2 >= 0 && c >= 0 && d >= 0) idx.push(a, b2, c, a, c, d); };
+  for (let iz = 1; iz < czn; iz++) for (let iy = 1; iy < cy; iy++) for (let ix = 1; ix < cx; ix++) {
+    const i = ix + iy * sy + iz * sz; const inA = vals[i] < 0;
+    if (inA !== (vals[i + 1] < 0)) {
+      const c0 = cell(ix, iy - 1, iz - 1), c1 = cell(ix, iy, iz - 1), c2 = cell(ix, iy, iz), c3 = cell(ix, iy - 1, iz);
+      inA ? quad(c0, c1, c2, c3) : quad(c0, c3, c2, c1);
+    }
+    if (inA !== (vals[i + sy] < 0)) {
+      const c0 = cell(ix - 1, iy, iz - 1), c1 = cell(ix - 1, iy, iz), c2 = cell(ix, iy, iz), c3 = cell(ix, iy, iz - 1);
+      inA ? quad(c0, c1, c2, c3) : quad(c0, c3, c2, c1);
+    }
+    if (inA !== (vals[i + sz] < 0)) {
+      const c0 = cell(ix - 1, iy - 1, iz), c1 = cell(ix, iy - 1, iz), c2 = cell(ix, iy, iz), c3 = cell(ix - 1, iy, iz);
+      inA ? quad(c0, c1, c2, c3) : quad(c0, c3, c2, c1);
+    }
+  }
+  const field = { vals, x0, y0, z0, h, nx, ny, nz };
+  const samp = fieldSampler(field);
+  const nv = pos.length / 3;
+  const P = new Float32Array(pos); const Nn = new Float32Array(nv * 3); const Cc = new Float32Array(nv * 3);
+  const e = h * 0.5;
+  const aoD = opts.ao ?? 0; const aoMin = opts.aoMin ?? 0.35;
+  for (let i = 0; i < nv; i++) {
+    let x = P[3 * i], y = P[3 * i + 1], z = P[3 * i + 2];
+    const g = sdfGrad(f, x, y, z, e);
+    const d = clamp(f(x, y, z), -h, h);
+    x -= g[0] * d; y -= g[1] * d; z -= g[2] * d;
+    P[3 * i] = x; P[3 * i + 1] = y; P[3 * i + 2] = z;
+    Nn[3 * i] = g[0]; Nn[3 * i + 1] = g[1]; Nn[3 * i + 2] = g[2];
+    let ao = 1;
+    if (aoD > 0) {
+      let occ = 0, sca = 1;
+      for (let s = 1; s <= 4; s++) {
+        const hr = aoD * s / 4; const dd = samp(x + g[0] * hr, y + g[1] * hr, z + g[2] * hr);
+        occ += Math.max(hr - dd, 0) * sca; sca *= 0.7;
+      }
+      ao = clamp(1 - 1.3 * occ / aoD, 0, 1);
+    }
+    const col = opts.color ? opts.color(x, y, z, g) : null;
+    const k = aoMin + (1 - aoMin) * ao;
+    Cc[3 * i] = (col ? col[0] : 1) * k; Cc[3 * i + 1] = (col ? col[1] : 1) * k; Cc[3 * i + 2] = (col ? col[2] : 1) * k;
+  }
+  STATS.evals += nv * 5;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(P, 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(Nn, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(Cc, 3));
+  geo.setIndex(new THREE.BufferAttribute(nv > 65535 ? new Uint32Array(idx) : new Uint16Array(idx), 1));
+  geo.computeBoundingSphere(); geo.computeBoundingBox();
+  if (opts.keepField) geo.userData.field = field;
+  return geo;
+}
+
+// trilinear sampler over a kept field
+function fieldSampler(F) {
+  const { vals, x0, y0, z0, h, nx, ny, nz } = F; const sy = nx, sz = nx * ny;
+  const s = (x, y, z) => {
+    let gx = (x - x0) / h, gy = (y - y0) / h, gz = (z - z0) / h;
+    gx = clamp(gx, 0, nx - 1.001); gy = clamp(gy, 0, ny - 1.001); gz = clamp(gz, 0, nz - 1.001);
+    const ix = gx | 0, iy = gy | 0, iz = gz | 0; const fx = gx - ix, fy = gy - iy, fz = gz - iz;
+    const i = ix + iy * sy + iz * sz;
+    const c00 = lerp(vals[i], vals[i + 1], fx), c10 = lerp(vals[i + sy], vals[i + sy + 1], fx);
+    const c01 = lerp(vals[i + sz], vals[i + sz + 1], fx), c11 = lerp(vals[i + sz + sy], vals[i + sz + sy + 1], fx);
+    return lerp(lerp(c00, c10, fy), lerp(c01, c11, fy), fz);
+  };
+  return s;
+}
+// move point p onto iso-surface f = target (negative = inside)
+function projectTo(f, p, target, iters = 4, e = 0.003) {
+  let [x, y, z] = p;
+  for (let i = 0; i < iters; i++) {
+    const g = sdfGrad(f, x, y, z, e); const d = f(x, y, z) - target;
+    x -= g[0] * d; y -= g[1] * d; z -= g[2] * d;
+  }
+  return [x, y, z];
+}
+
+// ---------- swept tubes ----------
+// pts: control points ([x,y,z] or Vector3). opts: r (number|t=>r), rx/ry (t=>r) for elliptic,
+// rMod(t,theta) multiplier, radial, step, up (fixed reference => B tends to `up`), caps, color(t)->[r,g,b]
+function sweep(pts, opts = {}) {
+  const V = pts.map(vec);
+  const curve = V.length === 2 ? new THREE.LineCurve3(V[0], V[1]) : new THREE.CatmullRomCurve3(V, !!opts.closed, 'centripetal');
+  const len = curve.getLength();
+  const seg = opts.seg || Math.max(4, Math.ceil(len / (opts.step || 0.004)));
+  const P = curve.getSpacedPoints(seg);
+  const n = P.length; const radial = opts.radial || 12;
+  const rf = typeof opts.r === 'function' ? opts.r : () => (opts.r ?? 0.003);
+  const rxf = opts.rx || rf, ryf = opts.ry || rf;
+  const T = [], N = [], Bn = [];
+  for (let i = 0; i < n; i++) {
+    const a = P[Math.max(i - 1, 0)], b = P[Math.min(i + 1, n - 1)];
+    T.push(b.clone().sub(a).normalize());
+  }
+  if (opts.up) {
+    const up = vec(opts.up);
+    for (let i = 0; i < n; i++) {
+      let bb = up.clone().sub(T[i].clone().multiplyScalar(T[i].dot(up)));
+      if (bb.lengthSq() < 1e-8) bb = Bn[i - 1] ? Bn[i - 1].clone() : new THREE.Vector3(1, 0, 0);
+      bb.normalize(); Bn.push(bb); N.push(bb.clone().cross(T[i]).normalize());
+    }
+  } else {
+    let n0 = Math.abs(T[0].y) < 0.9 ? V3(0, 1, 0) : V3(1, 0, 0);
+    n0.sub(T[0].clone().multiplyScalar(T[0].dot(n0))).normalize();
+    N.push(n0); Bn.push(T[0].clone().cross(n0).normalize());
+    for (let i = 1; i < n; i++) {
+      const nn = N[i - 1].clone().sub(T[i].clone().multiplyScalar(T[i].dot(N[i - 1]))).normalize();
+      N.push(nn); Bn.push(T[i].clone().cross(nn).normalize());
+    }
+  }
+  const pos = [], nor = [], uv = [], col = [], idx = [];
+  let arc = 0;
+  const ring = (i, t) => {
+    const rx = rxf(t), ry = ryf(t);
+    const c = opts.color ? opts.color(t) : null;
+    for (let j = 0; j <= radial; j++) {
+      const th = (j / radial) * TAU; const cs = Math.cos(th), sn = Math.sin(th);
+      const m = opts.rMod ? opts.rMod(t, th) : 1;
+      const ox = N[i].x * cs * rx * m + Bn[i].x * sn * ry * m, oy = N[i].y * cs * rx * m + Bn[i].y * sn * ry * m, oz = N[i].z * cs * rx * m + Bn[i].z * sn * ry * m;
+      pos.push(P[i].x + ox, P[i].y + oy, P[i].z + oz);
+      const nx = N[i].x * cs / rx + Bn[i].x * sn / ry, ny = N[i].y * cs / rx + Bn[i].y * sn / ry, nz = N[i].z * cs / rx + Bn[i].z * sn / ry;
+      const l = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1; nor.push(nx / l, ny / l, nz / l);
+      uv.push(j / radial, arc * (opts.uvScale || 40));
+      if (c) col.push(c[0], c[1], c[2]); else col.push(1, 1, 1);
+    }
+  };
+  for (let i = 0; i < n; i++) { if (i > 0) arc += P[i].distanceTo(P[i - 1]); ring(i, i / (n - 1)); }
+  const R = radial + 1;
+  for (let i = 0; i < n - 1; i++) for (let j = 0; j < radial; j++) {
+    const a = i * R + j, b = (i + 1) * R + j, c = (i + 1) * R + j + 1, d = i * R + j + 1;
+    idx.push(a, d, c, a, c, b);
+  }
+  if (opts.caps !== false) {
+    for (const end of [0, 1]) {
+      const i = end ? n - 1 : 0; const t = end ? 1 : 0; const dir = end ? T[i] : T[i].clone().negate();
+      const rx = rxf(t), ry = ryf(t); const c = opts.color ? opts.color(t) : [1, 1, 1];
+      const rings = 3;
+      let prev = i * R;
+      for (let k = 1; k <= rings; k++) {
+        const ph = (k / (rings + 1)) * Math.PI / 2; const cr = Math.cos(ph), sr = Math.sin(ph);
+        const start = pos.length / 3;
+        for (let j = 0; j <= radial; j++) {
+          const th = (j / radial) * TAU; const cs = Math.cos(th), sn = Math.sin(th);
+          const m = opts.rMod ? opts.rMod(t, th) : 1;
+          const o = N[i].clone().multiplyScalar(cs * rx * cr * m).add(Bn[i].clone().multiplyScalar(sn * ry * cr * m)).add(dir.clone().multiplyScalar(Math.min(rx, ry) * sr));
+          pos.push(P[i].x + o.x, P[i].y + o.y, P[i].z + o.z);
+          const nn = o.clone().normalize(); nor.push(nn.x, nn.y, nn.z); uv.push(j / radial, 0); col.push(c[0], c[1], c[2]);
+        }
+        for (let j = 0; j < radial; j++) {
+          const a = prev + j, b = start + j, cc = start + j + 1, d = prev + j + 1;
+          if (end) idx.push(a, d, cc, a, cc, b); else idx.push(a, b, cc, a, cc, d);
+        }
+        prev = start;
+      }
+      const pole = pos.length / 3; const o = dir.clone().multiplyScalar(Math.min(rx, ry));
+      pos.push(P[i].x + o.x, P[i].y + o.y, P[i].z + o.z); nor.push(dir.x, dir.y, dir.z); uv.push(0.5, 0); col.push(c[0], c[1], c[2]);
+      for (let j = 0; j < radial; j++) { if (end) idx.push(prev + j, prev + j + 1, pole); else idx.push(prev + j, pole, prev + j + 1); }
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  geo.setIndex(pos.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1));
+  geo.computeBoundingSphere(); geo.computeBoundingBox();
+  geo.userData.path = P.map(p => [p.x, p.y, p.z]);
+  return geo;
+}
+
+function mirrorGeometry(g) {
+  const m = g.clone();
+  const p = m.attributes.position, n = m.attributes.normal;
+  for (let i = 0; i < p.count; i++) { p.setX(i, -p.getX(i)); if (n) n.setX(i, -n.getX(i)); }
+  const ix = m.index;
+  if (ix) for (let i = 0; i < ix.count; i += 3) { const a = ix.getX(i + 1); ix.setX(i + 1, ix.getX(i + 2)); ix.setX(i + 2, a); }
+  if (g.userData.path) m.userData.path = g.userData.path.map(mirX);
+  m.computeBoundingSphere(); m.computeBoundingBox();
+  return m;
+}
+
+// merge several (indexed) geometries with identical attribute sets
+function mergeGeos(list) {
+  list = list.filter(Boolean);
+  if (list.length === 1) return list[0];
+  const names = Object.keys(list[0].attributes);
+  let total = 0, totalIdx = 0;
+  for (const g of list) { total += g.attributes.position.count; totalIdx += g.index.count; }
+  const out = new THREE.BufferGeometry();
+  for (const nm of names) {
+    const sz = list[0].attributes[nm].itemSize; const a = new Float32Array(total * sz); let o = 0;
+    for (const g of list) { a.set(g.attributes[nm].array, o); o += g.attributes[nm].array.length; }
+    out.setAttribute(nm, new THREE.BufferAttribute(a, sz));
+  }
+  const I32 = total > 65535 ? Uint32Array : Uint16Array; const ia = new I32(totalIdx); let o = 0, base = 0;
+  for (const g of list) { const s = g.index.array; for (let i = 0; i < s.length; i++) ia[o + i] = s[i] + base; o += s.length; base += g.attributes.position.count; }
+  out.setIndex(new THREE.BufferAttribute(ia, 1));
+  out.computeBoundingSphere(); out.computeBoundingBox();
+  return out;
+}
+
+
+// ---- 05-runtime.js ----
+// ===================== Build runtime =====================
+// Model building is split into tasks. Tasks run in Web Workers (same source as this page,
+// loaded from a blob) and return plain "part records" (typed arrays + metadata) that the
+// main thread turns into meshes as they arrive. Without workers the same tasks run inline.
+const IS_WORKER = typeof WorkerGlobalScope !== 'undefined' && typeof self !== 'undefined' && self instanceof WorkerGlobalScope;
+const SHARED = {};
+let _outbox = null;
+
+function packGeo(geo, mat, meta) {
+  const attrs = {};
+  for (const k of ['position', 'normal', 'color', 'uv']) if (geo.attributes[k]) attrs[k] = geo.attributes[k].array;
+  return { mat, meta, attrs, index: geo.index.array, path: geo.userData.path || null };
+}
+function addPart(geo, mat, meta) {
+  if (!_outbox) throw new Error('addPart outside of a task');
+  _outbox.push(packGeo(geo, mat, meta));
+}
+function addPair(geoL, mat, meta) {
+  addPart(geoL, mat, { ...meta, id: meta.id + '_L', side: 'sol', tr: meta.tr + ' (sol)' });
+  addPart(mirrorGeometry(geoL), mat, { ...meta, id: meta.id + '_R', side: 'sağ', tr: meta.tr + ' (sağ)', pivot: meta.pivot ? mirX(meta.pivot) : undefined });
+}
+function planTasks() {
+  const tasks = [];
+  const T = (label, fn, opts = {}) => tasks.push({ label, fn, needs: opts.needs || [], provides: opts.provides || null, first: !!opts.first });
+  if (typeof buildSkin === 'function') buildSkin(T);
+  buildSkeleton(T);
+  if (typeof buildOrgans === 'function') buildOrgans(T);
+  if (typeof buildMuscles === 'function') buildMuscles(T);
+  if (typeof buildVessels === 'function') buildVessels(T);
+  if (typeof buildNerves === 'function') buildNerves(T);
+  return tasks;
+}
+function runTask(task) {
+  _outbox = [];
+  try { task.fn(); return _outbox; } finally { _outbox = null; }
+}
+
+if (IS_WORKER) {
+  const tasks = planTasks();
+  self.onmessage = (e) => {
+    const m = e.data;
+    if (m.type === 'shared') { SHARED[m.key] = m.data; return; }
+    if (m.type !== 'run') return;
+    const task = tasks[m.index]; let recs = [], err = null;
+    const t0 = performance.now();
+    try { recs = runTask(task); } catch (ex) { err = String((ex && ex.stack) || ex); }
+    const transfer = new Set();
+    for (const r of recs) { for (const k in r.attrs) transfer.add(r.attrs[k].buffer); transfer.add(r.index.buffer); }
+    const shared = task.provides && SHARED[task.provides] ? { key: task.provides, data: SHARED[task.provides] } : null;
+    self.postMessage({ type: 'done', index: m.index, recs, err, shared, ms: performance.now() - t0 }, [...transfer]);
+  };
+  self.postMessage({ type: 'ready' });
+}
+
+// ---- 10-landmarks.js ----
+// ===================== Landmarks shared by every system =====================
+// Height 1.75 m, anatomical position (palms forward), arms slightly abducted.
+
+// vertebral body centres C1..L5 (index 0..23)
+const SPINE_PTS = [
+  [1.588, -0.022], [1.570, -0.020], [1.551, -0.017], [1.533, -0.016], [1.515, -0.018], [1.497, -0.022], [1.479, -0.028],
+  [1.458, -0.036], [1.434, -0.045], [1.409, -0.054], [1.383, -0.061], [1.356, -0.066], [1.328, -0.069], [1.300, -0.070],
+  [1.271, -0.069], [1.242, -0.066], [1.212, -0.062], [1.181, -0.056], [1.149, -0.049],
+  [1.114, -0.040], [1.077, -0.032], [1.040, -0.027], [1.003, -0.028], [0.967, -0.036],
+].map(([y, z]) => [0, y, z]);
+const VERT_NAMES = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'L1', 'L2', 'L3', 'L4', 'L5'];
+
+// interpolated spec per vertebra
+const _VSPEC_KEYS = [
+  // idx, bodyW, bodyD, bodyH, canalW, canalD, spinLen, spinAng(deg, downward), transLen, pedLen
+  [2, 0.0085, 0.0075, 0.0052, 0.0115, 0.0075, 0.016, 20, 0.012, 0.0055],
+  [6, 0.0098, 0.0082, 0.0062, 0.0110, 0.0075, 0.030, 25, 0.017, 0.0060],
+  [7, 0.0110, 0.0092, 0.0072, 0.0090, 0.0070, 0.032, 35, 0.020, 0.0065],
+  [12, 0.0132, 0.0125, 0.0092, 0.0075, 0.0072, 0.036, 58, 0.020, 0.0075],
+  [18, 0.0170, 0.0145, 0.0112, 0.0085, 0.0080, 0.030, 25, 0.012, 0.0085],
+  [21, 0.0220, 0.0165, 0.0128, 0.0105, 0.0085, 0.030, 5, 0.028, 0.0090],
+  [23, 0.0240, 0.0165, 0.0122, 0.0110, 0.0085, 0.026, 10, 0.026, 0.0090],
+];
+function vertSpec(i) {
+  const K = _VSPEC_KEYS;
+  let a = K[0], b = K[K.length - 1];
+  for (let k = 0; k < K.length - 1; k++) if (i >= K[k][0] && i <= K[k + 1][0]) { a = K[k]; b = K[k + 1]; break; }
+  const t = b[0] === a[0] ? 0 : clamp((i - a[0]) / (b[0] - a[0]), 0, 1);
+  const v = a.map((x, j) => lerp(x, b[j], t));
+  return { bodyW: v[1], bodyD: v[2], bodyH: v[3], canalW: v[4], canalD: v[5], spinLen: v[6], spinAng: v[7] * Math.PI / 180, transLen: v[8], pedLen: v[9] };
+}
+const _spineCurve = new THREE.CatmullRomCurve3(SPINE_PTS.map(vec), false, 'centripetal');
+// local frame of vertebra i: X lateral(left), Y up the spine, Z anterior
+function vertFrame(i) {
+  const t = i / (SPINE_PTS.length - 1);
+  const Y = _spineCurve.getTangent(t).negate(); // points listed top->bottom
+  const Yv = norm3([Y.x, Y.y, Y.z]);
+  let Z = sub3([0, 0, 1], mul3(Yv, Yv[2])); Z = norm3(Z);
+  const X = cross3(Yv, Z);
+  return { o: SPINE_PTS[i], X, Y: Yv, Z };
+}
+// world point from vertebra-local coords
+function vLocal(i, x, y, z) {
+  const F = vertFrame(i);
+  return [F.o[0] + F.X[0] * x + F.Y[0] * y + F.Z[0] * z, F.o[1] + F.X[1] * x + F.Y[1] * y + F.Z[1] * z, F.o[2] + F.X[2] * x + F.Y[2] * y + F.Z[2] * z];
+}
+// spinal canal centre at vertebra i
+function canalPoint(i) { const s = vertSpec(i); return vLocal(i, 0, 0, -(s.bodyD + s.canalD + 0.0005)); }
+
+const LM = {
+  // head
+  vertex: [0, 1.745, -0.01],
+  skullC: [0, 1.662, -0.008],
+  orbit: [0.033, 1.636, 0.062],
+  eye: [0.0335, 1.6355, 0.0705],
+  nasion: [0, 1.648, 0.088],
+  chin: [0, 1.527, 0.076],
+  gonion: [0.047, 1.556, -0.008],
+  condyle: [0.05, 1.613, -0.012],
+  mastoid: [0.052, 1.598, -0.03],
+  ear: [0.074, 1.62, -0.012],
+  zygoma: [0.052, 1.616, 0.052],
+  hyoid: [0, 1.528, 0.03],
+  larynx: [0, 1.498, 0.042],
+  // shoulder girdle & arm
+  sc: [0.022, 1.428, 0.062],
+  ac: [0.165, 1.452, -0.008],
+  acromion: [0.178, 1.449, -0.02],
+  glenoid: [0.156, 1.405, -0.03],
+  humHead: [0.183, 1.408, -0.028],
+  coracoid: [0.138, 1.408, 0.03],
+  greaterTub: [0.204, 1.413, -0.012],
+  deltTub: [0.214, 1.27, -0.016],
+  elbow: [0.235, 1.100, -0.02],
+  medEpi: [0.204, 1.112, -0.026],
+  latEpi: [0.264, 1.114, -0.02],
+  olecranon: [0.227, 1.112, -0.04],
+  radTub: [0.247, 1.056, -0.008],
+  wrist: [0.293, 0.852, 0.002],
+  radStyloid: [0.317, 0.852, 0.0],
+  ulnStyloid: [0.268, 0.848, -0.016],
+  // trunk
+  jugular: [0, 1.425, 0.064],
+  sternalAngle: [0, 1.378, 0.083],
+  xiphoid: [0, 1.236, 0.1],
+  xiphTip: [0, 1.205, 0.096],
+  // pelvis & leg
+  asis: [0.118, 0.965, 0.058],
+  psis: [0.044, 0.97, -0.08],
+  iliacTop: [0.135, 1.02, -0.012],
+  pubic: [0.0, 0.884, 0.066],
+  pubicTub: [0.022, 0.888, 0.066],
+  ischTub: [0.057, 0.832, -0.028],
+  hip: [0.085, 0.905, 0.025],
+  trochanter: [0.142, 0.895, 0.0],
+  lesserTroch: [0.11, 0.846, -0.012],
+  knee: [0.09, 0.49, 0.0],
+  medCondyle: [0.068, 0.503, -0.006],
+  latCondyle: [0.112, 0.503, -0.006],
+  patella: [0.09, 0.522, 0.048],
+  tibTub: [0.09, 0.425, 0.027],
+  fibHead: [0.124, 0.448, -0.018],
+  ankle: [0.088, 0.072, -0.004],
+  medMall: [0.066, 0.064, 0.002],
+  latMall: [0.117, 0.058, -0.013],
+  sacrumTop: [0, 0.945, -0.052],
+  coccyx: [0, 0.83, -0.088],
+};
+
+// ---- hand frame (left). D distal, Lt lateral (thumb side), P palmar/anterior ----
+const HAND = (() => {
+  const D = norm3([0.15, -0.985, 0.06]);
+  let Lt = sub3([1, 0, 0], mul3(D, D[0])); Lt = norm3(Lt);
+  const P = cross3(D, Lt);
+  const O = [0.293, 0.848, 0.003];
+  const at = (d, l, p) => [O[0] + D[0] * d + Lt[0] * l + P[0] * p, O[1] + D[1] * d + Lt[1] * l + P[1] * p, O[2] + D[2] * d + Lt[2] * l + P[2] * p];
+  // rotate a local direction (d,l,p)
+  const dirLocal = (d, l, p) => norm3([D[0] * d + Lt[0] * l + P[0] * p, D[1] * d + Lt[1] * l + P[1] * p, D[2] * d + Lt[2] * l + P[2] * p]);
+  // fingers II..V: base of metacarpal, MCP, PIP, DIP, tip (world coords) and radii
+  const spec = [
+    // name, baseL, baseD, mcL, mcLen, prox, mid, dist, spreadDeg, palmArch
+    ['II', 0.017, 0.030, 0.025, 0.066, 0.040, 0.024, 0.018, 7, -0.002],
+    ['III', 0.004, 0.031, 0.007, 0.064, 0.045, 0.028, 0.019, 0, 0.0],
+    ['IV', -0.008, 0.030, -0.011, 0.058, 0.042, 0.026, 0.018, -6, -0.002],
+    ['V', -0.018, 0.028, -0.027, 0.052, 0.033, 0.020, 0.016, -13, -0.006],
+  ];
+  const fingers = spec.map(([nm, bl, bd, ml, mcLen, pr, mi, di, spr, arch]) => {
+    const base = at(bd, bl, 0.0);
+    const mcp = at(bd + mcLen, ml, arch);
+    let a = spr * Math.PI / 180, flex = 0.12;
+    const pts = [mcp]; let cur = mcp; let ang = 0;
+    for (const len of [pr, mi, di]) {
+      ang += flex;
+      const dd = Math.cos(a) * Math.cos(ang), ll = Math.sin(a) * Math.cos(ang), pp = Math.sin(ang);
+      const dir = dirLocal(dd, ll, pp);
+      cur = add3(cur, mul3(dir, len)); pts.push(cur);
+      flex = 0.16;
+    }
+    return { name: nm, base, mcp, pip: pts[1], dip: pts[2], tip: pts[3], lens: [pr, mi, di] };
+  });
+  // thumb: CMC on trapezium, MCP, IP, tip
+  const tCmc = at(0.022, 0.026, 0.009);
+  const tMcp = add3(tCmc, mul3(dirLocal(0.72, 0.55, 0.42), 0.045));
+  const tIp = add3(tMcp, mul3(dirLocal(0.82, 0.32, 0.47), 0.032));
+  const tTip = add3(tIp, mul3(dirLocal(0.82, 0.22, 0.53), 0.025));
+  const thumb = { name: 'I', base: tCmc, mcp: tMcp, ip: tIp, tip: tTip };
+  return { D, Lt, P, O, at, dirLocal, fingers, thumb };
+})();
+
+// ---- foot frame (left). F forward, Lf lateral, Uf up; origin at ankle joint ----
+const FOOT = (() => {
+  const a = 0.08; const F = norm3([Math.sin(a), 0, Math.cos(a)]);
+  const Lf = norm3([Math.cos(a), 0, -Math.sin(a)]);
+  const Uf = [0, 1, 0];
+  const O = [0.087, 0.07, -0.006];
+  const at = (f, l, u) => [O[0] + F[0] * f + Lf[0] * l + Uf[0] * u, O[1] + F[1] * f + Lf[1] * l + Uf[1] * u, O[2] + F[2] * f + Lf[2] * l + Uf[2] * u];
+  const meta = [
+    // name, base(f,l,u), head(f,l,u), shaftR, headR, phalanx lengths
+    ['I', [0.078, -0.019, -0.034], [0.140, -0.024, -0.055], 0.0075, 0.0105, [0.029, 0.024]],
+    ['II', [0.080, -0.005, -0.031], [0.150, -0.006, -0.058], 0.0045, 0.0065, [0.025, 0.013, 0.010]],
+    ['III', [0.079, 0.007, -0.034], [0.146, 0.008, -0.059], 0.0043, 0.0062, [0.023, 0.012, 0.009]],
+    ['IV', [0.077, 0.017, -0.039], [0.138, 0.020, -0.060], 0.0042, 0.0060, [0.021, 0.011, 0.009]],
+    ['V', [0.068, 0.027, -0.046], [0.127, 0.032, -0.061], 0.0042, 0.0058, [0.017, 0.009, 0.008]],
+  ];
+  const toes = meta.map(([nm, b, h, sr, hr, lens]) => {
+    const base = at(...b), head = at(...h);
+    const joints = [head]; let cur = h.slice();
+    const spread = nm === 'I' ? -0.04 : nm === 'V' ? 0.12 : (nm === 'IV' ? 0.07 : nm === 'III' ? 0.03 : 0);
+    lens.forEach((len, k) => {
+      const lift = k === 0 ? 0.12 : -0.35;
+      cur = [cur[0] + len * Math.cos(lift), cur[1] + len * Math.sin(spread), cur[2] + len * Math.sin(lift)];
+      joints.push(at(...cur));
+    });
+    return { name: nm, base, head, sr, hr, lens, joints };
+  });
+  return { F, Lf, Uf, O, at, toes };
+})();
+
+// ---- 20-skeleton.js ----
+// ===================== Skeletal system =====================
+const BONE_AO = { ao: 0.007, aoMin: 0.42 };
+const boneMesh = (shape, h, extra = {}) => meshSDF(shape, h, { ...BONE_AO, ...extra });
+const E = SD.ell, C = SD.cone, S = SD.sphere;
+const mirrorShape = MirX;
+
+// subtle periosteal bumpiness
+const boneTex = (s, amp = 0.00035, fr = 900) => Disp(s, (x, y, z) => amp * noise3(x * fr, y * fr, z * fr), amp);
+
+// ---------- skull ----------
+const SKULL_CAVITY = E([0, 1.669, -0.012], [0.0652, 0.0718, 0.0878]);
+function skullParts() {
+  const outer = U(0.012,
+    E([0, 1.668, -0.012], [0.0712, 0.0775, 0.094]),
+    E([0, 1.624, -0.102], [0.012, 0.006, 0.006]),        // ext. occipital protuberance
+    E([0, 1.612, -0.074], [0.05, 0.02, 0.026]),          // occipital squama / nuchal area
+  );
+  const temporalFossa = [E([0.087, 1.645, 0.014], [0.02, 0.03, 0.034]), E([-0.087, 1.645, 0.014], [0.02, 0.03, 0.034])];
+  const vault = Sub(Sub(outer, 0.01, temporalFossa), 0.0015, SKULL_CAVITY);
+  // facial skeleton as a curved mask with openings
+  const F0 = E([0, 1.608, 0.004], [0.063, 0.072, 0.081]);
+  const F1 = E([0, 1.608, 0.004], [0.058, 0.0665, 0.0755]);
+  const mask = I(0.006, Sub(F0, 0, F1), SymX(SD.plane([0.034, 0, 0.03], [1.25, 0, -1])), SD.plane([0, 1.69, 0], [0, 1, 0]), SD.plane([0, 1.581, 0], [0, -1, 0]));
+  const archUp = [[-0.031, 1.576, 0.02], [-0.03, 1.576, 0.04], [-0.024, 1.577, 0.058], [-0.013, 1.578, 0.072], [0, 1.579, 0.077],
+    [0.013, 1.578, 0.072], [0.024, 1.577, 0.058], [0.03, 1.576, 0.04], [0.031, 1.576, 0.02]];
+  const parts = [mask,
+    SD.tube(archUp, archUp.map(() => 0.0062)),
+    E([0, 1.581, 0.046], [0.027, 0.0035, 0.03]),            // hard palate
+    E([0, 1.655, 0.086], [0.011, 0.0075, 0.0065]),          // glabella
+    C([0, 1.586, 0.084], [0, 1.585, 0.091], 0.0022, 0.0008), // anterior nasal spine
+    SD.ell([0, 1.636, 0.0905], [0.0068, 0.0125, 0.0026], [[1, 0, 0], norm3([0, -0.92, 0.38]), norm3([0, 0.38, 0.92])]), // nasal bones
+  ];
+  for (const sx of [1, -1]) {
+    parts.push(E([0.029 * sx, 1.656, 0.079], [0.019, 0.005, 0.007]));               // superciliary arch
+    parts.push(E([0.05 * sx, 1.611, 0.049], [0.0095, 0.0115, 0.0095]));              // zygomatic body
+    parts.push(C([0.056 * sx, 1.609, 0.038], [0.067 * sx, 1.612, -0.006], 0.0036, 0.0033)); // zygomatic arch
+    parts.push(C([0.054 * sx, 1.611, -0.026], [0.051 * sx, 1.593, -0.027], 0.008, 0.0042)); // mastoid
+    parts.push(C([0.044 * sx, 1.599, -0.012], [0.039 * sx, 1.575, 0.0], 0.0015, 0.0007)); // styloid
+    parts.push(C([0.015 * sx, 1.598, -0.024], [0.014 * sx, 1.592, -0.018], 0.0048, 0.0038)); // occipital condyle
+    parts.push(E([0.03 * sx, 1.594, 0.06], [0.018, 0.016, 0.012]));                   // maxillary body
+    const rim = [0.034 * sx, 1.636, 0.07], apex = [0.015 * sx, 1.632, 0.028];
+    parts.push(I(0.002, Shell(C(rim, apex, 0.0185, 0.004), 0.0011), SD.plane([0, 0, 0.074], [0, 0, 1]))); // orbital walls
+  }
+  let face = U(0.008, parts);
+  const orbits = [E([0.034, 1.636, 0.08], [0.0185, 0.0165, 0.03]), E([-0.034, 1.636, 0.08], [0.0185, 0.0165, 0.03])];
+  const nasal = [E([0, 1.597, 0.086], [0.0118, 0.0115, 0.02]), E([0, 1.611, 0.086], [0.0078, 0.0125, 0.02])];
+  face = Sub(face, 0.002, orbits, nasal, SKULL_CAVITY);
+  const meatus = [C([0.06, 1.616, -0.016], [0.08, 1.616, -0.016], 0.0035), C([-0.06, 1.616, -0.016], [-0.08, 1.616, -0.016], 0.0035)];
+  let skull = U(0.005, vault, face);
+  skull = Sub(skull, 0.0015, meatus, C([0, 1.6, -0.022], [0, 1.575, -0.024], 0.0145));
+  skull = boneTex(skull, 0.00025, 600);
+  // calvaria cut plane (front y 1.672 at z .08, back y 1.648 at z -.1)
+  const n = norm3([0, 1, -0.135]); const o = [0, 1.672, 0.08];
+  const cap = I(0, skull, SD.plane(add3(o, mul3(n, 0.0007)), mul3(n, -1)));
+  const base = I(0, skull, SD.plane(add3(o, mul3(n, -0.0007)), n));
+  return { cap, base };
+}
+
+// tube stretched vertically by `s` around height yc (lower bound of true distance, so safe to mesh)
+function stretchY(shape, yc, s) {
+  return { f: (x, y, z) => shape.f(x, yc + (y - yc) / s, z), b: [shape.b[0], yc + (shape.b[1] - yc) * s, shape.b[2], shape.b[3], yc + (shape.b[4] - yc) * s, shape.b[5]] };
+}
+function mandibleSDF() {
+  const pts = [];
+  for (let i = 0; i <= 12; i++) { const t = -1 + i / 6; pts.push([0.0465 * t, 1.538, 0.077 - 0.082 * t * t]); }
+  const body = stretchY(SD.tube(pts, pts.map((p, i) => 0.0046 + 0.0006 * (1 - Math.abs(i - 6) / 6))), 1.538, 2.5);
+  const parts = [body, E([0, 1.528, 0.078], [0.011, 0.0065, 0.0055])];
+  const ramusOl = smoothOutline([[-0.008, 1.546], [-0.011, 1.57], [-0.0145, 1.598], [-0.009, 1.603], [-0.004, 1.596], [0.003, 1.589], [0.009, 1.597], [0.013, 1.604],
+    [0.0135, 1.592], [0.014, 1.572], [0.018, 1.552], [0.022, 1.541], [0.006, 1.533], [-0.004, 1.537]], 4);
+  for (const sx of [1, -1]) {
+    const map = (x, y, z) => [z, y, sx * x - (0.0465 + 0.0035 * (y - 1.55) / 0.05)];
+    parts.push(SD.plate(ramusOl, map, 0.0044, sx > 0 ? [0.035, 1.525, -0.02, 0.06, 1.61, 0.03] : [-0.06, 1.525, -0.02, -0.035, 1.61, 0.03], 0.0015, [0.002, 0.003]));
+    parts.push(E([0.051 * sx, 1.607, -0.013], [0.0088, 0.004, 0.0052]));
+  }
+  return boneTex(U(0.005, parts), 0.0002, 700);
+}
+
+// teeth along the arches. upper: crowns point down; lower: crowns point up
+const TOOTH_ARCH = [
+  // x, z, type (0 incisor,1 lateral incisor,2 canine,3 premolar,4 molar), crown half-width
+  [0.0046, 0.0785, 0, 0.0043], [0.0122, 0.0755, 1, 0.0034], [0.0188, 0.0695, 2, 0.0039], [0.0232, 0.0615, 3, 0.0036],
+  [0.0262, 0.0538, 3, 0.0035], [0.0288, 0.0442, 4, 0.0052], [0.0306, 0.0335, 4, 0.0049], [0.0315, 0.0235, 4, 0.0045],
+];
+function toothSDF(x, z, type, w, upper) {
+  const dirY = upper ? -1 : 1;
+  const yOcc = upper ? 1.5605 : 1.5598;
+  const crownH = type <= 2 ? 0.0095 : 0.0072;
+  const tipY = yOcc; const crownBase = yOcc - dirY * crownH;
+  const ang = Math.atan2(x, z - 0.035); // arch tangent orientation
+  const tan = [Math.cos(ang), 0, -Math.sin(ang)], rad = [Math.sin(ang), 0, Math.cos(ang)];
+  const s = upper ? 1 : 0.94; const zz = upper ? z : z - 0.0035;
+  const cx = x * s, c = [cx, 0, zz];
+  const parts = [];
+  const mid = (tipY + crownBase) / 2;
+  if (type <= 1) {
+    parts.push(SD.ell([c[0], mid, c[2]], [w, crownH * 0.55, 0.0028], [tan, [0, 1, 0], rad]));
+  } else if (type === 2) {
+    parts.push(SD.ell([c[0], mid - dirY * 0.001, c[2]], [w * 0.85, crownH * 0.5, 0.0036], [tan, [0, 1, 0], rad]));
+    parts.push(C([c[0], mid, c[2]], [c[0], tipY - dirY * 0.0003, c[2]], 0.0032, 0.0008));
+  } else {
+    const r = type === 3 ? 0.0036 : 0.0048;
+    parts.push(SD.box([c[0], mid - dirY * 0.0005, c[2]], [w * 0.92, crownH * 0.42, r], [tan, [0, 1, 0], rad], 0.0024));
+    const cusps = type === 3 ? [[0, 0.0016], [0, -0.0016]] : [[0.0024, 0.0022], [-0.0024, 0.0022], [0.0024, -0.0022], [-0.0024, -0.0022]];
+    for (const [a, b] of cusps) parts.push(S(add3([c[0], tipY - dirY * 0.0016, c[2]], add3(mul3(tan, a), mul3(rad, b))), 0.0019));
+  }
+  const rootLen = type === 2 ? 0.017 : type === 4 ? 0.012 : 0.013;
+  const rootEnd = crownBase - dirY * rootLen;
+  if (type === 4) {
+    for (const a of [-0.0022, 0.0022]) parts.push(C(add3([c[0], crownBase + dirY * 0.001, c[2]], mul3(tan, a)), add3([c[0], rootEnd, c[2]], mul3(tan, a * 1.3)), 0.0026, 0.0009));
+  } else parts.push(C([c[0], crownBase + dirY * 0.001, c[2]], [c[0], rootEnd, c[2]], type <= 1 ? 0.0024 : 0.0028, 0.0009));
+  return U(0.0015, parts);
+}
+// colour enamel vs root (root slightly yellow)
+function toothColor(upper) {
+  return (x, y) => {
+    const t = upper ? smoothstep(1.5695, 1.5735, y) : smoothstep(1.551, 1.547, y);
+    return [lerp(1.0, 0.93, t), lerp(1.0, 0.86, t), lerp(0.98, 0.68, t)];
+  };
+}
+
+// ---------- vertebrae ----------
+function ellCyl(W, D, H, r = 0.0012) {
+  return {
+    f: (x, y, z) => {
+      const k = Math.sqrt((x / W) ** 2 + (z / D) ** 2);
+      const d2 = (k - 1) * Math.min(W, D) + r;
+      const dy = Math.abs(y) - H + r;
+      const ox = Math.max(d2, 0), oy = Math.max(dy, 0);
+      return Math.min(Math.max(d2, dy), 0) + Math.sqrt(ox * ox + oy * oy) - r;
+    }, b: [-W, -H, -D, W, H, D]
+  };
+}
+function vertebraLocal(i) {
+  const s = vertSpec(i);
+  const { bodyW: W, bodyD: D, bodyH: H } = s;
+  const cz = -(D + s.canalD);              // canal centre z
+  const backZ = cz - s.canalD - 0.0015;    // lamina junction
+  const parts = []; const cuts = [];
+  const cervical = i <= 6, lumbar = i >= 19;
+  if (i === 0) {
+    // atlas: ring with lateral masses, no body
+    const ring = [[0, 0, 0.007], [0.009, 0, 0.004], [0.015, 0, -0.006], [0.013, 0.0, -0.018], [0.006, 0, -0.025], [0, 0.0, -0.027]];
+    const full = ring.concat(ring.slice(0, -1).reverse().map(p => [-p[0], p[1], p[2]]));
+    parts.push(SD.tube(full, full.map((p, k) => (k === 0 || k === full.length - 1) ? 0.0035 : 0.0028), 0.002));
+    parts.push(E([0, 0, 0.0075], [0.004, 0.005, 0.0028]));
+    for (const sx of [1, -1]) {
+      parts.push(E([0.0135 * sx, 0.0005, -0.004], [0.0058, 0.0058, 0.0085]));
+      parts.push(C([0.016 * sx, 0, -0.005], [0.031 * sx, -0.001, -0.007], 0.0045, 0.0042));
+      cuts.push(C([0.025 * sx, 0.01, -0.006], [0.025 * sx, -0.01, -0.006], 0.0022));
+    }
+    parts.push(E([0, -0.001, -0.027], [0.004, 0.0045, 0.0035]));
+    let at = U(0.003, parts);
+    return Sub(at, 0.0012, cuts, E([0, 0, -0.008], [0.011, 0.03, 0.0125]));
+  }
+  parts.push(ellCyl(W, D, H, 0.0016));
+  if (i === 1) { parts.push(C([0, H * 0.6, 0.0005], [0, H + 0.0155, 0.0015], 0.0047, 0.0036)); }
+  if (cervical) for (const sx of [1, -1]) parts.push(C([sx * W * 0.82, H * 0.6, -D * 0.2], [sx * W * 0.92, H * 1.25, -D * 0.25], 0.0018, 0.0012)); // uncinate
+  for (const sx of [1, -1]) {
+    const pedA = [sx * W * 0.62, 0.0006, -D * 0.72];
+    const pedB = [sx * (s.canalW + 0.0012), 0.0006, cz + 0.001];
+    parts.push(C(pedA, pedB, lumbar ? 0.0042 : 0.0031, lumbar ? 0.0042 : 0.0032));
+    // lamina
+    parts.push(C(pedB, [sx * 0.0015, -0.0012, backZ], lumbar ? 0.0034 : 0.0026, 0.0028));
+    parts.push(C(add3(pedB, [0, -0.002, -0.001]), [sx * 0.0015, -H * 0.9, backZ - 0.001], 0.0022, 0.0022));
+    // articular processes
+    parts.push(E(add3(pedB, [0, H * 1.0, -0.0025]), [lumbar ? 0.0042 : 0.0034, H * 0.65, 0.0034]));
+    parts.push(E(add3(pedB, [-sx * 0.0008, -H * 1.05, -0.004]), [lumbar ? 0.0038 : 0.0031, H * 0.6, 0.0032]));
+    // transverse process
+    let tEnd;
+    if (cervical) tEnd = [sx * (W + s.transLen), -0.001, -D * 0.25];
+    else if (lumbar) tEnd = [sx * (W + s.transLen * 0.86), 0.0005, cz * 0.55];
+    else tEnd = [sx * (W + s.transLen * 0.86), 0.0025, cz - 0.0055];
+    const tStart = [sx * (s.canalW + 0.0018), 0.0004, cz + (cervical ? 0.003 : 0)];
+    parts.push(C(tStart, tEnd, cervical ? 0.0035 : lumbar ? 0.0034 : 0.0045, cervical ? 0.0025 : lumbar ? 0.0022 : 0.004));
+    if (cervical && i <= 5) cuts.push(C([sx * (W + 0.0055), 0.01, -D * 0.22], [sx * (W + 0.0055), -0.01, -D * 0.22], 0.0021));
+    if (!cervical && !lumbar) parts.push(S(tEnd, 0.0045));
+  }
+  // spinous process
+  const sa = s.spinAng; const sp0 = [0, -0.0015, backZ + 0.001];
+  const dir = [0, -Math.sin(sa), -Math.cos(sa)];
+  const spEnd = add3(sp0, mul3(dir, s.spinLen));
+  if (lumbar) {
+    parts.push(SD.ell(add3(sp0, mul3(dir, s.spinLen * 0.55)), [0.0028, 0.0085, s.spinLen * 0.55], [[1, 0, 0], norm3(cross3(dir, [1, 0, 0])), dir]));
+  } else if (cervical && i < 6) {
+    parts.push(C(sp0, spEnd, 0.0032, 0.0022));
+    for (const sx of [1, -1]) parts.push(S(add3(spEnd, [sx * 0.0024, 0, 0]), 0.0026)); // bifid tip
+  } else {
+    parts.push(C(sp0, spEnd, 0.0034, 0.0024));
+    parts.push(S(spEnd, 0.0034));
+  }
+  let v = U(0.0028, parts);
+  v = Sub(v, 0.0012, cuts, Place(ellCyl(s.canalW, s.canalD, 0.05, 0.0005), [0, 0, cz], [[1, 0, 0], [0, 1, 0], [0, 0, 1]]));
+  return v;
+}
+function vertebraSDF(i) {
+  const F = vertFrame(i);
+  return boneTex(Place(vertebraLocal(i), F.o, [F.X, F.Y, F.Z]), 0.00018, 1600);
+}
+function discSDF(i) {
+  // disc between vertebra i and i+1
+  const A = vertFrame(i), Bf = vertFrame(i + 1); const sa = vertSpec(i), sb = vertSpec(i + 1);
+  const o = mix3(A.o, Bf.o, 0.5);
+  const Y = norm3(sub3(A.o, Bf.o)); let Z = norm3(sub3([0, 0, 1], mul3(Y, Y[2]))); const X = cross3(Y, Z);
+  const gap = len3(sub3(A.o, Bf.o)) - sa.bodyH - sb.bodyH;
+  return Place(ellCyl((sa.bodyW + sb.bodyW) * 0.49, (sa.bodyD + sb.bodyD) * 0.49, Math.max(gap * 0.5 + 0.0004, 0.001), 0.0012), o, [X, Y, Z]);
+}
+
+// ---------- sacrum & coccyx ----------
+function sacrumSDF() {
+  const top = [0, 0.941, -0.05], bot = [0, 0.852, -0.104];
+  const Ydir = norm3(sub3(top, bot)); const X = [1, 0, 0]; const Wn = cross3(X, Ydir);
+  const o = mix3(top, bot, 0.5);
+  const map = (x, y, z) => {
+    const p = [x - o[0], y - o[1], z - o[2]];
+    const v = dot3(p, Ydir);
+    return [p[0], v, dot3(p, Wn) - 5.5 * v * v + 0.012 * smoothstep(0.0, 0.05, v)];
+  };
+  const ol = smoothOutline([[0, 0.054], [0.028, 0.054], [0.05, 0.049], [0.054, 0.032], [0.042, 0.006], [0.028, -0.022], [0.015, -0.044], [0, -0.053],
+    [-0.015, -0.044], [-0.028, -0.022], [-0.042, 0.006], [-0.054, 0.032], [-0.05, 0.049], [-0.028, 0.054]], 5);
+  const th = (u, v) => lerp(0.01, 0.034, smoothstep(-0.045, 0.045, v)) * (1 - 0.3 * smoothstep(0.025, 0.05, Math.abs(u)));
+  const plate = SD.plate(ol, map, th, [-0.06, 0.83, -0.135, 0.06, 0.975, -0.01], 0.002);
+  const parts = [plate, Place(ellCyl(0.024, 0.016, 0.007), [0, 0.936, -0.042], [[1, 0, 0], Ydir, Wn])];
+  for (let k = 0; k < 4; k++) parts.push(E(add3(mix3(top, bot, 0.12 + k * 0.21), mul3(Wn, -0.016 + k * 0.004)), [0.003, 0.006, 0.004]));
+  for (const sx of [1, -1]) parts.push(E(add3(top, [0.017 * sx, 0.006, -0.026]), [0.0055, 0.007, 0.006]));
+  let sac = U(0.004, parts);
+  const holes = [];
+  for (let k = 0; k < 4; k++) for (const sx of [1, -1]) {
+    const c = add3(mix3(top, bot, 0.2 + k * 0.2), [sx * (0.018 - k * 0.0018), 0, 0]);
+    holes.push(C(add3(c, mul3(Wn, 0.03)), add3(c, mul3(Wn, -0.006)), 0.0033 - k * 0.0003));
+  }
+  sac = Sub(sac, 0.0012, holes, Place(ellCyl(0.01, 0.0055, 0.06, 0.001), add3(mix3(top, bot, 0.3), mul3(Wn, -0.01)), [[1, 0, 0], Ydir, Wn]));
+  return boneTex(sac, 0.00025, 700);
+}
+function coccyxSDF() {
+  const pts = [[0, 0.851, -0.104], [0, 0.842, -0.104], [0, 0.834, -0.1], [0, 0.828, -0.093]];
+  return U(0.002, [C(pts[0], pts[1], 0.0055, 0.0045), C(pts[1], pts[2], 0.0042, 0.0035), C(pts[2], pts[3], 0.0033, 0.0022),
+    S(pts[0], 0.0058), S(pts[1], 0.0045), S(pts[2], 0.0036)]);
+}
+
+// ---------- hip bone (left) ----------
+function hipBoneSDF() {
+  const O = [0.0968, 0.971, -0.006];
+  const e1 = norm3([0.472, -0.032, 0.881]);
+  const e2 = norm3(sub3([0.437, 0.874, -0.214], mul3(e1, dot3([0.437, 0.874, -0.214], e1))));
+  const nW = cross3(e1, e2);
+  const map = (x, y, z) => {
+    const p = [x - O[0], y - O[1], z - O[2]];
+    const u = dot3(p, e1), v = dot3(p, e2);
+    const H = 0.013 * ((u + 0.01) / 0.08) ** 2 - 0.0065 - 0.012 * smoothstep(-0.04, -0.075, v) * smoothstep(0.0, -0.06, u);
+    return [u, v, dot3(p, nW) - H];
+  };
+  const ol = smoothOutline([[0.068, -0.008], [0.062, -0.026], [0.056, -0.041], [0.048, -0.052], [0.038, -0.072], [0.0, -0.08], [-0.03, -0.072],
+    [-0.05, -0.064], [-0.072, -0.045], [-0.09, -0.03], [-0.093, -0.017], [-0.078, 0.016], [-0.045, 0.046], [0.008, 0.063], [0.044, 0.047], [0.064, 0.016]], 5);
+  const th = (u, v) => 0.0035 + 0.016 * smoothstep(-0.035, -0.075, v);
+  const wing = SD.plate(ol, map, th, [0.03, 0.87, -0.1, 0.16, 1.04, 0.075], 0.0012, [0.007, 0.006]);
+  const H = LM.hip;
+  const nOpen = norm3([1, -0.6, 0.55]);
+  const cup = I(0.002, Sub(S(H, 0.0305), 0.001, S(H, 0.0252)), SD.plane(add3(H, mul3(nOpen, 0.006)), nOpen));
+  const parts = [wing, cup,
+    S(LM.asis, 0.0058), E([0.106, 0.935, 0.051], [0.006, 0.008, 0.006]),          // ASIS, AIIS
+    E([0.078, 0.925, 0.012], [0.017, 0.02, 0.02]),                                  // body of ilium
+    E([0.051, 0.952, -0.068], [0.011, 0.026, 0.016]),                               // auricular region
+    S(LM.psis, 0.006),
+    C([0.07, 0.885, -0.008], [0.061, 0.84, -0.022], 0.0118, 0.0112),               // ischium
+    E(LM.ischTub, [0.011, 0.016, 0.0135]),
+    C([0.06, 0.876, -0.04], [0.051, 0.872, -0.053], 0.0042, 0.0015),               // ischial spine
+    SD.tube([[0.06, 0.83, -0.014], [0.05, 0.828, 0.004], [0.04, 0.834, 0.024], [0.027, 0.85, 0.046], [0.014, 0.867, 0.059]], [0.0068, 0.006, 0.0058, 0.0058, 0.007], 0.003),
+    SD.tube([[0.074, 0.894, 0.046], [0.05, 0.893, 0.059], [0.024, 0.888, 0.066]], [0.0088, 0.0078, 0.0088], 0.003),
+    E([0.011, 0.879, 0.063], [0.0085, 0.0175, 0.0095]),
+    S(LM.pubicTub, 0.0042),
+  ];
+  let hb = U(0.005, parts);
+  hb = Sub(hb, 0.001, S(H, 0.0245));
+  return boneTex(hb, 0.00025, 700);
+}
+
+// ---------- long bones (left) ----------
+function femurSDF() {
+  const H = LM.hip;
+  const parts = [
+    S(H, 0.0235),
+    C(H, [0.123, 0.879, 0.006], 0.0158, 0.0175),
+    E([0.139, 0.893, 0.0], [0.0165, 0.027, 0.021]),
+    C([0.14, 0.912, -0.004], [0.134, 0.87, -0.006], 0.011, 0.014),
+    E(LM.lesserTroch, [0.008, 0.009, 0.008]),
+    C([0.127, 0.865, 0.005], [0.112, 0.69, 0.011], 0.0168, 0.0142),
+    C([0.112, 0.69, 0.011], [0.095, 0.56, 0.004], 0.0142, 0.0185),
+    C([0.118, 0.81, -0.01], [0.103, 0.6, -0.007], 0.0055, 0.0055), // linea aspera
+    E([0.09, 0.528, 0.0], [0.034, 0.026, 0.022]),
+    E(LM.latCondyle, [0.0175, 0.023, 0.028]),
+    E(LM.medCondyle, [0.019, 0.024, 0.029]),
+    S([0.064, 0.516, -0.003], 0.007), S([0.117, 0.518, -0.004], 0.006), // epicondyles
+  ];
+  let f = U(0.008, parts);
+  f = Sub(f, 0.004, E([0.09, 0.486, -0.02], [0.0085, 0.024, 0.024]), C([0.09, 0.53, 0.031], [0.09, 0.495, 0.028], 0.0065));
+  return boneTex(f, 0.0003, 700);
+}
+function patellaSDF() {
+  return boneTex(U(0.004, E(LM.patella, [0.021, 0.022, 0.0105]), C([0.09, 0.515, 0.047], [0.09, 0.496, 0.043], 0.008, 0.003)), 0.0002, 900);
+}
+function tibiaSDF() {
+  const parts = [
+    I(0.003, E([0.088, 0.456, -0.003], [0.041, 0.019, 0.029]), SD.plane([0, 0.4715, 0], [0, 1, 0])),
+    E([0.088, 0.443, -0.003], [0.04, 0.024, 0.029]),
+    S([0.083, 0.47, -0.002], 0.0045), S([0.093, 0.47, -0.002], 0.0045),
+    E(LM.tibTub, [0.011, 0.017, 0.009]),
+    C([0.088, 0.425, 0.0], [0.087, 0.25, 0.004], 0.0175, 0.0125),
+    C([0.087, 0.25, 0.004], [0.085, 0.095, 0.0], 0.0125, 0.0165),
+    C([0.089, 0.41, 0.011], [0.087, 0.15, 0.01], 0.0075, 0.0055), // anterior crest
+    I(0.003, E([0.085, 0.084, 0.0], [0.024, 0.02, 0.022]), SD.plane([0, 0.0685, 0], [0, -1, 0])),
+    E(LM.medMall, [0.0075, 0.017, 0.0105]),
+  ];
+  return boneTex(U(0.007, parts), 0.0003, 700);
+}
+function fibulaSDF() {
+  return boneTex(U(0.005,
+    E(LM.fibHead, [0.0105, 0.0125, 0.0105]),
+    C([0.123, 0.44, -0.017], [0.12, 0.25, -0.016], 0.0068, 0.0058),
+    C([0.12, 0.25, -0.016], [0.118, 0.085, -0.013], 0.0058, 0.0068),
+    E(LM.latMall, [0.0085, 0.021, 0.0115]),
+  ), 0.00025, 900);
+}
+function humerusSDF() {
+  const parts = [
+    S(LM.humHead, 0.0228),
+    E(LM.greaterTub, [0.012, 0.016, 0.013]),
+    E([0.191, 1.404, 0.006], [0.0075, 0.01, 0.0075]),
+    C([0.198, 1.392, -0.02], [0.216, 1.25, -0.017], 0.0135, 0.0112),
+    C([0.216, 1.25, -0.017], [0.233, 1.13, -0.021], 0.0112, 0.0125),
+    E(LM.deltTub, [0.0065, 0.02, 0.0065]),
+    E([0.234, 1.117, -0.022], [0.031, 0.013, 0.0105]),
+    S(LM.medEpi, 0.0088), S(LM.latEpi, 0.0068),
+    E([0.222, 1.099, -0.017], [0.0115, 0.0105, 0.0128]),
+    S([0.248, 1.1, -0.013], 0.0098),
+  ];
+  let h = U(0.007, parts);
+  h = Sub(h, 0.003, E([0.234, 1.124, -0.034], [0.0095, 0.013, 0.006]), E([0.234, 1.124, -0.008], [0.009, 0.009, 0.004]));
+  return boneTex(h, 0.0003, 800);
+}
+function ulnaSDF() {
+  let u = U(0.005,
+    E([0.226, 1.112, -0.037], [0.0105, 0.016, 0.0105]),
+    E([0.224, 1.083, -0.008], [0.0075, 0.0075, 0.0085]),
+    C([0.226, 1.09, -0.025], [0.252, 0.97, -0.017], 0.0098, 0.0072),
+    C([0.252, 0.97, -0.017], [0.27, 0.866, -0.012], 0.0072, 0.0058),
+    S([0.271, 0.864, -0.012], 0.0076),
+    C([0.269, 0.862, -0.016], [0.268, 0.846, -0.018], 0.0028, 0.0017),
+  );
+  u = Sub(u, 0.002, S([0.222, 1.099, -0.017], 0.0135), S([0.248, 1.084, -0.012], 0.0115));
+  return boneTex(u, 0.00025, 900);
+}
+function radiusSDF() {
+  let r = U(0.004,
+    I(0.001, E([0.248, 1.0835, -0.012], [0.0108, 0.0062, 0.0108]), E([0.248, 1.08, -0.012], [0.02, 0.0075, 0.02])),
+    C([0.248, 1.079, -0.012], [0.247, 1.058, -0.01], 0.0062, 0.0062),
+    E(LM.radTub, [0.0055, 0.009, 0.0055]),
+    C([0.248, 1.06, -0.01], [0.274, 0.975, -0.006], 0.0068, 0.0075),
+    C([0.274, 0.975, -0.006], [0.3, 0.885, -0.0], 0.0075, 0.0105),
+    E([0.302, 0.868, 0.0], [0.0165, 0.0105, 0.0118]),
+    C([0.314, 0.866, 0.0], LM.radStyloid, 0.0048, 0.0026),
+  );
+  r = Sub(r, 0.002, S([0.248, 1.1, -0.013], 0.0102));
+  return boneTex(r, 0.00025, 900);
+}
+
+// ---------- hand (left) ----------
+function carpalDefs() {
+  const H = HAND; const ax = [H.D, H.Lt, H.P];
+  const c = (nm, la, d, l, p, r) => ({ nm, la, shape: SD.box(H.at(d, l, p), r, ax, Math.min(...r) * 0.75) });
+  return [
+    c('Kayık kemiği', 'os scaphoideum', 0.0095, 0.0145, 0.0012, [0.0082, 0.0078, 0.0064]),
+    c('Ay kemiği', 'os lunatum', 0.0084, 0.0012, 0.0002, [0.0072, 0.0064, 0.0078]),
+    c('Üçgen kemik', 'os triquetrum', 0.0112, -0.0106, -0.001, [0.0068, 0.0056, 0.0064]),
+    { nm: 'Bezelye kemiği', la: 'os pisiforme', shape: E(H.at(0.0118, -0.0132, 0.0082), [0.0042, 0.0038, 0.0038], ax) },
+    c('Büyük trapez kemiği', 'os trapezium', 0.0222, 0.0212, 0.0042, [0.0062, 0.0062, 0.0066]),
+    c('Küçük trapez kemiği', 'os trapezoideum', 0.0232, 0.0116, 0.0002, [0.0062, 0.0048, 0.0062]),
+    c('Başlı kemik', 'os capitatum', 0.0226, 0.0015, -0.0008, [0.0098, 0.0056, 0.0078]),
+    { nm: 'Çengel kemiği', la: 'os hamatum', shape: U(0.003, SD.box(H.at(0.0222, -0.0105, -0.001), [0.0082, 0.0062, 0.0072], ax, 0.0045), C(H.at(0.024, -0.0115, 0.002), H.at(0.025, -0.0118, 0.0095), 0.0032, 0.0022)) },
+  ];
+}
+function phalanxSDF(a, b, rBase, rHead, distal) {
+  const dir = norm3(sub3(b, a));
+  const a2 = add3(a, mul3(dir, 0.0013)), b2 = add3(b, mul3(dir, -0.0013));
+  const parts = [
+    C(add3(a2, mul3(dir, rBase * 0.6)), add3(b2, mul3(dir, -rHead * 0.6)), rBase * 0.62, rHead * 0.55),
+    SD.ellAlong(add3(a2, mul3(dir, rBase * 0.55)), dir, rBase * 0.6, rBase * 1.02, rBase * 0.85),
+  ];
+  if (distal) parts.push(SD.ellAlong(add3(b2, mul3(dir, -rHead * 0.7)), dir, rHead * 0.8, rHead * 0.95, rHead * 0.6));
+  else parts.push(SD.ellAlong(add3(b2, mul3(dir, -rHead * 0.8)), dir, rHead * 0.8, rHead * 0.98, rHead * 0.85));
+  return U(0.0018, parts);
+}
+function metacarpalSDF(base, head, rB, rS, rH) {
+  const dir = norm3(sub3(head, base));
+  const b2 = add3(base, mul3(dir, 0.0012)), h2 = add3(head, mul3(dir, -0.0014));
+  return U(0.0025,
+    SD.ellAlong(add3(b2, mul3(dir, rB * 0.7)), dir, rB * 0.75, rB, rB * 0.9),
+    C(add3(b2, mul3(dir, rB)), add3(h2, mul3(dir, -rH)), rS, rS * 0.92),
+    S(add3(h2, mul3(dir, -rH * 0.95)), rH));
+}
+
+// ---------- foot (left) ----------
+function tarsalDefs() {
+  const F = FOOT; const ax = [F.F, F.Lf, F.Uf]; const at = F.at;
+  return [
+    { nm: 'Aşık kemiği', la: 'talus', shape: U(0.004, E(at(-0.004, 0.0, -0.013), [0.026, 0.0155, 0.0135], ax), I(0.002, E(at(-0.004, 0, -0.008), [0.024, 0.014, 0.011], ax), SD.plane(at(0, 0, -0.0035), [0, 1, 0])), C(at(0.012, -0.003, -0.016), at(0.034, -0.009, -0.021), 0.0105, 0.0112)) },
+    { nm: 'Topuk kemiği', la: 'calcaneus', shape: U(0.007, E(at(-0.017, 0.004, -0.043), [0.036, 0.0155, 0.0185], ax), C(at(-0.036, 0.004, -0.047), at(-0.058, 0.004, -0.047), 0.0165, 0.0155), C(at(0.0, 0.007, -0.041), at(0.037, 0.011, -0.044), 0.0145, 0.012), E(at(-0.006, -0.016, -0.03), [0.011, 0.007, 0.0045], ax)) },
+    { nm: 'Kayık kemiği (ayak)', la: 'os naviculare', shape: E(at(0.049, -0.013, -0.024), [0.0075, 0.0158, 0.0128], ax) },
+    { nm: 'Küp kemiği', la: 'os cuboideum', shape: SD.box(at(0.055, 0.017, -0.041), [0.013, 0.0105, 0.0105], ax, 0.004) },
+    { nm: 'İç çivi kemiği', la: 'os cuneiforme mediale', shape: SD.box(at(0.068, -0.0175, -0.031), [0.0105, 0.0072, 0.0145], ax, 0.0035) },
+    { nm: 'Orta çivi kemiği', la: 'os cuneiforme intermedium', shape: SD.box(at(0.0655, -0.0045, -0.026), [0.0082, 0.0055, 0.0105], ax, 0.003) },
+    { nm: 'Dış çivi kemiği', la: 'os cuneiforme laterale', shape: SD.box(at(0.0665, 0.0068, -0.029), [0.0098, 0.0058, 0.0108], ax, 0.003) },
+  ];
+}
+
+// ---------- ribs ----------
+const RIB_W = [0.058, 0.088, 0.106, 0.118, 0.127, 0.134, 0.139, 0.141, 0.14, 0.135, 0.125, 0.108];
+const RIB_DROP = [0.035, 0.055, 0.075, 0.09, 0.1, 0.11, 0.12, 0.125, 0.12, 0.11, 0.072, 0.048];
+const RIB_END = [6, 6, 6, 6, 6, 6, 6, 5, 5, 4, 4, 3];
+const RIB_STY = [1.412, 1.378, 1.352, 1.326, 1.302, 1.275, 1.248];
+const RIB_NORM = [[0.45, 0.0, 0.06], [0.70, 0.08, 0.16], [0.90, 0.26, 0.3], [1.0, 0.48, 0.45], [0.97, 0.66, 0.6], [0.84, 0.82, 0.75], [0.62, 0.94, 0.88], [0.36, 1.0, 1.0]];
+const sternumZ = (y) => 0.064 + clamp((1.425 - y) / 0.189, 0, 1.2) * 0.036 - 0.004;
+function ribPaths() {
+  const ribs = [];
+  for (let r = 1; r <= 12; r++) {
+    const vi = 6 + r; const s = vertSpec(vi);
+    const P0 = vLocal(vi, s.bodyW + 0.0015, 0.004, -s.bodyD * 0.5);
+    const P1 = vLocal(vi, s.bodyW + s.transLen * 0.86, 0.001, -(s.bodyD + s.canalD + 0.005));
+    const a = RIB_W[r - 1];
+    const zBack = P1[2] - 0.014;
+    const yFront = r <= 7 ? RIB_STY[r - 1] : P1[1] - RIB_DROP[r - 1];
+    const zFront = r <= 7 ? sternumZ(yFront) : [0.088, 0.078, 0.062, 0.03, 0.0][r - 8];
+    const pts = [P0, P1];
+    for (let j = 0; j <= RIB_END[r - 1]; j++) {
+      const [un, wn, sn] = RIB_NORM[j];
+      const x = Math.max(un * a, P1[0] + 0.006 * (j + 1));
+      pts.push([x, P1[1] - RIB_DROP[r - 1] * sn, lerp(zBack, zFront, wn)]);
+    }
+    // ensure x grows smoothly near the back for short upper ribs
+    ribs.push({ r, pts, zFront, yFront });
+  }
+  // costal cartilages
+  for (const rib of ribs) {
+    const r = rib.r; const end = rib.pts[rib.pts.length - 1];
+    if (r <= 7) {
+      const st = [r === 1 ? 0.024 : r === 2 ? 0.019 : 0.0165 + (r - 3) * 0.0008, RIB_STY[r - 1], sternumZ(RIB_STY[r - 1]) + 0.002];
+      const mid = [lerp(end[0], st[0], 0.55), lerp(end[1], st[1], 0.35) - (r >= 5 ? 0.008 : 0), lerp(end[2], st[2], 0.7) + 0.006];
+      rib.cart = [end, mid, st];
+    } else if (r <= 10) {
+      const above = ribs[r - 2].cart; // join cartilage of rib above
+      const tgt = mixAlong(above, 0.62);
+      const mid = [lerp(end[0], tgt[0], 0.5), lerp(end[1], tgt[1], 0.45) - 0.006, lerp(end[2], tgt[2], 0.5) + 0.01];
+      rib.cart = [end, mid, tgt];
+    } else {
+      const dir = norm3(sub3(end, rib.pts[rib.pts.length - 2]));
+      rib.cart = [end, add3(end, mul3(dir, 0.012)), add3(end, mul3(dir, 0.02))];
+    }
+  }
+  return ribs;
+}
+function mixAlong(pts, t) {
+  const L = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++) { const l = len3(sub3(pts[i], pts[i - 1])); L.push(l); tot += l; }
+  let d = t * tot;
+  for (let i = 1; i < pts.length; i++) { if (d <= L[i - 1]) return mix3(pts[i - 1], pts[i], d / L[i - 1]); d -= L[i - 1]; }
+  return pts[pts.length - 1];
+}
+function ribGeometry(rib) {
+  const r = rib.r;
+  const wide = r === 1 ? 0.0085 : r <= 2 ? 0.0072 : r >= 11 ? 0.0055 : 0.0068;
+  return sweep(rib.pts, {
+    rx: (t) => lerp(0.0042, 0.0028, smoothstep(0, 0.25, t)),
+    ry: (t) => lerp(0.0045, wide, smoothstep(0.02, 0.3, t)) * (1 - 0.15 * smoothstep(0.8, 1, t)),
+    up: [0, 1, 0], radial: 10, step: 0.005,
+    color: () => [0.93, 0.93, 0.93],
+  });
+}
+function cartilageGeometry(rib) {
+  const r = rib.r;
+  return sweep(rib.cart, { rx: () => 0.0034, ry: (t) => (r <= 7 ? lerp(0.0058, 0.0062, t) : lerp(0.0052, 0.004, t)), up: [0, 1, 0], radial: 10, step: 0.005 });
+}
+
+// ---------- sternum ----------
+function sternumSDF() {
+  const o = [0, 1.33, 0.086]; const e2 = norm3([0, 0.983, -0.181]); const nW = cross3([1, 0, 0], e2);
+  const map = (x, y, z) => { const p = [x - o[0], y - o[1], z - o[2]]; return [p[0], dot3(p, e2), dot3(p, nW)]; };
+  const half = [[0, 0.091], [0.011, 0.097], [0.024, 0.095], [0.029, 0.085], [0.026, 0.07], [0.018, 0.05], [0.0145, 0.043], [0.016, 0.03], [0.018, 0.0],
+    [0.019, -0.04], [0.017, -0.07], [0.012, -0.095], [0.0075, -0.101], [0.0055, -0.12], [0, -0.132]];
+  const ol = half.concat(half.slice(1, -1).reverse().map(([u, v]) => [-u, v]));
+  const th = (u, v) => v > 0.044 ? 0.0115 : v > -0.098 ? 0.0088 : 0.0042;
+  return boneTex(SD.plate(smoothOutline(ol, 4), map, th, [-0.035, 1.18, 0.05, 0.035, 1.44, 0.12], 0.0018), 0.0002, 900);
+}
+
+// ---------- clavicle & scapula (left) ----------
+function clavicleSDF() {
+  const pts = [LM.sc, [0.05, 1.433, 0.066], [0.09, 1.441, 0.05], [0.128, 1.448, 0.018], [0.158, 1.452, -0.002], [0.167, 1.452, -0.009]];
+  return boneTex(U(0.004, SD.tube(pts, [0.0088, 0.0069, 0.0059, 0.006, 0.0062, 0.005], 0.002), E([0.157, 1.452, -0.004], [0.012, 0.0042, 0.009]), E(add3(LM.sc, [0.003, 0, 0]), [0.007, 0.0095, 0.009])), 0.00025, 900);
+}
+const SCAP = { zc: 0.11, R: 0.2253 };
+const cylPt = (u, v, w) => { const th = u / SCAP.R, Rr = SCAP.R - w; return [Rr * Math.sin(th), v, SCAP.zc - Rr * Math.cos(th)]; };
+function scapulaSDF() {
+  const map = (x, y, z) => {
+    const dz = z - SCAP.zc; const r = Math.sqrt(x * x + dz * dz);
+    return [SCAP.R * Math.atan2(x, -dz), y, SCAP.R - r - 0.003];
+  };
+  const ol = smoothOutline([[0.07, 1.446], [0.064, 1.412], [0.066, 1.36], [0.073, 1.312], [0.083, 1.276], [0.092, 1.28], [0.108, 1.31], [0.124, 1.348],
+    [0.136, 1.378], [0.142, 1.398], [0.131, 1.414], [0.116, 1.422], [0.104, 1.426], [0.088, 1.437]], 6);
+  const th = (u) => 0.0026 + 0.005 * smoothstep(0.115, 0.14, u);
+  const blade = SD.plate(ol, map, th, [0.04, 1.26, -0.12, 0.16, 1.46, -0.03], 0.001, [0.0035, 0.004]);
+  const spine = [cylPt(0.064, 1.404, -0.003), cylPt(0.088, 1.414, -0.009), cylPt(0.112, 1.425, -0.015), cylPt(0.134, 1.435, -0.019), [0.162, 1.445, -0.03], LM.acromion];
+  const parts = [blade, SD.tube(spine, [0.0022, 0.0034, 0.0044, 0.0052, 0.0056, 0.0055], 0.003)];
+  for (let k = 0; k < 6; k++) { const u = 0.068 + k * 0.013; const v = 1.405 + k * 0.0042; parts.push(C(cylPt(u, v, 0.0), cylPt(u, v + 0.001, -0.004 - k * 0.0026), 0.0017, 0.0022)); }
+  parts.push(E([0.177, 1.449, -0.016], [0.017, 0.0048, 0.0135]));
+  parts.push(SD.ellAlong(LM.glenoid, [1, 0, 0.25], 0.0052, 0.0118, 0.0172, [0, 0, 1]));
+  parts.push(C(cylPt(0.136, 1.397, 0.002), LM.glenoid, 0.0085, 0.0098));
+  parts.push(SD.tube([cylPt(0.113, 1.424, 0.002), cylPt(0.128, 1.43, 0.008), [0.141, 1.422, 0.022], LM.coracoid], [0.0056, 0.0053, 0.0048, 0.0042], 0.002));
+  let sc = U(0.004, parts);
+  sc = Sub(sc, 0.0015, SD.ellAlong(add3(LM.glenoid, [0.006, 0, 0.0015]), [1, 0, 0.25], 0.0028, 0.0105, 0.016, [0, 0, 1]));
+  return boneTex(sc, 0.0002, 800);
+}
+function hyoidSDF() {
+  const pts = [[-0.019, 1.53, 0.012], [-0.013, 1.528, 0.026], [0, 1.527, 0.032], [0.013, 1.528, 0.026], [0.019, 1.53, 0.012]];
+  return U(0.002, SD.tube(pts, [0.0018, 0.0026, 0.0034, 0.0026, 0.0018], 0.002));
+}
+
+// ---------- build tasks ----------
+function buildSkeleton(T) {
+  const sk = (geo, mat, meta) => addPart(geo, mat, { layer: 'skeleton', ...meta });
+  const pair = (geo, mat, meta) => addPair(geo, mat, { layer: 'skeleton', ...meta });
+  T('Kafatası tavanı', () => {
+    const { cap } = skullParts();
+    sk(boneMesh(cap, 0.0021), 'bone', { id: 'calvaria', tr: 'Kafatası tavanı', la: 'calvaria', desc: 'Frontal, parietal ve oksipital kemiklerin üst kısmından oluşan kubbe. Beyni korur; görünümde kaldırarak beyni açığa çıkarabilirsiniz.' });
+  });
+  T('Kafatası', () => {
+    const { base } = skullParts();
+    sk(boneMesh(base, 0.0016), 'bone', { id: 'skull', tr: 'Kafatası ve yüz kemikleri', la: 'cranium et ossa faciei', desc: 'Kafa tabanı, şakak kemikleri, göz çukurları (orbita), elmacık kemikleri, burun kemikleri ve üst çene (maxilla). Kafatası 22 kemikten oluşur; alt çene dışındakiler dikişlerle (sutura) oynamaz şekilde birleşir.' });
+  });
+  T('Alt çene ve dişler', () => {
+    sk(boneMesh(mandibleSDF(), 0.0013), 'bone', { id: 'mandible', tr: 'Alt çene kemiği', la: 'mandibula', desc: 'Kafatasının tek hareketli kemiği. Şakak-çene ekleminde (articulatio temporomandibularis) hareket ederek çiğneme ve konuşmayı sağlar.' });
+    for (const upper of [true, false]) {
+      const geos = [];
+      for (const [x, z, type, w] of TOOTH_ARCH) for (const sx of [1, -1]) geos.push(meshSDF(toothSDF(x * sx, z, type, w, upper), 0.0006, { ao: 0.002, aoMin: 0.6, color: toothColor(upper) }));
+      sk(mergeGeos(geos), 'tooth', { id: upper ? 'teethU' : 'teethL', tr: upper ? 'Üst dişler' : 'Alt dişler', la: upper ? 'dentes maxillares' : 'dentes mandibulares', desc: 'Her çenede 16 diş: 4 kesici, 2 köpek, 4 küçük azı, 6 büyük azı. Mine (enamel) vücudun en sert dokusudur.' });
+    }
+    sk(boneMesh(hyoidSDF(), 0.0008), 'bone', { id: 'hyoid', tr: 'Dil kemiği', la: 'os hyoideum', desc: 'Başka hiçbir kemikle eklem yapmayan U şeklinde kemik; dil ve gırtlak kaslarına tutunma yeri sağlar.' });
+  });
+  for (let i = 0; i < 24; i++) {
+    const nm = VERT_NAMES[i];
+    T(`Omur ${nm}`, () => {
+      const region = i < 7 ? 'Boyun omuru' : i < 19 ? 'Göğüs omuru' : 'Bel omuru';
+      const special = i === 0 ? ' (atlas)' : i === 1 ? ' (axis)' : i === 6 ? ' (vertebra prominens)' : '';
+      const desc = i === 0 ? 'Kafatasını taşıyan halka şeklindeki ilk boyun omuru; gövdesi yoktur. "Evet" baş hareketi bu eklemde olur.'
+        : i === 1 ? 'Dens (diş çıkıntısı) atlasın içine uzanır; başın sağa-sola dönme ("hayır") hareketi bu eksen etrafında gerçekleşir.'
+          : i < 7 ? 'Boyun omurlarının enine çıkıntılarında omurga atardamarının geçtiği delikler (foramen transversarium) bulunur.'
+            : i < 19 ? 'Göğüs omurları kaburgalarla eklem yapar; dikensi çıkıntıları uzun ve aşağı doğru eğiktir.'
+              : 'Bel omurları vücut ağırlığını taşıdığı için en büyük gövdeli omurlardır.';
+      sk(boneMesh(vertebraSDF(i), i < 7 ? 0.001 : i < 19 ? 0.0012 : 0.0014), 'bone', { id: 'v' + nm, tr: `${region} ${nm}${special}`, la: `vertebra ${i < 7 ? 'cervicalis' : i < 19 ? 'thoracica' : 'lumbalis'} ${nm}`, desc, group: 'Omurga' });
+    });
+  }
+  T('Omurlar arası diskler', () => {
+    const geos = [];
+    for (let i = 1; i < 23; i++) geos.push(meshSDF(discSDF(i), 0.0015, { ao: 0.003, aoMin: 0.6 }));
+    sk(mergeGeos(geos), 'disc', { id: 'discs', tr: 'Omurlar arası diskler', la: 'disci intervertebrales', desc: 'Dışta lifli halka (anulus fibrosus), içte jelimsi çekirdekten (nucleus pulposus) oluşan amortisörler. Omurganın esnekliğini sağlar; fıtıklaşınca sinir köküne bası yapabilir.' });
+  });
+  T('Sağrı ve kuyruk sokumu', () => {
+    sk(boneMesh(sacrumSDF(), 0.0014), 'bone', { id: 'sacrum', tr: 'Sağrı kemiği', la: 'os sacrum', desc: '5 omurun kaynaşmasıyla oluşan üçgen kemik. Kalça kemikleriyle sakroiliak eklemi yaparak leğen kemeri halkasını tamamlar.' });
+    sk(boneMesh(coccyxSDF(), 0.001), 'bone', { id: 'coccyx', tr: 'Kuyruk sokumu kemiği', la: 'os coccygis', desc: '3-5 küçük omurun kaynaşmasından oluşan körelmiş kuyruk.' });
+  });
+  T('Kaburgalar', () => {
+    const ribs = ribPaths();
+    for (const rib of ribs) {
+      const kind = rib.r <= 7 ? 'gerçek kaburga' : rib.r <= 10 ? 'yalancı kaburga' : 'serbest (yüzen) kaburga';
+      pair(ribGeometry(rib), 'bone', { id: 'rib' + rib.r, tr: `${rib.r}. kaburga`, la: `costa ${['prima', 'secunda', 'tertia', 'quarta', 'quinta', 'sexta', 'septima', 'octava', 'nona', 'decima', 'undecima', 'duodecima'][rib.r - 1]}`, desc: `${rib.r}. kaburga bir ${kind}dır. ${rib.r <= 7 ? 'Kendi kıkırdağıyla doğrudan göğüs kemiğine bağlanır.' : rib.r <= 10 ? 'Kıkırdağı üstteki kaburganın kıkırdağına katılır.' : 'Ön ucu serbesttir; göğüs kemiğine bağlanmaz.'}`, group: 'Göğüs kafesi' });
+    }
+    pair(mergeGeos(ribs.map(cartilageGeometry)), 'cartilage', { id: 'costalCart', tr: 'Kaburga kıkırdakları', la: 'cartilagines costales', desc: 'Hiyalin kıkırdaktan yapılmış bu bağlantılar göğüs kafesine esneklik kazandırır ve solunumda genişlemesine izin verir.', group: 'Göğüs kafesi' });
+    sk(boneMesh(sternumSDF(), 0.0013), 'bone', { id: 'sternum', tr: 'Göğüs kemiği', la: 'sternum', desc: 'Sap (manubrium), gövde (corpus) ve kılıç çıkıntısından (processus xiphoideus) oluşan yassı kemik. Kırmızı kemik iliği içerir.', group: 'Göğüs kafesi' });
+  });
+  T('Omuz kemeri', () => {
+    pair(boneMesh(clavicleSDF(), 0.0014), 'bone', { id: 'clavicle', tr: 'Köprücük kemiği', la: 'clavicula', desc: 'Kolu gövdeye bağlayan tek kemik bağlantısı; S şeklindedir ve en sık kırılan kemiklerdendir.', group: 'Omuz kemeri' });
+    pair(boneMesh(scapulaSDF(), 0.0013), 'bone', { id: 'scapula', tr: 'Kürek kemiği', la: 'scapula', desc: 'Üçgen yassı kemik; eklem çukuru (cavitas glenoidalis) pazı kemiğinin başıyla omuz eklemini yapar. Spina, akromiyon ve korakoid çıkıntısı kaslara tutunma yeridir.', group: 'Omuz kemeri' });
+  });
+  T('Kol kemikleri', () => {
+    pair(boneMesh(humerusSDF(), 0.0019), 'bone', { id: 'humerus', tr: 'Pazı kemiği', la: 'humerus', desc: 'Üst kolun uzun kemiği. Başı kürek kemiğiyle omuz eklemini, alt ucu radius ve ulna ile dirsek eklemini yapar.', group: 'Üst ekstremite' });
+    pair(boneMesh(ulnaSDF(), 0.0014), 'bone', { id: 'ulna', tr: 'Dirsek kemiği', la: 'ulna', desc: 'Önkolun iç (serçe parmak) tarafındaki kemik. Olekranon çıkıntısı dirseğin sivri ucunu oluşturur.', group: 'Üst ekstremite' });
+    pair(boneMesh(radiusSDF(), 0.0014), 'bone', { id: 'radius', tr: 'Önkol dış kemiği', la: 'radius', desc: 'Önkolun başparmak tarafındaki kemik; ulna etrafında dönerek elin içe-dışa dönmesini (pronasyon/supinasyon) sağlar.', group: 'Üst ekstremite' });
+  });
+  T('El kemikleri', () => {
+    for (const c of carpalDefs()) pair(boneMesh(boneTex(c.shape, 0.00015, 1500), 0.0009), 'bone', { id: 'carp_' + c.la, tr: c.nm, la: c.la, desc: 'El bileği (karpal) kemiklerinden biri. 8 karpal kemik iki sıra halinde dizilir ve bileğin esnek hareketini sağlar.', group: 'El' });
+    const names = { I: 'Başparmak', II: 'İşaret parmağı', III: 'Orta parmak', IV: 'Yüzük parmağı', V: 'Serçe parmak' };
+    const all = [HAND.thumb, ...HAND.fingers];
+    for (const f of all) {
+      const isT = f.name === 'I';
+      const rB = isT ? 0.0062 : f.name === 'V' ? 0.0045 : 0.0052, rS = isT ? 0.0042 : f.name === 'V' ? 0.0029 : 0.0034, rH = isT ? 0.0058 : f.name === 'V' ? 0.0045 : 0.0052;
+      pair(boneMesh(metacarpalSDF(f.base, f.mcp, rB, rS, rH), 0.0009), 'bone', { id: 'mc' + f.name, tr: `${f.name}. el tarak kemiği`, la: `os metacarpi ${f.name}`, desc: 'Avuç içinin iskeletini oluşturan beş tarak kemiğinden biri.', group: 'El' });
+      const joints = isT ? [f.mcp, f.ip, f.tip] : [f.mcp, f.pip, f.dip, f.tip];
+      const segNames = isT ? ['proksimal', 'distal'] : ['proksimal', 'orta', 'distal'];
+      for (let k = 0; k < joints.length - 1; k++) {
+        const distal = k === joints.length - 2;
+        const s = (isT ? 1.15 : f.name === 'V' ? 0.82 : 1) * (k === 0 ? 1 : k === 1 && !distal ? 0.86 : 0.76);
+        pair(boneMesh(phalanxSDF(joints[k], joints[k + 1], 0.0049 * s, 0.0041 * s, distal), 0.0008), 'bone', { id: `ph_${f.name}_${k}`, tr: `${names[f.name]} ${segNames[k]} falanksı`, la: `phalanx ${segNames[k] === 'orta' ? 'media' : segNames[k] === 'proksimal' ? 'proximalis' : 'distalis'} digiti ${f.name}`, desc: 'Parmak kemiği (falanks). Başparmakta 2, diğer parmaklarda 3 falanks bulunur; elde toplam 14.', group: 'El' });
+      }
+    }
+  });
+  T('Leğen kemeri', () => {
+    pair(boneMesh(hipBoneSDF(), 0.0015), 'bone', { id: 'hipbone', tr: 'Kalça kemiği', la: 'os coxae', desc: 'İlium, iskium ve pubis kemiklerinin asetabulumda kaynaşmasıyla oluşur. Asetabulum uyluk kemiğinin başıyla kalça eklemini yapar.', group: 'Leğen' });
+  });
+  T('Bacak kemikleri', () => {
+    pair(boneMesh(femurSDF(), 0.0021), 'bone', { id: 'femur', tr: 'Uyluk kemiği', la: 'femur', desc: 'İnsan vücudunun en uzun ve en güçlü kemiği. Boyun kısmı kalça kırıklarının en sık görüldüğü yerdir.', group: 'Alt ekstremite' });
+    pair(boneMesh(patellaSDF(), 0.0012), 'bone', { id: 'patella', tr: 'Diz kapağı kemiği', la: 'patella', desc: 'Vücudun en büyük sesamoid kemiği; kuadriseps tendonunun içinde gelişir ve diz eklemini korur.', group: 'Alt ekstremite' });
+    pair(boneMesh(tibiaSDF(), 0.002), 'bone', { id: 'tibia', tr: 'Kaval kemiği', la: 'tibia', desc: 'Bacağın ağırlık taşıyan ana kemiği. Ön kenarı (kaval) deri altında hissedilir; alt ucu iç topuğu (medial malleol) oluşturur.', group: 'Alt ekstremite' });
+    pair(boneMesh(fibulaSDF(), 0.0015), 'bone', { id: 'fibula', tr: 'Baldır kemiği', la: 'fibula', desc: 'Tibianın dışında yer alan ince kemik; ağırlık taşımaz ama kas tutunması ve dış topuk (lateral malleol) ile ayak bileği stabilitesi sağlar.', group: 'Alt ekstremite' });
+  });
+  T('Ayak kemikleri', () => {
+    for (const t of tarsalDefs()) pair(boneMesh(boneTex(t.shape, 0.0002, 1000), 0.0011), 'bone', { id: 'tar_' + t.la, tr: t.nm, la: t.la, desc: 'Ayak bileği (tarsal) kemiklerinden biri. Ayakta 7 tarsal kemik vardır; topuk kemiği en büyüğüdür.', group: 'Ayak' });
+    for (const t of FOOT.toes) {
+      pair(boneMesh(metacarpalSDF(t.base, t.head, t.sr * 1.35, t.sr, t.hr), 0.001), 'bone', { id: 'mt' + t.name, tr: `${t.name}. ayak tarak kemiği`, la: `os metatarsi ${t.name}`, desc: 'Ayak tarağını oluşturan beş metatarsal kemikten biri; ayak kemerlerinin yapısına katılır.', group: 'Ayak' });
+      const segNames = t.name === 'I' ? ['proksimal', 'distal'] : ['proksimal', 'orta', 'distal'];
+      for (let k = 0; k < t.joints.length - 1; k++) {
+        const distal = k === t.joints.length - 2; const s = t.name === 'I' ? 1.35 : 1;
+        const rr = (k === 0 ? 0.0042 : k === 1 && !distal ? 0.0034 : 0.003) * s;
+        pair(boneMesh(phalanxSDF(t.joints[k], t.joints[k + 1], rr, rr * 0.85, distal), 0.0009), 'bone', { id: `tph_${t.name}_${k}`, tr: `${t.name}. ayak parmağı ${segNames[k]} falanksı`, la: `phalanx digiti pedis ${t.name}`, desc: 'Ayak parmağı kemiği. Başparmakta 2, diğer parmaklarda 3 falanks bulunur.', group: 'Ayak' });
+      }
+    }
+  });
+}
+
+// ---- 30-skin.js ----
+// ===================== Skin / body envelope =====================
+// One SDF describes the outer body surface. Muscles are conformed to it (offset inwards),
+// so it is built hierarchically for fast evaluation.
+const dirArm = norm3(sub3(LM.elbow, LM.humHead));
+const dirFore = norm3(sub3(LM.wrist, LM.elbow));
+let _bodySDF = null;
+function bodySDF() {
+  if (_bodySDF) return _bodySDF;
+  const H = HAND, Fo = FOOT;
+  // ---- head ----
+  const head = Sub(U(0.012,
+    E([0, 1.668, -0.012], [0.0775, 0.084, 0.1005]),
+    E([0, 1.602, 0.026], [0.0655, 0.074, 0.07]),
+    E([0, 1.632, 0.03], [0.0705, 0.048, 0.066]),
+    C([0.054, 1.551, -0.012], [0.02, 1.522, 0.07], 0.0105, 0.012), C([-0.054, 1.551, -0.012], [-0.02, 1.522, 0.07], 0.0105, 0.012),
+    E([0, 1.521, 0.078], [0.021, 0.0135, 0.0125]),
+    E([0.049, 1.578, 0.02], [0.017, 0.03, 0.03]), E([-0.049, 1.578, 0.02], [0.017, 0.03, 0.03]),
+    U(0.006, C([0, 1.642, 0.092], [0, 1.61, 0.107], 0.0045, 0.0062), S([0, 1.6045, 0.1065], 0.0076),
+      E([0.0102, 1.6005, 0.1005], [0.0066, 0.0054, 0.0072]), E([-0.0102, 1.6005, 0.1005], [0.0066, 0.0054, 0.0072])),
+    E([0, 1.5655, 0.0948], [0.0198, 0.0054, 0.0064]), E([0, 1.5525, 0.0928], [0.0178, 0.0056, 0.0062]),
+    E([0, 1.546, 0.068], [0.03, 0.024, 0.024]),
+    E([0.03, 1.6555, 0.0825], [0.021, 0.0042, 0.0048]), E([-0.03, 1.6555, 0.0825], [0.021, 0.0042, 0.0048]),
+    E([0.033, 1.6355, 0.0815], [0.0136, 0.0104, 0.0058]), E([-0.033, 1.6355, 0.0815], [0.0136, 0.0104, 0.0058]),
+    SD.ell([0.0775, 1.622, -0.014], [0.0055, 0.029, 0.016], [norm3([1, 0, 0.25]), [0, 1, 0], norm3([-0.25, 0, 1])]),
+    SD.ell([-0.0775, 1.622, -0.014], [0.0055, 0.029, 0.016], [norm3([1, 0, -0.25]), [0, 1, 0], norm3([0.25, 0, 1])]),
+  ), 0.002, E([0, 1.5592, 0.102], [0.018, 0.001, 0.01]), E([0.0335, 1.6355, 0.088], [0.0112, 0.0041, 0.0085]), E([-0.0335, 1.6355, 0.088], [0.0112, 0.0041, 0.0085]));
+  // ---- neck ----
+  const neck = U(0.02,
+    C([0, 1.585, -0.016], [0, 1.448, -0.008], 0.05, 0.056),
+    E([0, 1.502, 0.049], [0.0105, 0.012, 0.0085]),
+    C([0.05, 1.594, -0.028], [0.021, 1.442, 0.054], 0.0118, 0.0102), C([-0.05, 1.594, -0.028], [-0.021, 1.442, 0.054], 0.0118, 0.0102),
+  );
+  // ---- trunk ----
+  const trunk = U(0.045,
+    E([0, 1.29, -0.005], [0.153, 0.17, 0.117]),
+    E([0, 1.405, -0.012], [0.165, 0.065, 0.098]),
+    E([0.075, 1.338, 0.08], [0.074, 0.044, 0.03]), E([-0.075, 1.338, 0.08], [0.074, 0.044, 0.03]),
+    E([0.09, 1.245, -0.058], [0.075, 0.13, 0.064]), E([-0.09, 1.245, -0.058], [0.075, 0.13, 0.064]),
+    E([0, 1.085, 0.006], [0.132, 0.15, 0.096]),
+    E([0.03, 1.12, -0.082], [0.026, 0.12, 0.026]), E([-0.03, 1.12, -0.082], [0.026, 0.12, 0.026]),
+    E([0, 0.945, -0.006], [0.163, 0.1, 0.108]),
+    E([0, 1.005, -0.006], [0.152, 0.065, 0.1]),
+    E([0, 1.185, 0.012], [0.142, 0.07, 0.1]),
+    E([0.07, 0.886, -0.066], [0.074, 0.085, 0.064]), E([-0.07, 0.886, -0.066], [0.074, 0.085, 0.064]),
+    E([0, 0.918, 0.045], [0.085, 0.048, 0.05]),
+  );
+  const trapz = U(0.02, C([0.025, 1.53, -0.05], [0.158, 1.455, -0.03], 0.034, 0.03), C([-0.025, 1.53, -0.05], [-0.158, 1.455, -0.03], 0.034, 0.03));
+  // ---- arms (left, folded) ----
+  const arm = U(0.022,
+    E([0.188, 1.41, -0.022], [0.05, 0.064, 0.052]),
+    C([0.196, 1.39, -0.025], [0.236, 1.105, -0.02], 0.045, 0.035),
+    SD.ellAlong([0.216, 1.245, 0.008], dirArm, 0.085, 0.029, 0.027, [1, 0, 0]),
+    SD.ellAlong([0.213, 1.255, -0.045], dirArm, 0.09, 0.031, 0.029, [1, 0, 0]),
+    S(LM.elbow, 0.035),
+    C(LM.elbow, [0.29, 0.865, 0.0], 0.039, 0.025),
+    SD.ellAlong([0.25, 1.035, -0.002], dirFore, 0.085, 0.037, 0.032, [1, 0, 0]),
+    SD.ellAlong(H.at(-0.006, 0, 0), dirFore, 0.016, 0.0275, 0.0175, H.Lt),
+  );
+  // ---- hand (left) ----
+  const fingers = [];
+  for (const fg of H.fingers) {
+    const sc = fg.name === 'V' ? 0.86 : fg.name === 'III' ? 1.04 : 1;
+    const tip = add3(fg.tip, mul3(norm3(sub3(fg.tip, fg.dip)), 0.0035));
+    fingers.push(SD.tube([fg.mcp, fg.pip, fg.dip, tip], [0.0094 * sc, 0.0086 * sc, 0.0078 * sc, 0.0068 * sc], 0.004));
+  }
+  const th = H.thumb; const tTip = add3(th.tip, mul3(norm3(sub3(th.tip, th.ip)), 0.0035));
+  fingers.push(SD.tube([add3(th.base, mul3(H.P, 0.004)), th.mcp, th.ip, tTip], [0.0135, 0.0112, 0.0098, 0.0082], 0.004));
+  const hand = U(0.004,
+    U(0.012, SD.box(H.at(0.058, -0.001, 0.0005), [0.044, 0.04, 0.0115], [H.D, H.Lt, H.P], 0.0105),
+      E(H.at(0.038, 0.021, 0.008), [0.026, 0.017, 0.012], [H.D, H.Lt, H.P]),
+      E(H.at(0.048, -0.028, 0.006), [0.03, 0.012, 0.01], [H.D, H.Lt, H.P])),
+    fingers);
+  // ---- leg (left, folded) ----
+  const leg = U(0.03,
+    C([0.098, 0.875, -0.002], [0.092, 0.53, 0.004], 0.084, 0.052),
+    E([0.106, 0.69, 0.04], [0.058, 0.15, 0.05]),
+    E([0.095, 0.7, -0.036], [0.05, 0.15, 0.045]),
+    E([0.06, 0.765, 0.0], [0.04, 0.1, 0.05]),
+    E([0.09, 0.497, 0.008], [0.047, 0.045, 0.047]),
+    S([0.09, 0.52, 0.054], 0.021),
+    C([0.09, 0.47, -0.006], [0.088, 0.11, -0.003], 0.047, 0.029),
+    E([0.094, 0.352, -0.032], [0.045, 0.1, 0.042]),
+    E([0.1, 0.33, 0.021], [0.02, 0.1, 0.02]),
+    E([0.088, 0.077, -0.004], [0.031, 0.03, 0.03]),
+    S(LM.medMall, 0.0125), S(LM.latMall, 0.0125),
+  );
+  // ---- foot (left) ----
+  const fa = [Fo.F, Fo.Lf, Fo.Uf];
+  const toes = Fo.toes.map(t => {
+    const j = t.joints; const tip = add3(j[j.length - 1], mul3(Fo.F, 0.004));
+    const r0 = t.name === 'I' ? 0.0122 : 0.0085 - (['II', 'III', 'IV', 'V'].indexOf(t.name)) * 0.0006;
+    return SD.tube([j[0], ...j.slice(1, -1), tip], [r0, ...j.slice(1, -1).map(() => r0 * 0.92), r0 * 0.8], 0.003);
+  });
+  const foot = I(0.004, U(0.006,
+    U(0.02, E(Fo.at(-0.042, 0.003, -0.045), [0.034, 0.029, 0.031], fa),
+      E(Fo.at(0.048, 0.006, -0.046), [0.062, 0.041, 0.029], fa),
+      E(Fo.at(0.118, 0.006, -0.058), [0.04, 0.047, 0.017], fa)),
+    toes), SD.plane([0, 0.0, 0], [0, -1, 0]));
+  const limbs = U(0.025, arm, U(0.016, SD.ellAlong(H.at(0.004, 0, 0), dirFore, 0.012, 0.027, 0.0165, H.Lt), hand));
+  const legs = U(0.022, leg, foot);
+  let body = U(0.03, U(0.025, head, neck), U(0.035, trunk, trapz));
+  body = U(0.03, body, SymX(limbs));
+  body = U(0.04, body, SymX(legs));
+  body = Sub(body, 0.006, S([0, 1.045, 0.107], 0.0055), E([0, 0.872, -0.128], [0.0035, 0.055, 0.03]),
+    C([0, 1.4, -0.131], [0, 1.02, -0.104], 0.0035));
+  // never let a subcutaneous bone pierce the skin: union with the skeleton inflated by ~3 mm
+  body = U(0.01, body, skinBoneShell());
+  _bodySDF = body;
+  return body;
+}
+
+// cheap proxies of the subcutaneous bony landmarks (clavicle, crests, condyles, malleoli…)
+function skinBoneShell() {
+  const Fo = FOOT;
+  const left = [
+    SD.tube([LM.sc, [0.05, 1.433, 0.066], [0.09, 1.441, 0.05], [0.128, 1.448, 0.018], [0.158, 1.452, -0.002], [0.167, 1.452, -0.009]], [0.0088, 0.0069, 0.0059, 0.006, 0.0062, 0.005]),
+    E([0.177, 1.449, -0.016], [0.017, 0.0048, 0.0135]),
+    SD.tube([cylPt(0.064, 1.404, -0.003), cylPt(0.1, 1.42, -0.012), cylPt(0.134, 1.435, -0.019), [0.162, 1.445, -0.03]], [0.0025, 0.004, 0.0052, 0.0056]),
+    S(LM.medEpi, 0.0088), S(LM.latEpi, 0.0068),
+    E([0.226, 1.112, -0.037], [0.0105, 0.016, 0.0105]),
+    C([0.226, 1.09, -0.025], [0.252, 0.97, -0.017], 0.0098, 0.0072), C([0.252, 0.97, -0.017], [0.27, 0.866, -0.012], 0.0072, 0.0058),
+    S([0.271, 0.864, -0.012], 0.0076),
+    E([0.302, 0.868, 0.0], [0.0165, 0.0105, 0.0118]), C([0.314, 0.866, 0.0], LM.radStyloid, 0.0048, 0.0026),
+    SD.tube([LM.asis, [0.132, 0.995, 0.035], [0.137, 1.015, 0.0], [0.128, 1.02, -0.03], [0.105, 1.012, -0.055], [0.075, 0.995, -0.072], LM.psis], [0.006, 0.0068, 0.007, 0.0068, 0.0064, 0.006, 0.006]),
+    S(LM.asis, 0.0062),
+    E([0.139, 0.893, 0.0], [0.0165, 0.027, 0.021]),
+    E(LM.latCondyle, [0.0175, 0.023, 0.028]), E(LM.medCondyle, [0.019, 0.024, 0.029]),
+    E(LM.patella, [0.021, 0.022, 0.0105]),
+    E([0.088, 0.443, -0.003], [0.04, 0.024, 0.029]), E(LM.tibTub, [0.011, 0.017, 0.009]),
+    C([0.089, 0.41, 0.011], [0.087, 0.15, 0.01], 0.0075, 0.0055),
+    C([0.088, 0.425, 0.0], [0.087, 0.25, 0.004], 0.0175, 0.0125), C([0.087, 0.25, 0.004], [0.085, 0.095, 0.0], 0.0125, 0.0165),
+    E([0.085, 0.084, 0.0], [0.024, 0.02, 0.022]), E(LM.medMall, [0.0075, 0.017, 0.0105]),
+    E(LM.fibHead, [0.0105, 0.0125, 0.0105]), E(LM.latMall, [0.0085, 0.021, 0.0115]),
+    C(Fo.at(-0.036, 0.004, -0.047), Fo.at(-0.058, 0.004, -0.047), 0.0165, 0.0155),
+    // skull & face
+    E([0.029, 1.656, 0.079], [0.019, 0.005, 0.007]), E([0.05, 1.611, 0.049], [0.0095, 0.0115, 0.0095]),
+    C([0.056, 1.609, 0.038], [0.067, 1.612, -0.006], 0.0036, 0.0033), C([0.054, 1.611, -0.026], [0.051, 1.593, -0.027], 0.008, 0.0042),
+    E([0.0478, 1.575, -0.001], [0.0045, 0.028, 0.013]), E([0.051, 1.607, -0.013], [0.0088, 0.004, 0.0052]),
+  ];
+  const mand = [];
+  for (let i = 0; i <= 12; i++) { const t = -1 + i / 6; mand.push([0.0465 * t, 1.538, 0.077 - 0.082 * t * t]); }
+  const center = [
+    E([0, 1.668, -0.012], [0.0712, 0.0775, 0.094]),
+    E([0, 1.655, 0.086], [0.011, 0.0075, 0.0065]),
+    SD.ell([0, 1.636, 0.0905], [0.0068, 0.0125, 0.0026], [[1, 0, 0], norm3([0, -0.92, 0.38]), norm3([0, 0.38, 0.92])]),
+    stretchY(SD.tube(mand, mand.map(() => 0.0052)), 1.538, 2.5), E([0, 1.528, 0.078], [0.011, 0.0065, 0.0055]),
+    C(add3(LM.jugular, [0, 0, 0.004]), add3(LM.xiphoid, [0, 0, 0.002]), 0.0062, 0.0055),
+    S(add3(canalPoint(6), [0, -0.012, -0.03]), 0.006),
+  ];
+  return SymX(Round(U(0, left, center), 0.0032));
+}
+
+// regions meshed at different resolution (overlapping by ~1 cm so no seams open up)
+const SKIN_REGIONS = {
+  head: { keep: (x, y) => y > 1.466 && Math.abs(x) < 0.16, box: [-0.17, 1.462, -0.13, 0.17, 1.76, 0.13], h: 0.0022 },
+  hand: { keep: (x, y, z) => x > 0.2 && dot3(sub3([x, y, z], HAND.O), HAND.D) > -0.022, box: [0.2, 0.62, -0.05, 0.37, 0.88, 0.06], h: 0.0017 },
+  foot: { keep: (x, y) => x > 0 && y < 0.116, box: [0.03, -0.004, -0.09, 0.15, 0.12, 0.23], h: 0.0023 },
+  torsoU: { keep: (x, y, z) => (y <= 1.476 || Math.abs(x) >= 0.15) && y >= 1.05 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 1.044, -0.16, 0.4, 1.56, 0.14], h: 0.0044 },
+  torsoL: { keep: (x, y, z) => y < 1.06 && y >= 0.598 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 0.594, -0.16, 0.4, 1.066, 0.14], h: 0.0044 },
+  legs: { keep: (x, y) => y < 0.608 && y >= 0.104, box: [-0.16, 0.1, -0.1, 0.16, 0.612, 0.09], h: 0.0042 },
+};
+
+function skinColor(x, y, z) {
+  // subtle regional tint: lips, palms/soles lighter, cheeks warmer
+  let r = 1, g = 1, b = 1;
+  const lip = Math.exp(-(((y - 1.559) / 0.008) ** 2) - ((x / 0.02) ** 2)) * smoothstep(0.09, 0.1, z);
+  r -= lip * 0.02; g -= lip * 0.22; b -= lip * 0.16;
+  const cheek = Math.exp(-((((Math.abs(x) - 0.045) / 0.018) ** 2) + ((y - 1.6) / 0.02) ** 2)) * smoothstep(0.06, 0.08, z);
+  g -= cheek * 0.06; b -= cheek * 0.05;
+  return [r, g, b];
+}
+
+function buildSkin(T) {
+  const meta = { layer: 'skin', group: 'Deri', noShadow: true };
+  const desc = 'Vücudun en büyük organı (yetişkinde ~2 m²). Epidermis, dermis ve deri altı yağ dokusundan oluşur; koruma, ısı düzenleme, duyu ve D vitamini sentezinde görev alır.';
+  T('Deri: göğüs ve kollar', () => {
+    const R = SKIN_REGIONS.torsoU;
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoU', tr: 'Deri (göğüs ve kollar)', la: 'cutis', desc });
+  });
+  T('Deri: karın ve kalça', () => {
+    const R = SKIN_REGIONS.torsoL;
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoL', tr: 'Deri (karın, kalça ve uyluk)', la: 'cutis', desc });
+  });
+  T('Deri: bacaklar', () => {
+    const R = SKIN_REGIONS.legs;
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinLegs', tr: 'Deri (bacaklar)', la: 'cutis', desc });
+  });
+  T('Deri: baş ve yüz', () => {
+    const R = SKIN_REGIONS.head;
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.012, aoMin: 0.5 }), 'skin', { ...meta, id: 'skinHead', tr: 'Deri (baş ve yüz)', la: 'cutis faciei', desc });
+  });
+  T('Deri: eller', () => {
+    const R = SKIN_REGIONS.hand;
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.01, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinHand', tr: 'Deri (el)', la: 'cutis manus', desc });
+  });
+  T('Deri: ayaklar', () => {
+    const R = SKIN_REGIONS.foot;
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.012, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinFoot', tr: 'Deri (ayak)', la: 'cutis pedis', desc });
+  });
+}
+
+// ---- 90-app.js ----
+// ===================== Scene, registry, UI =====================
+function startApp() {
+const $ = (id) => document.getElementById(id);
+const isMobile = matchMedia('(max-width: 860px)').matches || matchMedia('(pointer: coarse)').matches;
+
+const LAYERS = [
+  { key: 'skin', tr: 'Deri', color: '#d2a185', on: false },
+  { key: 'muscle', tr: 'Kas sistemi', color: '#b5392f', on: false },
+  { key: 'skeleton', tr: 'İskelet sistemi', color: '#e6dcc3', on: true },
+  { key: 'nervous', tr: 'Sinir sistemi', color: '#f0c64a', on: true },
+  { key: 'heart', tr: 'Kalp', color: '#a8322e', on: true },
+  { key: 'arteries', tr: 'Atardamarlar', color: '#d6343c', on: true },
+  { key: 'veins', tr: 'Toplardamarlar', color: '#3d64c8', on: true },
+  { key: 'respiratory', tr: 'Solunum sistemi', color: '#e09c9c', on: true },
+  { key: 'digestive', tr: 'Sindirim sistemi', color: '#d8946f', on: true },
+  { key: 'urinary', tr: 'Boşaltım sistemi', color: '#b0603f', on: true },
+  { key: 'endocrine', tr: 'Endokrin bezler', color: '#d0a43e', on: true },
+];
+const LAYER = Object.fromEntries(LAYERS.map(l => [l.key, l]));
+
+// ---------- renderer ----------
+const stage = $('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = !isMobile;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.localClippingEnabled = false;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.01, 30);
+camera.position.set(0.0, 0.98, 4.1);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.88, 0);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 0.12; controls.maxDistance = 8;
+controls.zoomSpeed = 1.1; controls.rotateSpeed = 0.8;
+controls.update();
+
+{
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.42;
+}
+scene.add(new THREE.HemisphereLight(0xdfe8f2, 0x2a2420, 0.55));
+const key = new THREE.DirectionalLight(0xfff1e2, 2.3);
+key.position.set(1.4, 2.6, 2.2); key.target.position.set(0, 0.9, 0);
+key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -1.0, right: 1.0, top: 1.1, bottom: -1.1, near: 0.5, far: 6 });
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.002; key.shadow.radius = 3;
+scene.add(key, key.target);
+const rim = new THREE.DirectionalLight(0x9cc8ff, 1.3); rim.position.set(-1.8, 1.6, -2.2); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffd9c4, 0.45); fill.position.set(-2, 0.6, 1.5); scene.add(fill);
+
+// floor: soft disc + contact shadow
+{
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(120,170,200,0.22)'); gr.addColorStop(0.55, 'rgba(70,110,140,0.08)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  const disc = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+  disc.rotation.x = -Math.PI / 2; disc.position.y = -0.001; scene.add(disc);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.625, 128), new THREE.MeshBasicMaterial({ color: 0x6fd0e0, transparent: true, opacity: 0.18, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; scene.add(ring);
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), new THREE.ShadowMaterial({ opacity: 0.32 }));
+  sh.rotation.x = -Math.PI / 2; sh.receiveShadow = true; scene.add(sh);
+}
+
+// ---------- procedural textures ----------
+function canvasTex(w, h, draw, srgb = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+// height field -> normal map
+function normalFromHeight(hf, w, h, strength) {
+  return canvasTex(w, h, (g) => {
+    const img = g.createImageData(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const hL = hf[y * w + ((x - 1 + w) % w)], hR = hf[y * w + ((x + 1) % w)];
+      const hD = hf[((y - 1 + h) % h) * w + x], hU = hf[((y + 1) % h) * w + x];
+      let nx = (hL - hR) * strength, ny = (hD - hU) * strength, nz = 1; const l = Math.hypot(nx, ny, nz);
+      const i = (y * w + x) * 4; img.data[i] = (nx / l * 0.5 + 0.5) * 255; img.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; img.data[i + 2] = (nz / l * 0.5 + 0.5) * 255; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }, false);
+}
+const TEX = (() => {
+  const W = 256, H = 256; const rnd = mulberry32(7);
+  // muscle fibres run along v (texture y)
+  const col = new Float32Array(W); for (let x = 0; x < W; x++) col[x] = rnd();
+  const hf = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const fib = 0.5 + 0.5 * Math.sin((x / W) * TAU * 48 + 2.2 * Math.sin((y / H) * TAU * 2 + x * 0.05));
+    const n = noise3(x / W * 16, y / H * 3, 0.5) * 0.5 + noise3(x / W * 64, y / H * 6, 3.1) * 0.25;
+    hf[y * W + x] = fib * 0.6 + col[x] * 0.25 + n;
+  }
+  const muscleMap = canvasTex(W, H, (g) => {
+    const img = g.createImageData(W, H);
+    for (let i = 0; i < W * H; i++) { const v = 200 + 55 * clamp(hf[i] * 0.8, 0, 1); img.data[4 * i] = v; img.data[4 * i + 1] = v * 0.97; img.data[4 * i + 2] = v * 0.97; img.data[4 * i + 3] = 255; }
+    g.putImageData(img, 0, 0);
+  });
+  const muscleNormal = normalFromHeight(hf, W, H, 2.2);
+  // generic wet organ bump
+  const of = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = x / W * TAU, v = y / H * TAU;
+    of[y * W + x] = noise3(Math.cos(u) * 2 + 9, Math.sin(u) * 2, Math.cos(v) * 2 + Math.sin(v)) + 0.5 * noise3(Math.cos(u) * 6, Math.sin(u) * 6 + 3, Math.cos(v) * 6 - Math.sin(v) * 2);
+  }
+  const organNormal = normalFromHeight(of, W, H, 3.0);
+  return { muscleMap, muscleNormal, organNormal };
+})();
+
+// ---------- materials ----------
+const MATS = {};
+const layerMats = {};
+function defMat(name, layer, params) {
+  const m = new THREE.MeshPhysicalMaterial(params);
+  m.userData.layer = layer; m.userData.baseOpacity = params.opacity ?? 1; MATS[name] = m;
+  (layerMats[layer] ||= new Set()).add(m);
+  return m;
+}
+defMat('bone', 'skeleton', { color: 0xe7dcc4, roughness: 0.6, vertexColors: true, clearcoat: 0.06, clearcoatRoughness: 0.6 });
+defMat('cartilage', 'skeleton', { color: 0xb9d3d8, roughness: 0.34, vertexColors: true, clearcoat: 0.5, clearcoatRoughness: 0.3, sheen: 0.4, sheenColor: 0x9fd0e6 });
+defMat('disc', 'skeleton', { color: 0xa9c6cc, roughness: 0.4, vertexColors: true, clearcoat: 0.4 });
+// skin: fresnel-weighted alpha so the translucent body reads as a glassy silhouette
+const skinMat = defMat('skin', 'skin', { color: 0xc99479, roughness: 0.52, vertexColors: true, sheen: 0.5, sheenColor: 0xffc9b0, sheenRoughness: 0.6, clearcoat: 0.06, clearcoatRoughness: 0.5 });
+skinMat.onBeforeCompile = (sh) => {
+  sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `
+    float fres = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.2);
+    if (diffuseColor.a < 0.999) {
+      diffuseColor.a = clamp(diffuseColor.a * 0.45 + fres * 1.1 * diffuseColor.a + fres * 0.16, 0.0, 1.0);
+      outgoingLight = mix(outgoingLight * 1.15, vec3(0.80, 0.88, 0.97), fres * 0.7);
+    }
+    #include <opaque_fragment>`);
+};
+Object.assign(skinMat, { opacity: 0.32, transparent: true, depthWrite: false });
+defMat('tooth', 'skeleton', { color: 0xf4f0e6, roughness: 0.22, vertexColors: true, clearcoat: 0.8, clearcoatRoughness: 0.15 });
+
+// ---------- registry ----------
+const groups = {};
+for (const l of LAYERS) { const g = new THREE.Group(); g.name = l.key; g.visible = l.on; groups[l.key] = g; scene.add(g); }
+const PARTS_LIST = [];
+const byId = new Map();
+let triTotal = 0;
+function ingest(rec) {
+  const geo = new THREE.BufferGeometry();
+  for (const k in rec.attrs) geo.setAttribute(k, new THREE.BufferAttribute(rec.attrs[k], k === 'uv' ? 2 : 3));
+  geo.setIndex(new THREE.BufferAttribute(rec.index, 1));
+  if (rec.path) geo.userData.path = rec.path;
+  const meta = rec.meta; const mat = MATS[rec.mat];
+  if (!mat) { console.warn('material', rec.mat); return; }
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = !meta.noShadow; mesh.receiveShadow = true;
+  if (meta.pivot) { const p = vec(meta.pivot); geo.translate(-p.x, -p.y, -p.z); mesh.position.copy(p); }
+  geo.computeBoundingSphere();
+  mesh.userData = { ...meta, mat: rec.mat, basePos: mesh.position.clone() };
+  mesh.userData.center = geo.boundingSphere.center.clone().add(mesh.position);
+  if (state.selected === null && state.isolate) mesh.material = ghostMat;
+  groups[meta.layer].add(mesh);
+  PARTS_LIST.push(mesh); byId.set(meta.id, mesh);
+  triTotal += rec.index.length / 3;
+  if (meta.anim && ANIM[meta.anim]) ANIM[meta.anim].push(mesh);
+  if (meta.flow && rec.path) {
+    const fp = preparePath(meta.flow.reverse ? rec.path.slice().reverse() : rec.path, meta.flow.kind, meta.flow.speed || 0.12);
+    (meta.flow.kind === 'n' ? FLOW.nervePaths : FLOW.paths).push(fp);
+  }
+}
+
+// ---------- build pipeline (workers with inline fallback) ----------
+const buildErrors = [];
+function workerURL() {
+  const el = document.getElementById('app');
+  let threeURL = 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+  try { threeURL = import.meta.resolve('three'); } catch (e) { /* older browsers: keep the pinned CDN URL */ }
+  let src = el.textContent.replace(/^import \* as THREE from 'three';$/m, `import * as THREE from '${threeURL}';`);
+  src = src.replace(/^import \{[^}]*\} from 'three\/addons\/[^']*';$/mg, '');
+  src = 'const OrbitControls = null, RoomEnvironment = null;\n' + src;
+  return URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+}
+function setProgress(frac, label) {
+  const pct = Math.round(frac * 100) + '%';
+  $('bar').firstElementChild.style.width = pct; $('stepPct').textContent = pct; if (label) $('stepName').textContent = label;
+  $('buildBar').style.width = pct; $('buildBar').parentElement.hidden = frac >= 1;
+  $('stParts').textContent = PARTS_LIST.length.toLocaleString('tr-TR'); $('stTris').textContent = fmtK(Math.round(triTotal));
+}
+async function buildAll() {
+  const t0 = performance.now();
+  const tasks = planTasks(); const n = tasks.length;
+  const order = tasks.map((t, i) => i).sort((a, b) => (tasks[b].provides ? 1 : 0) - (tasks[a].provides ? 1 : 0));
+  const finished = new Set(); const available = new Set();
+  const onDone = (i, recs, err) => {
+    if (err) { console.error(tasks[i].label, err); buildErrors.push(`${tasks[i].label}: ${String(err).split('\n')[0]}`); }
+    for (const r of recs) ingest(r);
+    finished.add(i); setProgress(finished.size / n, tasks[i].label);
+    if (finished.size > 6) revealStage();
+  };
+  const runInline = async () => {
+    for (const i of order) {
+      if (finished.has(i)) continue;
+      let recs = [], err = null;
+      try { recs = runTask(tasks[i]); } catch (e) { err = e.stack || e; }
+      if (tasks[i].provides) available.add(tasks[i].provides);
+      onDone(i, recs, err);
+      await new Promise(r => setTimeout(r, 0));
+    }
+  };
+  const nW = Math.max(1, Math.min((navigator.hardwareConcurrency || 4) - 1, 8));
+  let workers = [];
+  try { const url = workerURL(); for (let k = 0; k < nW; k++) workers.push(new Worker(url, { type: 'module' })); } catch (e) { console.warn('workers unavailable', e); workers = []; }
+  if (workers.length) {
+    const ok = await new Promise((resolve) => {
+      const pending = order.slice(); const idle = []; let readyCount = 0; let failed = false;
+      const timer = setTimeout(() => { if (!readyCount) { failed = true; resolve(false); } }, 12000);
+      const dispatch = () => {
+        while (idle.length) {
+          const k = pending.findIndex(i => tasks[i].needs.every(x => available.has(x)));
+          if (k < 0) break;
+          const i = pending.splice(k, 1)[0]; const w = idle.pop(); w.postMessage({ type: 'run', index: i });
+        }
+      };
+      for (const w of workers) {
+        w.onerror = (e) => { console.warn('worker error', e.message); if (!readyCount && !failed) { failed = true; clearTimeout(timer); resolve(false); } };
+        w.onmessage = (e) => {
+          const m = e.data; if (failed) return;
+          if (m.type === 'ready') { readyCount++; idle.push(w); dispatch(); return; }
+          if (m.type !== 'done') return;
+          if (m.shared) { available.add(m.shared.key); SHARED[m.shared.key] = m.shared.data; for (const w2 of workers) w2.postMessage({ type: 'shared', key: m.shared.key, data: m.shared.data }); }
+          onDone(m.index, m.recs, m.err);
+          idle.push(w);
+          if (finished.size === n) { clearTimeout(timer); resolve(true); } else dispatch();
+        };
+      }
+    });
+    for (const w of workers) w.terminate();
+    if (!ok) await runInline();
+  } else await runInline();
+  STATS.buildMs = performance.now() - t0;
+  STATS.workers = workers.length;
+}
+
+// ---------- interaction state ----------
+const state = { selected: null, isolate: false, explode: 0, cut: false, cutAxis: 'z', cutPos: 0.52, anim: { heart: true, breath: true, flow: false, nerve: false }, labels: false, spin: false };
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+function pickables() {
+  const out = [];
+  for (const l of LAYERS) {
+    const g = groups[l.key]; if (!g.visible) continue;
+    if (l.key === 'skin' && layerOpacity.skin < 0.55) continue;
+    for (const m of g.children) if (m.visible && m.isMesh && !m.userData.noPick) out.push(m);
+  }
+  return out;
+}
+const layerOpacity = Object.fromEntries(LAYERS.map(l => [l.key, l.key === 'skin' ? 0.32 : 1]));
+function pick(clientX, clientY) {
+  const r = renderer.domElement.getBoundingClientRect();
+  pointer.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(pointer, camera);
+  const objs = pickables();
+  // lazy BVH-free raycast: test bounding spheres first (three does), keep nearest
+  const hits = raycaster.intersectObjects(objs, false);
+  for (const h of hits) {
+    if (state.cut && cutPlane.distanceToPoint(h.point) < 0) continue;
+    if (state.isolate && h.object !== state.selected) continue;
+    return h;
+  }
+  return null;
+}
+
+// selection highlight
+const hlCache = new Map();
+function highlightMat(m) {
+  if (!hlCache.has(m)) {
+    const h = m.clone(); h.emissive = new THREE.Color(0x3fb6cc); h.emissiveIntensity = 0.55; h.userData = { ...m.userData, hl: true };
+    hlCache.set(m, h);
+  }
+  return hlCache.get(m);
+}
+const ghostMat = new THREE.MeshStandardMaterial({ color: 0x9fb4c2, transparent: true, opacity: 0.07, depthWrite: false, roughness: 1 });
+function refreshMaterials() {
+  for (const m of PARTS_LIST) {
+    const base = MATS[m.userData.mat];
+    if (state.isolate && state.selected && m !== state.selected) m.material = ghostMat;
+    else m.material = m === state.selected ? highlightMat(base) : base;
+  }
+  for (const [b, h] of hlCache) { h.opacity = b.opacity; h.transparent = b.transparent; h.depthWrite = b.depthWrite; }
+}
+function select(mesh, focus = false) {
+  state.selected = mesh || null;
+  if (!mesh) state.isolate = false;
+  refreshMaterials();
+  renderInfo();
+  if (mesh && focus) focusOn(mesh);
+  if (mesh && isMobile) document.body.classList.add('show-info');
+}
+
+// ---------- camera animation ----------
+let camAnim = null;
+function flyTo(pos, target, dur = 0.9) {
+  camAnim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: vec(pos), t1: vec(target), s: performance.now(), d: dur * 1000 };
+}
+function focusOn(mesh) {
+  const bs = mesh.geometry.boundingSphere; const c = bs.center.clone().add(mesh.position);
+  const r = Math.max(bs.radius, 0.03); const dir = camera.position.clone().sub(controls.target).normalize();
+  const dist = r / Math.sin((camera.fov * Math.PI / 180) / 2) * 1.25;
+  flyTo(c.clone().add(dir.multiplyScalar(dist)), c);
+}
+const VIEWS = [
+  ['Ön', [0, 0.98, 4.1], [0, 0.88, 0]], ['Arka', [0, 0.98, -4.1], [0, 0.88, 0]], ['Sol', [4.1, 0.98, 0], [0, 0.88, 0]], ['Sağ', [-4.1, 0.98, 0], [0, 0.88, 0]],
+  ['Baş', [0.32, 1.7, 0.7], [0, 1.62, 0]], ['Göğüs', [0.3, 1.38, 1.3], [0, 1.26, 0.0]], ['Karın', [0.25, 1.1, 1.15], [0, 1.02, 0.0]],
+  ['El', [0.62, 0.86, 0.42], [0.3, 0.78, 0.0]], ['Ayak', [0.55, 0.32, 0.62], [0.09, 0.05, 0.05]],
+];
+
+// ---------- cut plane ----------
+const cutPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0);
+function applyCut() {
+  const t = state.cutPos;
+  if (state.cutAxis === 'z') { cutPlane.normal.set(0, 0, -1); cutPlane.constant = lerp(-0.18, 0.2, t); }
+  if (state.cutAxis === 'x') { cutPlane.normal.set(-1, 0, 0); cutPlane.constant = lerp(-0.4, 0.4, t); }
+  if (state.cutAxis === 'y') { cutPlane.normal.set(0, -1, 0); cutPlane.constant = lerp(0, 1.8, t); }
+  renderer.clippingPlanes = state.cut ? [cutPlane] : [];
+}
+
+// ---------- explode ----------
+function applyExplode() {
+  const a = state.explode;
+  for (const m of PARTS_LIST) {
+    const c = m.userData.center; if (!c) continue;
+    const lay = m.userData.layer;
+    const k = lay === 'skin' ? 0.0 : lay === 'muscle' ? 0.55 : lay === 'skeleton' ? 0.25 : 1.0;
+    const off = new THREE.Vector3(c.x * 1.6, (c.y - 1.05) * 0.35, (c.z + 0.02) * 2.4 + (lay === 'muscle' ? 0.05 : 0)).multiplyScalar(a * k);
+    m.position.copy(m.userData.basePos).add(off);
+  }
+}
+
+// ---------- UI: layers ----------
+function buildLayerUI() {
+  const list = $('layerList'); list.innerHTML = '';
+  for (const l of LAYERS) {
+    const count = groups[l.key].children.length;
+    if (!count) continue;
+    const row = document.createElement('div'); row.className = 'layer' + (l.on ? ' on' : '');
+    row.innerHTML = `<span class="dot" style="background:${l.color}"></span><label for="ly_${l.key}">${l.tr}<span class="count">${count}</span></label>
+      <span class="switch"><input type="checkbox" id="ly_${l.key}" ${l.on ? 'checked' : ''}><i></i></span>
+      <div class="op"><span>opaklık</span><input type="range" id="op_${l.key}" min="5" max="100" value="${Math.round(layerOpacity[l.key] * 100)}" aria-label="${l.tr} opaklığı"></div>`;
+    list.appendChild(row);
+    row.querySelector('input[type=checkbox]').addEventListener('change', (e) => { setLayer(l.key, e.target.checked); row.classList.toggle('on', e.target.checked); });
+    row.querySelector('input[type=range]').addEventListener('input', (e) => setOpacity(l.key, e.target.value / 100));
+  }
+}
+function setLayer(key, on) {
+  LAYER[key].on = on; groups[key].visible = on;
+  const cb = $('ly_' + key); if (cb) { cb.checked = on; cb.closest('.layer').classList.toggle('on', on); }
+  if (!on && state.selected && state.selected.userData.layer === key) select(null);
+  updateLabels(true);
+}
+function setOpacity(key, v) {
+  layerOpacity[key] = v;
+  for (const m of layerMats[key] || []) {
+    const o = m.userData.baseOpacity * v; m.opacity = o; m.transparent = o < 0.999; m.depthWrite = o > 0.6;
+    m.needsUpdate = true;
+  }
+  for (const mesh of groups[key].children) mesh.castShadow = v > 0.6 && !mesh.userData.noShadow;
+  refreshMaterials();
+}
+$('allOn').addEventListener('click', () => { for (const l of LAYERS) if (groups[l.key].children.length && l.key !== 'skin') setLayer(l.key, true); });
+
+// ---------- UI: info ----------
+function triCount(m) { const g = m.geometry; return Math.round((g.index ? g.index.count : g.attributes.position.count) / 3); }
+function renderInfo() {
+  const box = $('info'); const m = state.selected;
+  $('hint').hidden = !!m;
+  if (!m) { box.hidden = true; return; }
+  const u = m.userData; const l = LAYER[u.layer];
+  box.hidden = false;
+  box.innerHTML = `<button class="close" type="button" aria-label="Kapat">×</button>
+    <div class="eyebrow"><span class="chip"><i style="background:${l.color}"></i>${l.tr}</span>${u.group ? `<span>${u.group}</span>` : ''}</div>
+    <h2>${u.tr}</h2><div class="latin">${u.la || ''}</div>
+    ${u.desc ? `<p>${u.desc}</p>` : ''}
+    <div class="meta"><span>${triCount(m).toLocaleString('tr-TR')} üçgen</span>${u.side ? `<span>taraf: ${u.side}</span>` : ''}<span>id: ${u.id}</span></div>
+    <div class="actions">
+      <button class="btn" data-a="focus" type="button">Odakla</button>
+      <button class="btn ${state.isolate ? 'on' : ''}" data-a="iso" type="button">Yalnız göster</button>
+      <button class="btn" data-a="hide" type="button">Gizle</button>
+      <button class="btn" data-a="unhide" type="button">Gizlenenleri göster</button>
+    </div>`;
+  box.querySelector('.close').onclick = () => { select(null); document.body.classList.remove('show-info'); };
+  box.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'focus') focusOn(m);
+    if (a === 'iso') { state.isolate = !state.isolate; refreshMaterials(); renderInfo(); if (state.isolate) focusOn(m); }
+    if (a === 'hide') { m.visible = false; m.userData.hidden = true; select(null); }
+    if (a === 'unhide') { for (const p of PARTS_LIST) { p.visible = true; p.userData.hidden = false; } }
+  });
+}
+
+// ---------- UI: search ----------
+const trLower = (s) => s.toLocaleLowerCase('tr-TR');
+const fold = (s) => trLower(s).replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/â/g, 'a');
+let searchHits = [], searchIdx = -1;
+function runSearch(q) {
+  const res = $('results'); res.innerHTML = ''; searchHits = []; searchIdx = -1;
+  q = fold(q.trim()); if (q.length < 2) return;
+  for (const m of PARTS_LIST) {
+    const u = m.userData; const hay = fold(`${u.tr} ${u.la || ''} ${u.group || ''}`);
+    if (hay.includes(q)) searchHits.push(m);
+    if (searchHits.length >= 40) break;
+  }
+  for (const m of searchHits) {
+    const b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = `<span class="dot" style="background:${LAYER[m.userData.layer].color}"></span><span>${m.userData.tr}<small>${m.userData.la || ''}</small></span>`;
+    b.onclick = () => chooseHit(m);
+    res.appendChild(b);
+  }
+}
+function chooseHit(m) {
+  if (!LAYER[m.userData.layer].on) setLayer(m.userData.layer, true);
+  m.visible = true; m.userData.hidden = false;
+  select(m, true); $('results').innerHTML = ''; $('search').value = '';
+}
+$('search').addEventListener('input', (e) => runSearch(e.target.value));
+$('search').addEventListener('keydown', (e) => {
+  const btns = [...$('results').children];
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); if (!btns.length) return;
+    searchIdx = (searchIdx + (e.key === 'ArrowDown' ? 1 : -1) + btns.length) % btns.length;
+    btns.forEach((b, i) => b.classList.toggle('act', i === searchIdx)); btns[searchIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && searchHits.length) chooseHit(searchHits[Math.max(searchIdx, 0)]);
+  else if (e.key === 'Escape') { $('results').innerHTML = ''; e.target.blur(); }
+});
+
+// ---------- UI: toolbar ----------
+for (const [nm, p, t] of VIEWS) {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = nm;
+  b.onclick = () => flyTo(p, t); $('views').appendChild(b);
+}
+const toggleBtn = (id, fn) => { const b = $(id); b.addEventListener('click', () => { const on = !b.classList.contains('on'); b.classList.toggle('on', on); fn(on); }); };
+toggleBtn('tCut', (on) => { state.cut = on; $('cutAxis').hidden = !on; $('cutWrap').hidden = !on; applyCut(); });
+$('cutAxis').addEventListener('change', (e) => { state.cutAxis = e.target.value; applyCut(); });
+$('cutPos').addEventListener('input', (e) => { state.cutPos = e.target.value / 1000; applyCut(); });
+$('explode').addEventListener('input', (e) => { state.explode = e.target.value / 100; applyExplode(); updateLabels(true); });
+toggleBtn('aHeart', (on) => state.anim.heart = on);
+toggleBtn('aBreath', (on) => state.anim.breath = on);
+toggleBtn('aFlow', (on) => { state.anim.flow = on; if (FLOW.points) FLOW.points.visible = on; });
+toggleBtn('aNerve', (on) => { state.anim.nerve = on; if (FLOW.nervePts) FLOW.nervePts.visible = on; });
+toggleBtn('tLabels', (on) => { state.labels = on; updateLabels(true); });
+toggleBtn('tSpin', (on) => { state.spin = on; controls.autoRotate = on; controls.autoRotateSpeed = 1.2; });
+if (isMobile) $('tShadow').classList.remove('on');
+toggleBtn('tShadow', (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; });
+$('mLayers').onclick = () => { document.body.classList.toggle('show-layers'); document.body.classList.remove('show-info'); };
+$('mInfo').onclick = () => { document.body.classList.toggle('show-info'); document.body.classList.remove('show-layers'); };
+
+// ---------- pointer events ----------
+let downAt = null, hoverPending = null, lastHover = 0;
+const tip = $('tip');
+renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY, performance.now()]; });
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!downAt) return;
+  const moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]);
+  if (moved < 5 && e.button === 0) { const h = pick(e.clientX, e.clientY); select(h ? h.object : null); }
+  downAt = null;
+});
+renderer.domElement.addEventListener('dblclick', (e) => { const h = pick(e.clientX, e.clientY); if (h) { select(h.object); focusOn(h.object); } });
+renderer.domElement.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse' || downAt) { tip.hidden = true; return; }
+  hoverPending = [e.clientX, e.clientY];
+});
+renderer.domElement.addEventListener('pointerleave', () => { tip.hidden = true; hoverPending = null; });
+function doHover() {
+  if (!hoverPending || performance.now() - lastHover < 70) return;
+  const [x, y] = hoverPending; hoverPending = null; lastHover = performance.now();
+  const h = pick(x, y);
+  if (!h) { tip.hidden = true; renderer.domElement.style.cursor = ''; return; }
+  tip.hidden = false; tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  tip.innerHTML = `${h.object.userData.tr}<small>${h.object.userData.la || ''}</small>`;
+  renderer.domElement.style.cursor = 'pointer';
+}
+addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') select(null);
+  if (e.key === '/' ) { e.preventDefault(); $('search').focus(); }
+});
+
+// ---------- labels ----------
+const LABEL_IDS = ['skull', 'mandible', 'clavicle_L', 'sternum', 'humerus_R', 'radius_L', 'hipbone_R', 'femur_L', 'tibia_R', 'scapula_L',
+  'heart_v', 'lung_L', 'lung_R', 'liver', 'stomach', 'colon_t', 'smallInt', 'kidney_L', 'brain_L', 'aorta', 'ivc', 'spinalCord', 'sciatic_R', 'bladder',
+  'pectoralis_L', 'deltoid_R', 'rectusAbd_L', 'quadriceps_R', 'gastrocnemius_L', 'biceps_L', 'sartorius_R', 'trapezius_L', 'thyroid', 'diaphragm', 'pancreas', 'spleen'];
+const labelEls = new Map(); let labelDirty = true;
+function updateLabels(force) { if (force) labelDirty = true; }
+function drawLabels() {
+  const host = $('labels'); const svg = host.querySelector('svg');
+  if (!state.labels) { if (labelEls.size) { labelEls.forEach(el => el.remove()); labelEls.clear(); svg.innerHTML = ''; } return; }
+  let lines = '';
+  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3();
+  for (const id of LABEL_IDS) {
+    const m = byId.get(id); let el = labelEls.get(id);
+    const vis = m && m.visible && groups[m.userData.layer].visible;
+    if (!vis) { if (el) el.style.display = 'none'; continue; }
+    if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = m.userData.tr.replace(/ \((sol|sağ)\)/, ''); host.appendChild(el); labelEls.set(id, el); }
+    v.copy(m.geometry.boundingSphere.center).add(m.position).project(camera);
+    if (v.z > 1) { el.style.display = 'none'; continue; }
+    const x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
+    const side = x > w / 2 ? 1 : -1; const lx = x + side * 46, ly = y - 26;
+    el.style.display = ''; el.style.left = lx + 'px'; el.style.top = ly + 'px';
+    lines += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(ly).toFixed(1)}" stroke="rgba(228,233,236,0.55)" stroke-width="1"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#6fd0e0"/>`;
+  }
+  svg.innerHTML = lines;
+}
+
+// ---------- animation systems (filled by organ/vessel modules) ----------
+const ANIM = { heartV: [], heartA: [], lungs: [], diaphragm: [] };
+const FLOW = { points: null, nervePts: null, paths: [], nervePaths: [] };
+function buildFlowParticles() {
+  const sprite = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
+  const mk = (paths, perLen, colorFn, size) => {
+    const items = [];
+    for (const p of paths) {
+      const L = p.cum[p.cum.length - 1]; const n = Math.max(1, Math.round(L * perLen));
+      for (let i = 0; i < n; i++) items.push({ p, s: (i / n) * L + Math.random() * 0.01, v: p.speed * (0.85 + Math.random() * 0.3) });
+    }
+    const pos = new Float32Array(items.length * 3), col = new Float32Array(items.length * 3);
+    items.forEach((it, i) => { const c = colorFn(it.p); col.set(c, i * 3); });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, map: sprite, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    pts.frustumCulled = false; pts.userData.items = items; pts.visible = false; scene.add(pts);
+    return pts;
+  };
+  if (FLOW.paths.length) FLOW.points = mk(FLOW.paths, 60, (p) => p.kind === 'a' ? [1.0, 0.25, 0.22] : [0.35, 0.55, 1.0], 0.012);
+  if (FLOW.nervePaths.length) FLOW.nervePts = mk(FLOW.nervePaths, 9, () => [1.0, 0.92, 0.55], 0.016);
+  if (FLOW.points) FLOW.points.visible = state.anim.flow;
+  if (FLOW.nervePts) FLOW.nervePts.visible = state.anim.nerve;
+}
+function preparePath(pts, kind, speed) {
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + len3(sub3(pts[i], pts[i - 1])));
+  return { pts, cum, kind, speed };
+}
+function pathAt(p, s, out) {
+  const c = p.cum; const L = c[c.length - 1]; s = ((s % L) + L) % L;
+  let lo = 0, hi = c.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+  const t = (s - c[lo]) / Math.max(c[hi] - c[lo], 1e-9); const a = p.pts[lo], b = p.pts[hi];
+  out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t;
+}
+function stepFlow(pts, dt, layerKeys) {
+  if (!pts || !pts.visible) return;
+  const vis = layerKeys.some(k => groups[k].visible);
+  pts.material.opacity = vis ? 1 : 0;
+  const items = pts.userData.items; const pos = pts.geometry.attributes.position.array; const o = [0, 0, 0];
+  for (let i = 0; i < items.length; i++) { const it = items[i]; it.s += it.v * dt; pathAt(it.p, it.s, o); pos[3 * i] = o[0]; pos[3 * i + 1] = o[1]; pos[3 * i + 2] = o[2]; }
+  pts.geometry.attributes.position.needsUpdate = true;
+}
+
+// ---------- main loop ----------
+const clock = new THREE.Clock(); let fpsEma = 60, fpsT = 0;
+function heartCurve(t) {
+  // one cardiac cycle t in [0,1): atrial kick then ventricular systole
+  const a = Math.exp(-(((t - 0.08) / 0.05) ** 2));
+  const v = Math.exp(-(((t - 0.32) / 0.09) ** 2));
+  return { a, v };
+}
+function animate() {
+  if (state.paused) { requestAnimationFrame(animate); return; }
+  const dt = Math.min(clock.getDelta(), 0.05); const t = clock.elapsedTime;
+  if (camAnim) {
+    const k = clamp((performance.now() - camAnim.s) / camAnim.d, 0, 1); const e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.t0, camAnim.t1, e);
+    if (k >= 1) camAnim = null;
+  }
+  controls.update();
+  if (state.anim.heart) {
+    const hc = heartCurve((t * 1.2) % 1);
+    for (const m of ANIM.heartV) m.scale.setScalar(1 - 0.07 * hc.v);
+    for (const m of ANIM.heartA) m.scale.setScalar(1 - 0.09 * hc.a + 0.03 * hc.v);
+  }
+  if (state.anim.breath) {
+    const b = 0.5 - 0.5 * Math.cos(t * TAU / 4.2);
+    for (const m of ANIM.lungs) m.scale.set(1 + 0.035 * b, 1 + 0.05 * b, 1 + 0.045 * b);
+    for (const m of ANIM.diaphragm) m.position.y = m.userData.basePos.y - 0.012 * b;
+  }
+  stepFlow(FLOW.points, dt, ['arteries', 'veins']);
+  stepFlow(FLOW.nervePts, dt, ['nervous']);
+  doHover();
+  renderer.render(scene, camera);
+  if (state.labels) drawLabels(); else if (labelEls.size) drawLabels();
+  fpsEma = fpsEma * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
+  if (t - fpsT > 0.5) { fpsT = t; $('stFps').textContent = Math.round(fpsEma); }
+  requestAnimationFrame(animate);
+}
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+const fmtK = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(n);
+window.__anatomy = {
+  ready: false, THREE, scene, camera, controls, state, byId, PARTS_LIST,
+  setView: (i) => { const v = VIEWS[i]; camera.position.copy(vec(v[1])); controls.target.copy(vec(v[2])); controls.update(); },
+  look: (p, t) => { camera.position.copy(vec(p)); controls.target.copy(vec(t)); controls.update(); },
+  setLayer, setOpacity, select: (id) => select(byId.get(id) || null),
+  stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, errors: buildErrors }),
+  render: () => { controls.update(); renderer.render(scene, camera); if (state.labels) drawLabels(); },
+  pause: (p = true) => { state.paused = p; },
+};
+
+let revealed = false;
+function revealStage() { if (revealed) return; revealed = true; $('loader').classList.add('done'); }
+(async () => {
+  try {
+    animate();
+    await buildAll();
+    buildFlowParticles();
+    buildLayerUI();
+    for (const l of LAYERS) if (layerOpacity[l.key] !== 1) setOpacity(l.key, layerOpacity[l.key]);
+    setProgress(1, `${(STATS.buildMs / 1000).toFixed(1)} sn'de hazır`);
+    $('buildInfo').textContent = `${(STATS.buildMs / 1000).toFixed(1)} sn · ${STATS.workers || 1} iş parçacığı`;
+    if (buildErrors.length) { $('err').textContent = buildErrors.join('\n'); console.warn(buildErrors); }
+    revealStage();
+    window.__anatomy.ready = true;
+  } catch (e) {
+    console.error(e); $('err').textContent = String((e && e.stack) || e);
+  }
+})();
+}
+if (!IS_WORKER) startApp();
+
+</script>
+</body>
+</html>
