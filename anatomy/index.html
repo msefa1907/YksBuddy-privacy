@@ -145,6 +145,57 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 #step { margin-top: 10px; display: flex; justify-content: space-between; font: 400 12px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
 #loader .err { color: var(--danger); margin-top: 14px; font: 400 12px var(--f-data); white-space: pre-wrap; }
 
+/* scenario (step-by-step process) panel */
+#procs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 10px; }
+#procs button { display: flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--danger) 16%, var(--ink-2)); border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); border-radius: 20px; padding: 5px 11px; font-size: 12px; color: var(--text); }
+#procs button:hover { border-color: var(--danger); }
+#procs svg { width: 13px; height: 13px; fill: var(--danger); }
+#scn { padding: 14px 16px 12px; overflow: auto; position: relative; }
+body.scn #searchBox, body.scn #info, body.scn #hint { display: none !important; }
+#scn .eyebrow { display: flex; justify-content: space-between; align-items: center; font: 500 10.5px var(--f-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+#scn .eyebrow b { color: var(--danger); font-weight: 500; }
+#scn h2 { margin: 8px 0 0; font: 600 25px/1.1 var(--f-display); color: var(--bone); text-wrap: balance; }
+#scn .txt { margin: 10px 0 0; color: #c3cdd4; font-size: 13.5px; line-height: 1.5; }
+#scn .steps { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+#scn .steps button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--rule); background: var(--ink-2); color: var(--text-dim); font: 500 11px var(--f-data); padding: 0; }
+#scn .steps button.on { background: var(--bone); color: var(--ink-0); border-color: var(--bone); }
+#scn .live { margin-top: 12px; padding: 10px; border-radius: 8px; background: var(--ink-2); border: 1px solid var(--rule); }
+#scn .phase { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+#scn .phase b { font: 600 15px var(--f-ui); color: var(--text); }
+#scn .phase span { font: 400 11px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+#scn .sub { margin-top: 4px; font-size: 12.5px; color: var(--text-dim); min-height: 2.6em; }
+#scn svg.ecg { display: block; width: 100%; height: 64px; margin-top: 6px; }
+#scn .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+#scn .chips span { font: 500 11px var(--f-data); padding: 3px 7px; border-radius: 12px; background: #1d2731; color: var(--text-dim); border: 1px solid var(--rule); transition: background .12s, color .12s; }
+#scn .chips span.open { color: #bff3d0; border-color: rgba(120, 220, 160, 0.5); background: rgba(60, 160, 100, 0.18); }
+#scn .chips span.shut { color: #ffd2c8; border-color: rgba(224, 113, 93, 0.5); background: rgba(224, 113, 93, 0.16); }
+#scn .chips span.snd { color: var(--ink-0); background: var(--bone); border-color: var(--bone); }
+#scn .ctl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; align-items: center; }
+#scn .ctl .grow { flex: 1; }
+#scn .speed { display: flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+#scn .speed button { background: var(--ink-2); border: 0; padding: 6px 8px; font: 500 11px var(--f-data); color: var(--text-dim); }
+#scn .speed button.on { background: color-mix(in srgb, var(--probe) 28%, var(--ink-2)); color: var(--text); }
+#scn .opts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
+#scn .opts label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#scn .exp { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule); }
+#scn .exp .note { flex-basis: 100%; font-size: 11.5px; color: var(--text-dim); }
+
+#dlg { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(4, 7, 10, 0.55); padding: var(--gutter); }
+#dlg .box { position: relative; width: min(560px, 100%); max-height: calc(100vh - 2 * var(--gutter)); overflow: auto; padding: 18px 20px; }
+#dlg h3 { margin: 0; font: 600 26px var(--f-display); color: var(--bone); }
+#dlg .lead { margin: 6px 0 12px; color: var(--text-dim); font-size: 12.5px; }
+#dlg .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+#dlg .seg { display: flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+#dlg .seg button { background: var(--ink-2); border: 0; padding: 6px 10px; font-size: 12px; color: var(--text-dim); }
+#dlg .seg button.on { background: color-mix(in srgb, var(--probe) 28%, var(--ink-2)); color: var(--text); }
+#dlg .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#dlg .close { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--text-dim); font-size: 22px; }
+#dOut { margin-top: 12px; font-size: 12.5px; color: var(--text-dim); }
+#dOut img, #dOut video { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--rule); background: #fff; }
+#dOut .hint { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#dOut a.btn { text-decoration: none; }
+#dOut .key { margin: 8px 0 0; color: var(--text); }
+
 #tools #mobileBar { display: none; }
 @media (max-width: 860px) {
   #leftCol { right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; bottom: auto; }
@@ -156,6 +207,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
   #stats div { padding: 4px 6px; }
   #layers, #side { display: none; }
   body.show-layers #layers { display: block; position: fixed; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 52%; }
+  body.scn #side { display: flex; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 48%; }
+  #scn h2 { font-size: 20px; } #scn .txt { font-size: 12.5px; }
   body.show-info #side { display: flex; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 55%; }
   #tools #mobileBar { display: flex; }
   #tools { left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); transform: none; max-width: none; }
@@ -184,6 +237,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 </header>
 
 <nav id="layers" class="panel" aria-label="Katmanlar">
+  <div class="sec-title"><span>Süreçler</span></div>
+  <div id="procs"><button id="pHeart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3 4.5 6.6 4.5c2.1 0 3.5 1.2 4.3 2.4.4.6 1.8.6 2.2 0 .8-1.2 2.2-2.4 4.3-2.4 3.6 0 5.7 3.6 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>Kalp döngüsü</button></div>
   <div class="sec-title"><span>Hazır görünümler</span></div>
   <div id="presets"></div>
   <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
@@ -198,6 +253,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <div id="results" role="listbox"></div>
   </div>
   <section id="info" class="panel" hidden></section>
+  <section id="scn" class="panel" hidden aria-live="polite"></section>
   <section id="hint" class="panel"><b>Sol tık</b> yapı seç · <b>sürükle</b> döndür · <b>sağ tık / iki parmak</b> kaydır · <b>tekerlek</b> yakınlaş · <b>çift tık</b> odakla</section>
 </aside>
 
@@ -228,10 +284,12 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <button id="tLabels" type="button">Etiketler</button>
     <button id="tSpin" type="button">Döndür</button>
     <button id="tShadow" type="button" class="on">Gölge</button>
+    <button id="tExport" type="button" title="Föy için görsel ya da video kaydet (PNG / MP4)">Kaydet</button>
   </div>
 </div>
 
 <div id="tip" hidden></div>
+<div id="dlg" hidden role="dialog" aria-modal="true" aria-label="Dışa aktar"><div class="panel box"></div></div>
 
 <div id="loader">
   <div class="box">
@@ -357,6 +415,7 @@ const DESC = {
   'tricuspid valve': D('valva atrioventricularis dextra', 'Kalp', 'Sağ kulakçık ile sağ karıncık arasındaki üç yaprakçıklı kapak; karıncık kasılınca kanın kulakçığa geri kaçmasını önler.'),
   'mitral valve': D('valva atrioventricularis sinistra', 'Kalp', 'Sol kulakçık ile sol karıncık arasındaki iki yaprakçıklı (biküspit) kapak. Kapanması birinci kalp sesinin ("lub") bir parçasıdır.'),
   'pulmonary valve': D('valva trunci pulmonalis', 'Kalp', 'Sağ karıncıktan akciğer atardamarına çıkışı kontrol eden yarım ay kapak; kanın karıncığa geri dönmesini engeller.'),
+  'aortic valve': D('valva aortae', 'Kalp', 'Sol karıncıktan aorta çıkışı kontrol eden üç cepli yarım ay kapak; karıncık sistolünde açılır, diyastolün başında kapanarak 2. kalp sesini (“dub”) oluşturur. Veri setinde bulunmadığı için şematik olarak eklenmiştir.'),
   'papillary muscle of ventricle, nsn': D('m. papillaris', 'Kalp', 'Karıncık duvarından çıkan kas çıkıntıları; kiriş iplikleriyle (chordae tendineae) kapak yaprakçıklarını tutarak kapağın kulakçığa doğru açılmasını önler.'),
   'anterior papillary muscle of ventricle': D('m. papillaris anterior', 'Kalp', 'Ön papiller kas; kiriş iplikleri aracılığıyla kapak yaprakçıklarını gergin tutar.'),
   'posterior papillary muscle of ventricle': D('m. papillaris posterior', 'Kalp', 'Arka papiller kas; kiriş iplikleri aracılığıyla kapak yaprakçıklarını gergin tutar.'),
@@ -819,15 +878,45 @@ if (!gl_FrontFacing) {
   outgoingLight = cc * 0.72;
 }
 `;
-function patchSurface(mat, kind) {
+// ---------- heart rig: per-vertex displacement fields driven by the cardiac cycle (see cardio.js) ----------
+// rigA/rigV: wall displacement at full atrial / ventricular contraction; rigO: valve leaflet motion;
+// rigT = (activation time s, arterial arc length m [+10 for the pulmonary tree], valve id, pulse amplitude m).
+const RIG_LAYERS = new Set(['heart', 'arteries', 'veins']);
+const RIGU = {
+  uRigA: { value: 0 }, uRigV: { value: 0 }, uRigOpen: { value: new THREE.Vector4(1, 1, 0, 0) },
+  uPulseFront: { value: new THREE.Vector2(-1, -1) }, uPulseAmp: { value: 0 }, uCycleT: { value: -1 }, uGlow: { value: 0 },
+};
+const GLSL_RIG_VERT = `
+#ifdef RIG
+{
+  float vid = rigT.z;
+  float op = vid < 0.5 ? 1.0 : vid < 1.5 ? uRigOpen.x : vid < 2.5 ? uRigOpen.y : vid < 3.5 ? uRigOpen.z : uRigOpen.w;
+  float k = vid < 2.5 ? 1.0 - op : op; // AV leaflets are modelled open (rigO closes them), semilunar cusps closed (rigO opens them)
+  transformed += uRigA * rigA + uRigV * rigV + k * rigO;
+  if (rigT.w > 0.0) {
+    bool pul = rigT.y >= 10.0;
+    float d = (pul ? rigT.y - 10.0 : rigT.y) - (pul ? uPulseFront.y : uPulseFront.x);
+    transformed += objectNormal * rigT.w * uPulseAmp * exp(-d * d / 0.0018);
+  }
+  vAct = rigT.x;
+}
+#endif
+`;
+function patchSurface(mat, kind, rigged = false) {
   const capU = mat.userData.capU || (mat.userData.capU = { value: 1 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uCap = capU;
+    if (rigged) Object.assign(sh.uniforms, RIGU);
+    const rigDecl = rigged ? `#define RIG\nattribute vec3 rigA; attribute vec3 rigV; attribute vec3 rigO; attribute vec4 rigT;\nuniform float uRigA, uRigV, uPulseAmp; uniform vec4 uRigOpen; uniform vec2 uPulseFront;\nvarying float vAct;` : '';
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\nvarying vec3 vOP;\n#if SURF == 2\nattribute vec4 fiber; varying vec4 vFib;\n#endif`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = transformed;\n#if SURF == 2\nvFib = fiber;\n#endif`);
+      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigDecl}\nvarying vec3 vOP;\n#if SURF == 2\nattribute vec4 fiber; varying vec4 vFib;\n#endif`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = transformed;\n#if SURF == 2\nvFib = fiber;\n#endif\n${GLSL_RIG_VERT}`);
     let fs = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${GLSL_COMMON}`)
+      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigged ? '#define RIG\nvarying float vAct; uniform float uCycleT, uGlow;' : ''}\n${GLSL_COMMON}`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+#ifdef RIG
+if (vAct > -0.5 && uGlow > 0.0) { float e = (uCycleT - vAct - 0.018) / 0.02; totalEmissiveRadiance += vec3(1.0, 0.78, 0.3) * uGlow * exp(-e * e); }
+#endif`)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\nif (!gl_FrontFacing && uCap < 0.5) discard;`)
       .replace('#include <color_fragment>', `#include <color_fragment>\n${GLSL_SURFACE}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * rMul, 0.04, 1.0);`)
@@ -841,8 +930,8 @@ function patchSurface(mat, kind) {
     fs = fs.replace('#include <opaque_fragment>', `${glass}\n${GLSL_CAP}\n#include <opaque_fragment>`);
     sh.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => 'surf' + kind;
-  mat.userData.surf = kind;
+  mat.customProgramCacheKey = () => 'surf' + kind + (rigged ? 'r' : '');
+  mat.userData.surf = kind; mat.userData.rigged = rigged;
   return mat;
 }
 
@@ -872,6 +961,8 @@ const MAT_DEFS = {
   pulmArtery: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
   vein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
   pulmVein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
+  coronaryA: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0xff6a6a }],
+  coronaryV: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
   skin: [SURF.skin, { roughness: 0.52, clearcoat: 0.06, clearcoatRoughness: 0.45, sheen: 0.35, sheenColor: 0xffb89c, sheenRoughness: 0.55 }],
 };
 const MATS = {};
@@ -880,7 +971,7 @@ function getMat(layer, mat) {
   const k = layer + ':' + mat;
   if (MATS[k]) return MATS[k];
   const [kind, params] = MAT_DEFS[mat] || MAT_DEFS.organ;
-  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind);
+  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind, RIG_LAYERS.has(layer));
   m.userData.layer = layer; m.userData.baseOpacity = 1;
   (layerMats[layer] ||= new Set()).add(m);
   if (state.split && (layer === 'muscle' || layer === 'skin')) m.clippingPlanes = [splitPlane];
@@ -1040,14 +1131,16 @@ function ingest(layer, meta, rec) {
   if (rec.fib) geo.setAttribute('fiber', new THREE.BufferAttribute(rec.fib, 4, true));
   geo.setIndex(new THREE.BufferAttribute(rec.idx, 1));
   geo.computeBoundingSphere(); geo.computeBoundingBox();
-  const mat = getMat(layer, meta.mat);
+  // coronary vessels get their own material so they can be cut together with the heart wall
+  const matKey = /coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches/.test(meta.base) ? (layer === 'arteries' ? 'coronaryA' : 'coronaryV') : meta.mat;
+  const mat = getMat(layer, matKey);
   const mesh = new THREE.Mesh(geo, state.isolate && state.selected ? ghostMat : mat);
   const small = geo.boundingSphere.radius < 0.015;
   mesh.castShadow = !small && layer !== 'skin'; mesh.receiveShadow = true;
   const center = geo.boundingSphere.center.clone();
   const d = describe(meta);
   mesh.userData = {
-    layer, id: meta.id, en: meta.en, base: meta.base, side: meta.side, mat: meta.mat, tr: meta.tr,
+    layer, id: meta.id, en: meta.en, base: meta.base, side: meta.side, mat: matKey, tr: meta.tr,
     la: d.la, desc: d.desc, group: d.group || regionOf(center), center, basePos: new THREE.Vector3(), pickIndex: PARTS_LIST.length + 1,
   };
   mesh.matrixAutoUpdate = true;
@@ -1187,7 +1280,7 @@ function pick(clientX, clientY) {
 const hlCache = new Map();
 function highlightMat(m) {
   if (!hlCache.has(m)) {
-    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf);
+    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf, m.userData.rigged);
     h.emissive = new THREE.Color(0x1f9fbf); h.emissiveIntensity = 0.28;
     hlCache.set(m, h);
   }
@@ -1460,62 +1553,69 @@ const LABEL_EN = ['frontal bone', 'mandible', 'left clavicle', 'body of sternum'
   'long head of left biceps brachii', 'left sartorius', 'descending part of left trapezius', 'left sternocleidomastoid', 'left tibialis anterior', 'left external oblique', 'left temporalis'];
 const labelEls = new Map();
 const _lv = new THREE.Vector3();
-function drawLabels() {
-  const host = $('labels'); const svg = host.querySelector('svg');
-  if (!state.labels) { if (labelEls.size) { labelEls.forEach(el => el.remove()); labelEls.clear(); svg.innerHTML = ''; } return; }
-  const w = innerWidth, h = innerHeight; const items = [];
+// visible label anchors projected to a w×h viewport: [{ key, text, x, y }]
+function labelItems(w, h) {
+  const out = []; const anchors = scenarioLabels(); // scenario steps bring their own labels anchored to points
+  const push = (key, text, p) => {
+    _lv.copy(p).project(camera);
+    const x = (_lv.x * 0.5 + 0.5) * w, y = (-_lv.y * 0.5 + 0.5) * h;
+    if (_lv.z <= 1 && x >= 0 && x <= w && y >= 0 && y <= h) out.push({ key, text, x, y });
+  };
+  if (anchors) { for (const a of anchors) push(a.key, a.text, a.pos); return out; }
+  if (!state.labels) return out;
   for (const en of LABEL_EN) {
-    const m = byEn.get(en); let el = labelEls.get(en);
+    const m = byEn.get(en);
     let vis = m && m.visible && !m.userData.hidden && groups[m.userData.layer].visible && layerOpacity[m.userData.layer] >= 0.3;
     if (vis && state.split && (m.userData.layer === 'muscle' || m.userData.layer === 'skin') && m.userData.center.x < 0) vis = false;
     if (vis && state.cut && cutPlane.distanceToPoint(m.userData.center) < 0) vis = false;
     if (vis && state.isolate && state.selected !== m) vis = false;
-    if (!vis) { if (el) el.style.display = 'none'; continue; }
-    if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = m.userData.tr.replace(/ \((sol|sağ)\)$/, ''); host.appendChild(el); labelEls.set(en, el); }
-    _lv.copy(m.geometry.boundingSphere.center).applyMatrix4(m.matrixWorld).project(camera);
-    const x = (_lv.x * 0.5 + 0.5) * w, y = (-_lv.y * 0.5 + 0.5) * h;
-    if (_lv.z > 1 || x < 0 || x > w || y < 0 || y > h) { el.style.display = 'none'; continue; }
-    items.push({ el, x, y });
+    if (vis) push(en, m.userData.tr.replace(/ \((sol|sağ)\)$/, ''), _lv.copy(m.geometry.boundingSphere.center).applyMatrix4(m.matrixWorld).clone());
   }
-  if (!items.length) { svg.innerHTML = ''; return; }
+  return out;
+}
+// two columns of labels left and right of the subject; sets lx (column x), ly, side and ex (leader end)
+function layoutLabels(items, w, h, rowH = 21, margin = 120) {
+  if (!items.length) return items;
   const cx = items.reduce((a, it) => a + it.x, 0) / items.length;
   const spread = Math.max(...items.map(it => Math.abs(it.x - cx)));
-  const off = Math.min(Math.max(150, spread + 70), w * 0.42);
-  let lines = '';
+  const off = Math.min(Math.max(margin * 1.25, spread + margin * 0.6), w * 0.42);
   for (const side of [-1, 1]) {
     const col = items.filter(it => (it.x < cx) === (side < 0)).sort((a, b) => a.y - b.y);
-    const colX = clamp(cx + side * off, 120, w - 120);
+    const colX = clamp(cx + side * off, margin, w - margin);
     let last = -Infinity;
-    for (const it of col) { it.ly = Math.max(it.y, last + 21); last = it.ly; }
-    const over = last - (h - 90); if (over > 0) for (const it of col) it.ly -= over;
-    for (const it of col) {
-      it.el.style.display = ''; it.el.style.left = colX + 'px'; it.el.style.top = it.ly + 'px';
-      it.el.style.transform = side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
-      const ex = colX - side * 6;
-      lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(ex - side * 18).toFixed(1)},${it.ly.toFixed(1)} ${ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
-    }
+    for (const it of col) { it.ly = Math.max(it.y, last + rowH); last = it.ly; }
+    const over = last - (h - rowH * 4.3); if (over > 0) for (const it of col) it.ly -= over;
+    for (const it of col) { it.side = side; it.lx = colX; it.ex = colX - side * rowH * 0.3; }
+  }
+  return items;
+}
+function drawLabels() {
+  const host = $('labels'); const svg = host.querySelector('svg');
+  const w = innerWidth, h = innerHeight; const items = labelItems(w, h);
+  const keys = new Set(items.map(it => it.key));
+  for (const [k, el] of labelEls) if (!keys.has(k)) { el.remove(); labelEls.delete(k); }
+  if (!items.length) { svg.innerHTML = ''; return; }
+  layoutLabels(items, w, h);
+  let lines = '';
+  for (const it of items) {
+    let el = labelEls.get(it.key);
+    if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = it.text; host.appendChild(el); labelEls.set(it.key, el); }
+    el.style.left = it.lx + 'px'; el.style.top = it.ly + 'px';
+    el.style.transform = it.side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+    lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(it.ex - it.side * 18).toFixed(1)},${it.ly.toFixed(1)} ${it.ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
   }
   svg.innerHTML = lines;
 }
 
 // ---------- heartbeat & breathing ----------
-const ANIM = { heart: [], lungs: [], diaphragm: [] };
+const ANIM = { lungs: [], diaphragm: [] };
 function setPivot(mesh, p) {
   // move the mesh origin to p without changing where it renders
   mesh.geometry.translate(-p.x, -p.y, -p.z); mesh.userData.basePos.copy(p); mesh.position.copy(p);
   mesh.geometry.computeBoundingSphere();
 }
 function setupAnimation() {
-  const heart = byEn.get('wall of heart');
-  if (heart) {
-    const hc = heart.geometry.boundingBox.getCenter(new THREE.Vector3());
-    for (const m of PARTS_LIST) {
-      const b = m.userData.base;
-      if (m.userData.layer === 'heart' || /coronary|cardiac vein|veins of ventricle|coronary sinus/.test(b) || /^(anterior|posterior) interventricular|marginal branch|posterolateral branch|circumflex branch|septal branches|stem of coronary|trunk of coronary/.test(b)) {
-        setPivot(m, hc); m.castShadow = false; ANIM.heart.push(m);
-      }
-    }
-  }
+  // the heart itself is animated by the rig in cardio.js
   for (const side of ['left', 'right']) {
     const lobes = PARTS_LIST.filter(m => /lobe of lung/.test(m.userData.base) && (m.userData.side === side || (!m.userData.side && side === 'right')));
     if (!lobes.length) continue;
@@ -1524,11 +1624,6 @@ function setupAnimation() {
     for (const m of lobes) { setPivot(m, p); m.castShadow = false; ANIM.lungs.push(m); }
   }
   const dia = byEn.get('diaphragm'); if (dia) { dia.castShadow = false; ANIM.diaphragm.push(dia); }
-}
-function heartCurve(t) {
-  const a = Math.exp(-(((t - 0.08) / 0.05) ** 2));
-  const v = Math.exp(-(((t - 0.32) / 0.09) ** 2));
-  return { a, v };
 }
 
 // ---------- main loop ----------
@@ -1547,10 +1642,7 @@ function animate() {
   }
   controls.update();
   updateRig();
-  if (state.anim.heart) {
-    const hc = heartCurve((t * 1.15) % 1);
-    for (const m of ANIM.heart) m.scale.setScalar(1 - 0.045 * hc.v + 0.012 * hc.a);
-  }
+  cardioTick(dt);
   if (state.anim.breath) {
     const b = 0.5 - 0.5 * Math.cos(t * TAU / 4.4);
     for (const m of ANIM.lungs) m.scale.set(1 + 0.022 * b, 1 + 0.06 * b, 1 + 0.035 * b);
@@ -1559,7 +1651,7 @@ function animate() {
   doHover();
   if (shadowDirty > 0) { renderer.shadowMap.needsUpdate = true; shadowDirty--; }
   renderer.render(scene, camera);
-  if (state.labels || labelEls.size) drawLabels();
+  if (state.labels || labelEls.size || SCN.active) drawLabels();
   fpsEma = fpsEma * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (t - fpsT > 0.5) { fpsT = t; $('stFps').textContent = Math.round(fpsEma); }
   requestAnimationFrame(animate);
@@ -1568,7 +1660,7 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 
 const fmtK = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(n);
 window.__anatomy = {
-  ready: false, THREE, scene, camera, controls, renderer, state, byId, byEn, PARTS_LIST, MATS,
+  ready: false, THREE, scene, camera, controls, renderer, state, byId, byEn, PARTS_LIST, MATS, get CARDIO() { return CARDIO; }, get SCN() { return SCN; },
   setView: (i) => { const v = VIEWS[i]; camera.position.copy(vec(v[1])); controls.target.copy(vec(v[2])); controls.update(); },
   look: (p, t) => { camera.position.copy(vec(p)); controls.target.copy(vec(t)); controls.update(); },
   setLayer, setOpacity, setSplit, applyPreset, select: (en) => select(byEn.get(en) || byId.get(en) || null), pick,
@@ -1579,6 +1671,915 @@ window.__anatomy = {
   shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; markShadows(); },
 };
 
+
+// ---- cardio.js ----
+// ===================== Cardiac cycle: heart rig, conduction system, blood flow =====================
+// Landmarks and vessel centrelines come from data/heart_rig.json (tools/heart_rig.py). Every vertex of the
+// heart, arteries and veins gets displacement fields for atrial and ventricular contraction, valve motion,
+// an activation time for the conduction glow and an arc length for the arterial pulse wave.
+const CYC = 0.8; // template cycle length (s); all phase times below are on this scale
+const CARDIO = { ready: false, rig: null, tc: 0, bpm: 72, speed: 1, playing: true, hold: null, fx: null, flows: {} };
+const V3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const bump = (x, c, w) => Math.exp(-(((x - c) / w) ** 2));
+
+// ---------- the cardiac cycle (one beat of 0.8 s, scaled to the heart rate) ----------
+const PHASES = [
+  { from: 0.0, to: 0.16, key: 'atrial', tr: 'Kulakçık sistolü', sub: 'Kulakçıklar kasılır; kan açık AV kapaklardan karıncıklara dolar.' },
+  { from: 0.16, to: 0.24, key: 'vsys1', tr: 'Karıncık sistolü', sub: 'Karıncıklar kasılmaya başlar; AV kapaklar kapanır (1. kalp sesi).' },
+  { from: 0.24, to: 0.45, key: 'vsys2', tr: 'Karıncık sistolü', sub: 'Yarım ay kapaklar açılır; kan aort ve akciğer atardamarına pompalanır.' },
+  { from: 0.45, to: 0.53, key: 'dia1', tr: 'Diyastol', sub: 'Karıncıklar gevşer; yarım ay kapaklar kapanır (2. kalp sesi).' },
+  { from: 0.53, to: 0.8, key: 'dia2', tr: 'Diyastol', sub: 'AV kapaklar açılır; toplardamarlardan gelen kan kulakçıklardan karıncıklara akar.' },
+];
+function cycleState(tc) {
+  const uA = bump(tc, 0.11, 0.045);
+  const uV = sstep(0.17, 0.3, tc) * (1 - sstep(0.4, 0.53, tc));
+  const av = tc < 0.3 ? 1 - sstep(0.175, 0.205, tc) : sstep(0.49, 0.53, tc);
+  const sl = sstep(0.225, 0.25, tc) * (1 - sstep(0.435, 0.46, tc));
+  const phase = PHASES.find(p => tc >= p.from && tc < p.to) || PHASES[PHASES.length - 1];
+  return { uA, uV, av, sl, phase };
+}
+// schematic ECG (P, QRS, T) on the same time base
+function ecgAt(tc) {
+  return 0.13 * bump(tc, 0.05, 0.022) - 0.08 * bump(tc, 0.172, 0.006) + 1.0 * bump(tc, 0.19, 0.008) - 0.22 * bump(tc, 0.207, 0.007) + 0.28 * bump(tc, 0.44, 0.035);
+}
+const SOUNDS = [{ t: 0.19, tr: '1. ses (lub)' }, { t: 0.45, tr: '2. ses (dub)' }];
+
+// ---------- spatial hash for nearest-point queries ----------
+function pointHash(cell) {
+  const map = new Map(); const key = (x, y, z) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
+  return {
+    add(x, y, z, v) { const k = key(x, y, z); let b = map.get(k); if (!b) map.set(k, (b = [])); b.push(x, y, z, v); },
+    nearest(x, y, z, maxR) { // returns [dist, value] within maxR (searches the cells around)
+      const n = Math.ceil(maxR / cell); const cx = Math.floor(x / cell), cy = Math.floor(y / cell), cz = Math.floor(z / cell);
+      let best = maxR * maxR, val = null;
+      for (let i = -n; i <= n; i++) for (let j = -n; j <= n; j++) for (let k = -n; k <= n; k++) {
+        const b = map.get(`${cx + i},${cy + j},${cz + k}`); if (!b) continue;
+        for (let q = 0; q < b.length; q += 4) { const dx = b[q] - x, dy = b[q + 1] - y, dz = b[q + 2] - z; const d = dx * dx + dy * dy + dz * dz; if (d < best) { best = d; val = b[q + 3]; } }
+      }
+      return [Math.sqrt(best), val];
+    },
+  };
+}
+
+// ---------- rig fields ----------
+function rigFrame(rig) {
+  const B = V3(rig.base), A = V3(rig.apex), nav = V3(rig.avNormal).normalize();
+  const ax = A.clone().sub(B); const L = ax.length(); ax.normalize();
+  const ch = Object.fromEntries(Object.entries(rig.chambers).map(([k, v]) => [k, { c: V3(v.c), r: v.r }]));
+  const val = Object.fromEntries(Object.entries(rig.valves).map(([k, v]) => [k, { c: V3(v.c), u: V3(v.axis).normalize(), r: v.r || 0.012 }]));
+  const sepN = V3(rig.septum.n).normalize(), sepC = V3(rig.septum.c);
+  const center = new THREE.Vector3(); for (const k in ch) center.add(ch[k].c); center.multiplyScalar(0.25);
+  // four-chamber plane through both AV valves and the apex, normal facing the viewer (anterior)
+  const T = val.tricuspid.c, M = val.mitral.c;
+  const n4 = new THREE.Vector3().subVectors(M, T).cross(new THREE.Vector3().subVectors(A, T)).normalize();
+  if (n4.z < 0) n4.negate();
+  return { B, A, nav, ax, L, ch, val, sepN, sepC, center, n4, sa: V3(rig.nodes.sa), av: V3(rig.nodes.av) };
+}
+const _q = new THREE.Vector3(), _r = new THREE.Vector3(), _t = new THREE.Vector3();
+// displacement of point p (normal n) at full atrial (outA) and ventricular (outV) contraction; g = attachment to the heart
+function heartFields(F, p, n, g, outA, outV) {
+  outA.set(0, 0, 0); outV.set(0, 0, 0); if (g <= 0) return;
+  const d = _q.copy(p).sub(F.B).dot(F.nav);
+  const wv = sstep(-0.004, 0.008, d), wa = 1 - sstep(-0.008, 0.004, d);
+  const a = _q.copy(p).sub(F.B).dot(F.ax); const f = clamp(a / F.L, 0, 1);
+  const rp = _r.copy(p).sub(F.B).addScaledVector(F.ax, -a); const rl = rp.length() || 1;
+  // ventricles: walls move toward the long axis (inner surface more, so the wall thickens) and the AV plane descends
+  const inner = n ? -n.dot(rp) / rl > 0.25 : false;
+  const kr = (inner ? 0.17 : 0.07) * (0.5 + 0.5 * sstep(0, 0.3, f));
+  outV.copy(rp).multiplyScalar(-kr).addScaledVector(F.ax, 0.008 * (1 - f)).multiplyScalar(wv);
+  outV.addScaledVector(F.ax, 0.008 * wa * Math.exp(-Math.max(0, -d) / 0.015)); // atria are stretched as the AV plane moves
+  // atria: walls move toward the centre of their own atrium; ventricles fill a little
+  const ra = F.ch.RA.c, la = F.ch.LA.c; const w1 = 1 / Math.max(p.distanceToSquared(ra), 1e-6), w2 = 1 / Math.max(p.distanceToSquared(la), 1e-6);
+  _t.copy(ra).multiplyScalar(w1).addScaledVector(la, w2).multiplyScalar(1 / (w1 + w2));
+  outA.copy(_t).sub(p).multiplyScalar(0.13 * wa).addScaledVector(rp, 0.025 * wv);
+  // keep the arterial roots steady
+  const keep = sstep(0.011, 0.02, p.distanceTo(F.val.aortic.c)) * sstep(0.009, 0.017, p.distanceTo(F.val.pulmonary.c));
+  outA.multiplyScalar(g * keep); outV.multiplyScalar(g * (0.4 + 0.6 * keep));
+}
+// activation time (s) of a myocardial point: atria from the SA node, ventricles after the AV delay from apex to base
+function activationTime(F, p) {
+  const d = _q.copy(p).sub(F.B).dot(F.nav);
+  if (d < 0) return p.distanceTo(F.sa) / 0.75;
+  const f = clamp(_q.copy(p).sub(F.B).dot(F.ax) / F.L, 0, 1);
+  const sep = Math.abs(_r.copy(p).sub(F.sepC).dot(F.sepN));
+  return 0.172 + 0.05 * (1 - f) + 0.25 * Math.min(sep, 0.03);
+}
+
+const VALVE_ID = { 'tricuspid valve': 1, 'mitral valve': 2, 'pulmonary valve': 3, 'aortic valve': 4 };
+const CORONARY_RE = /coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches/;
+
+function buildTreeSamples(rig) {
+  // arc length from the root for every centreline sample of the arterial trees (pulse wave)
+  const h = pointHash(0.008); const trees = [['aorta', 0], ['pa', 10]];
+  for (const [k, off] of trees) for (const q of rig.trees[k] || []) {
+    let s = 0;
+    for (let i = 0; i < q.p.length; i++) {
+      if (i) s += Math.hypot(q.p[i][0] - q.p[i - 1][0], q.p[i][1] - q.p[i - 1][1], q.p[i][2] - q.p[i - 1][2]);
+      h.add(q.p[i][0], q.p[i][1], q.p[i][2], [off + s, q.r[i]]);
+    }
+  }
+  return h;
+}
+
+function applyRig(F, rig) {
+  const wallMesh = byEn.get('wall of heart'); if (!wallMesh) return;
+  const wallHash = pointHash(0.006); const wp = wallMesh.geometry.attributes.position.array;
+  for (let i = 0; i < wp.length; i += 9) wallHash.add(wp[i], wp[i + 1], wp[i + 2], 1);
+  const treeHash = buildTreeSamples(rig);
+  const box = new THREE.Box3().setFromBufferAttribute(wallMesh.geometry.attributes.position).expandByScalar(0.03);
+  const p = new THREE.Vector3(), n = new THREE.Vector3(), dA = new THREE.Vector3(), dV = new THREE.Vector3();
+  for (const m of PARTS_LIST) {
+    const L = m.userData.layer; if (!RIG_LAYERS.has(L)) continue;
+    const geo = m.geometry; const P = geo.attributes.position.array, N = geo.attributes.normal; const nv = P.length / 3;
+    const A = new Float32Array(nv * 3), Vv = new Float32Array(nv * 3), O = new Float32Array(nv * 3), T = new Float32Array(nv * 4);
+    const en = m.userData.base; const vid = VALVE_ID[en] || 0; const heartPart = L === 'heart';
+    const myo = heartPart && !vid; const isArt = L === 'arteries' && !CORONARY_RE.test(en);
+    const valve = vid ? F.val[{ 1: 'tricuspid', 2: 'mitral', 3: 'pulmonary', 4: 'aortic' }[vid]] : null;
+    for (let i = 0; i < nv; i++) {
+      p.set(P[3 * i], P[3 * i + 1], P[3 * i + 2]); n.fromBufferAttribute(N, i).normalize();
+      let g = 0;
+      if (heartPart) g = 1;
+      else if (box.containsPoint(p)) g = 1 - sstep(0.003, 0.025, wallHash.nearest(p.x, p.y, p.z, 0.03)[0]);
+      heartFields(F, p, n, g, dA, dV);
+      A[3 * i] = dA.x; A[3 * i + 1] = dA.y; A[3 * i + 2] = dA.z; Vv[3 * i] = dV.x; Vv[3 * i + 1] = dV.y; Vv[3 * i + 2] = dV.z;
+      T[4 * i] = myo ? activationTime(F, p) : -1; T[4 * i + 2] = vid;
+      if (valve) {
+        const h = _q.copy(p).sub(valve.c).dot(valve.u); const r = _r.copy(p).sub(valve.c).addScaledVector(valve.u, -h); const rl = r.length();
+        if (vid <= 2) { // AV leaflets: free edges come together and billow back toward the atrium
+          const wl = sstep(-0.003, 0.004, h) * (1 - sstep(0.016, 0.026, h));
+          O[3 * i] = (-r.x * 0.7 * sstep(0, 0.012, h) - valve.u.x * h * 0.45) * wl;
+          O[3 * i + 1] = (-r.y * 0.7 * sstep(0, 0.012, h) - valve.u.y * h * 0.45) * wl;
+          O[3 * i + 2] = (-r.z * 0.7 * sstep(0, 0.012, h) - valve.u.z * h * 0.45) * wl;
+        } else if (vid === 3) { // pulmonary cusps are pressed against the wall when open
+          const k = Math.max(0, valve.r * 0.95 - rl) * sstep(-0.003, 0.005, h) / Math.max(rl, 1e-4);
+          O[3 * i] = r.x * k; O[3 * i + 1] = r.y * k; O[3 * i + 2] = r.z * k;
+        }
+      }
+      if (isArt) {
+        const [dist, val] = treeHash.nearest(p.x, p.y, p.z, 0.03);
+        if (val && dist < val[1] * 1.6 + 0.004) { T[4 * i + 1] = val[0]; T[4 * i + 3] = Math.min(val[1], 0.014); }
+      }
+    }
+    if (vid === 4 && m.userData.openPos) { const op = m.userData.openPos; for (let i = 0; i < nv * 3; i++) O[i] = op[i] - P[i]; }
+    geo.setAttribute('rigA', new THREE.BufferAttribute(A, 3)); geo.setAttribute('rigV', new THREE.BufferAttribute(Vv, 3));
+    geo.setAttribute('rigO', new THREE.BufferAttribute(O, 3)); geo.setAttribute('rigT', new THREE.BufferAttribute(T, 4));
+    if (L !== 'heart' && !CORONARY_RE.test(en)) continue;
+    m.castShadow = false;
+  }
+  bakeHeartColours(F, wallMesh);
+}
+
+// epicardial fat along the coronary grooves and a paler endocardium, baked into the wall's vertex colours
+function bakeHeartColours(F, wall) {
+  const cor = pointHash(0.006);
+  for (const m of PARTS_LIST) if (CORONARY_RE.test(m.userData.base)) { const a = m.geometry.attributes.position.array; for (let i = 0; i < a.length; i += 6) cor.add(a[i], a[i + 1], a[i + 2], 1); }
+  const geo = wall.geometry; const P = geo.attributes.position.array, N = geo.attributes.normal, C = geo.attributes.color;
+  const base = tintFor({ id: wall.userData.id, base: 'wall of heart', mat: 'heart' });
+  const fat = new THREE.Color(0xd8bd84), endo = new THREE.Color(0xa84a43);
+  const p = new THREE.Vector3(), n = new THREE.Vector3();
+  for (let i = 0; i < P.length / 3; i++) {
+    p.set(P[3 * i], P[3 * i + 1], P[3 * i + 2]); n.fromBufferAttribute(N, i).normalize();
+    const ao = clamp(C.getX(i) / Math.max(base[0], 1e-4), 0, 1.2);
+    let best = null, bd = 1e9; for (const k in F.ch) { const d = p.distanceTo(F.ch[k].c); if (d < bd) { bd = d; best = F.ch[k]; } }
+    const toC = _q.copy(best.c).sub(p).normalize();
+    const innerW = sstep(0.15, 0.5, n.dot(toC)) * (1 - sstep(best.r * 1.6, best.r * 2.4, bd));
+    const outerW = sstep(0.0, 0.3, n.dot(_r.copy(p).sub(F.center).normalize()));
+    const fw = sstep(0.0052, 0.0018, cor.nearest(p.x, p.y, p.z, 0.008)[0]) * outerW * 0.55;
+    let r = base[0], g = base[1], b = base[2];
+    r += (endo.r - r) * innerW * 0.6; g += (endo.g - g) * innerW * 0.6; b += (endo.b - b) * innerW * 0.6;
+    r += (fat.r - r) * fw; g += (fat.g - g) * fw; b += (fat.b - b) * fw;
+    C.setXYZ(i, r * ao, g * ao, b * ao);
+  }
+  C.needsUpdate = true;
+}
+
+// ---------- aortic valve (missing from the data set): three semilunar cusps, modelled closed with an open pose ----------
+function buildAorticValve(F) {
+  const v = F.val.aortic; const u = v.u; const R = v.r * 0.98;
+  const ex = new THREE.Vector3().crossVectors(u, Math.abs(u.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)).normalize();
+  const ey = new THREE.Vector3().crossVectors(u, ex);
+  const nT = 18, nS = 7; const closed = [], open = [], idx = [];
+  const dir = (th) => ex.clone().multiplyScalar(Math.cos(th)).addScaledVector(ey, Math.sin(th));
+  const centre = v.c.clone().addScaledVector(u, 0.0015);
+  for (let k = 0; k < 3; k++) {
+    const th0 = k * TAU / 3 + 0.3; const base = closed.length / 3;
+    const c0 = v.c.clone().addScaledVector(dir(th0), R), c1 = v.c.clone().addScaledVector(dir(th0 + TAU / 3), R);
+    for (let i = 0; i <= nT; i++) {
+      const t = i / nT, th = th0 + t * TAU / 3, d = dir(th);
+      const W = v.c.clone().addScaledVector(d, R).addScaledVector(u, -0.007 * Math.sin(Math.PI * t));
+      const Ec = t < 0.5 ? c0.clone().lerp(centre, t * 2) : centre.clone().lerp(c1, (t - 0.5) * 2);
+      const Eo = v.c.clone().addScaledVector(d, R * 0.84).addScaledVector(u, 0.005);
+      for (let j = 0; j <= nS; j++) {
+        const s = j / nS; const sag = 0.0028 * Math.sin(Math.PI * s) * Math.sin(Math.PI * t);
+        const pc = W.clone().lerp(Ec, s).addScaledVector(u, -sag); const po = W.clone().lerp(Eo, s).addScaledVector(d, -0.0006 * Math.sin(Math.PI * s));
+        closed.push(pc.x, pc.y, pc.z); open.push(po.x, po.y, po.z);
+      }
+    }
+    for (let i = 0; i < nT; i++) for (let j = 0; j < nS; j++) {
+      const a = base + i * (nS + 1) + j, b = a + nS + 1;
+      idx.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(closed), 3));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  const tint = tintFor({ id: 'aortic valve', base: 'valve', mat: 'valve' }); const nv = closed.length / 3; const col = new Uint16Array(nv * 3);
+  for (let i = 0; i < nv; i++) { col[3 * i] = tint[0] * 0.9 * 65535; col[3 * i + 1] = tint[1] * 0.9 * 65535; col[3 * i + 2] = tint[2] * 0.9 * 65535; }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+  geo.computeBoundingSphere(); geo.computeBoundingBox();
+  const mesh = new THREE.Mesh(geo, getMat('heart', 'valve'));
+  const meta = { id: 'SYN-aortic-valve', en: 'aortic valve', base: 'aortic valve', side: null, mat: 'valve', tr: 'Aort kapağı (şematik)' };
+  const d = describe(meta);
+  mesh.userData = { layer: 'heart', ...meta, la: d.la, desc: d.desc, group: d.group, center: geo.boundingSphere.center.clone(), basePos: new THREE.Vector3(), pickIndex: PARTS_LIST.length + 1, openPos: new Float32Array(open), synthetic: true };
+  mesh.castShadow = false; mesh.receiveShadow = true;
+  groups.heart.add(mesh); PARTS_LIST.push(mesh); byId.set(meta.id, mesh); byEn.set(meta.en, mesh); triTotal += idx.length / 3;
+}
+
+// ---------- conduction system (SA node → AV node → His bundle → bundle branches → Purkinje fibres) ----------
+function buildConduction(F) {
+  const g = new THREE.Group(); g.visible = false; scene.add(g);
+  const segs = [];
+  const mk = (pts, r, t0, t1, name) => {
+    const curve = new THREE.CatmullRomCurve3(pts.map(q => q.clone()));
+    const geo = new THREE.TubeGeometry(curve, Math.max(8, pts.length * 10), r, 8, false);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x3a2a08, emissive: 0xffc640, emissiveIntensity: 0.6, roughness: 0.4 });
+    const ghost = new THREE.MeshBasicMaterial({ color: 0xffd060, transparent: true, opacity: 0.22, depthTest: false, depthWrite: false });
+    const m = new THREE.Mesh(geo, mat); const gm = new THREE.Mesh(geo, ghost); gm.renderOrder = 6;
+    g.add(m, gm); segs.push({ m, mat, t0, t1, name });
+  };
+  const node = (p, r, t0, t1, name) => {
+    const mat = new THREE.MeshStandardMaterial({ color: 0x3a2a08, emissive: 0xffd060, emissiveIntensity: 0.8, roughness: 0.4 });
+    const m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), mat); m.position.copy(p);
+    const gm = new THREE.Mesh(m.geometry, new THREE.MeshBasicMaterial({ color: 0xffe080, transparent: true, opacity: 0.3, depthTest: false, depthWrite: false })); gm.position.copy(p); gm.renderOrder = 6;
+    g.add(m, gm); segs.push({ m, mat, t0, t1, name });
+  };
+  const ra = F.ch.RA.c;
+  const sa = F.sa.clone().lerp(ra, 0.12), av = F.av.clone();
+  node(sa, 0.0028, 0.0, 0.03, 'SA düğümü');
+  for (const s of [-1, 0, 1]) { // internodal pathways across the right atrium
+    const mid = sa.clone().lerp(av, 0.5).lerp(ra, 0.35).addScaledVector(F.sepN, 0.006 * s).addScaledVector(F.nav, -0.004);
+    mk([sa, mid, av], 0.0006, 0.0, 0.07, 'Düğümler arası yollar');
+  }
+  node(av, 0.0024, 0.06, 0.16, 'AV düğümü');
+  const apexIn = F.A.clone().lerp(F.B, 0.16);
+  const sdir = apexIn.clone().sub(av).normalize();
+  const his = av.clone().addScaledVector(sdir, 0.011);
+  mk([av, av.clone().lerp(his, 0.5), his], 0.0011, 0.15, 0.175, 'His demeti');
+  const len = apexIn.distanceTo(his);
+  for (const side of [1, -1]) {
+    const pts = [his]; for (const k of [0.3, 0.62, 0.92]) pts.push(his.clone().addScaledVector(sdir, len * k).addScaledVector(F.sepN, 0.0045 * side));
+    mk(pts, 0.0008, 0.17, 0.19, side > 0 ? 'Sol dal' : 'Sağ dal');
+    const tip = pts[pts.length - 1];
+    const c = side > 0 ? F.ch.LV : F.ch.RV; const away = side > 0 ? F.sepN : F.sepN.clone().negate();
+    for (const ang of [-1.1, -0.45, 0.2, 0.85]) {
+      const d = away.clone().applyAxisAngle(F.ax, ang);
+      const wallR = c.r * 1.05;
+      const mid = F.B.clone().addScaledVector(F.ax, F.L * 0.6).addScaledVector(d, wallR * 0.95);
+      const end = F.B.clone().addScaledVector(F.ax, F.L * 0.22).addScaledVector(d, wallR);
+      mk([tip, tip.clone().lerp(mid, 0.5).addScaledVector(d, 0.004), mid, end], 0.00045, 0.185, 0.225, 'Purkinje lifleri');
+    }
+  }
+  return { group: g, segs };
+}
+
+// ---------- blood flow particles ----------
+const BLOOD = { o2: new THREE.Color(0.78, 0.04, 0.06), co2: new THREE.Color(0.17, 0.25, 0.78) };
+function polyline(points, radii) { // -> { pts, cum, rad }
+  const n = points.length; const pts = new Float32Array(n * 3), cum = new Float32Array(n), rad = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    pts.set([points[i].x, points[i].y, points[i].z], i * 3); rad[i] = radii[i];
+    if (i) cum[i] = cum[i - 1] + points[i].distanceTo(points[i - 1]);
+  }
+  return { pts, cum, rad };
+}
+function treePts(q, from = 0, to = Infinity, reverse = false) {
+  // part of a centreline path between arc lengths [from, to] measured from the root
+  const P = [], R = []; let s = 0;
+  for (let i = 0; i < q.p.length; i++) {
+    if (i) s += Math.hypot(q.p[i][0] - q.p[i - 1][0], q.p[i][1] - q.p[i - 1][1], q.p[i][2] - q.p[i - 1][2]);
+    if (s >= from && s <= to) { P.push(V3(q.p[i])); R.push(q.r[i]); }
+  }
+  if (reverse) { P.reverse(); R.reverse(); }
+  return [P, R];
+}
+function pickWeighted(list, rnd = Math.random()) {
+  const tot = list.reduce((a, q) => a + q.w, 0); let x = rnd * tot;
+  for (const q of list) { x -= q.w; if (x <= 0) return q; }
+  return list[list.length - 1];
+}
+// one route: venous inflow -> atrium -> AV valve -> ventricle -> semilunar valve -> artery;
+// fullVein / fullArt follow the whole vessel tree instead of only the part next to the heart
+function buildRoute(F, rig, side, fullVein, fullArt) {
+  const R = side === 'R';
+  const veinTree = R ? (Math.random() < 0.45 ? 'svc' : 'ivc') : 'pv';
+  const vq = pickWeighted(rig.trees[veinTree]);
+  const aq = pickWeighted(rig.trees[R ? 'pa' : 'aorta']);
+  const [vp, vr] = treePts(vq, 0, fullVein ? Infinity : 0.03, true);
+  const [ap, ar] = treePts(aq, 0, fullArt ? Infinity : (R ? 0.04 : 0.055));
+  const atr = R ? F.ch.RA : F.ch.LA, ven = R ? F.ch.RV : F.ch.LV;
+  const avv = F.val[R ? 'tricuspid' : 'mitral'], slv = F.val[R ? 'pulmonary' : 'aortic'];
+  // chamber waypoints sit just behind the four-chamber plane so the blood stays in the visible half of a cut heart
+  const behind = (q, d) => { const k = q.clone().sub(F.val.tricuspid.c).dot(F.n4) + d; return k > 0 ? q.clone().addScaledVector(F.n4, -k) : q.clone(); };
+  const deep = behind(ven.c.clone().lerp(F.A, R ? 0.25 : 0.35), 0.005);
+  const outflow = slv.c.clone().addScaledVector(slv.u, -0.013);
+  const chain = [vp[vp.length - 1], behind(atr.c, 0.004), avv.c, deep, outflow, slv.c, ap[0]];
+  const chainR = [vr[vr.length - 1], atr.r * 0.85, 0.009, ven.r * 0.85, 0.008, slv.r * 0.7, ar[0]];
+  const curve = new THREE.CatmullRomCurve3(chain, false, 'centripetal');
+  const lens = [0]; for (let i = 1; i < chain.length; i++) lens.push(lens[i - 1] + chain[i].distanceTo(chain[i - 1]));
+  const n = Math.max(12, Math.round(lens[lens.length - 1] / 0.0015));
+  const cp = [], cr = [];
+  for (let i = 1; i < n; i++) {
+    const u = i / n; cp.push(curve.getPointAt(u));
+    const s = u * lens[lens.length - 1]; let k = 1; while (k < lens.length - 1 && lens[k] < s) k++;
+    cr.push(lerp(chainR[k - 1], chainR[k], clamp((s - lens[k - 1]) / Math.max(lens[k] - lens[k - 1], 1e-6), 0, 1)));
+  }
+  const pl = polyline([...vp, ...cp, ...ap], [...vr, ...cr, ...ar]);
+  // arc positions of the landmarks along the route
+  const near = (q) => { let bi = 0, bd = 1e9; for (let i = 0; i < pl.cum.length; i++) { const d = Math.hypot(pl.pts[3 * i] - q.x, pl.pts[3 * i + 1] - q.y, pl.pts[3 * i + 2] - q.z); if (d < bd) { bd = d; bi = i; } } return pl.cum[bi]; };
+  pl.sAtr = pl.cum[vp.length - 1]; pl.sAV = near(avv.c); pl.sSL = near(slv.c); pl.side = side; pl.end = pl.cum[pl.cum.length - 1];
+  pl.spanAtr = Math.max(0.004, pl.sAV - pl.sAtr); pl.spanVen = Math.max(0.004, pl.sSL - pl.sAV);
+  pl.leaf = ap[ap.length - 1];
+  return pl;
+}
+function pathAt(pl, s, out) {
+  const c = pl.cum; s = clamp(s, 0, pl.end);
+  let lo = 0, hi = c.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+  const t = (s - c[lo]) / Math.max(c[hi] - c[lo], 1e-9), P = pl.pts;
+  out[0] = P[3 * lo] + (P[3 * hi] - P[3 * lo]) * t; out[1] = P[3 * lo + 1] + (P[3 * hi + 1] - P[3 * lo + 1]) * t; out[2] = P[3 * lo + 2] + (P[3 * hi + 2] - P[3 * lo + 2]) * t;
+  out[3] = P[3 * hi] - P[3 * lo]; out[4] = P[3 * hi + 1] - P[3 * lo + 1]; out[5] = P[3 * hi + 2] - P[3 * lo + 2];
+  out[6] = pl.rad[lo] + (pl.rad[hi] - pl.rad[lo]) * t;
+}
+// particles inside the heart are cut with the heart wall (uPlane); those in the great vessels stay visible
+const BLOOD_VS = `
+attribute vec3 color; attribute float alpha; attribute float inHeart; varying vec3 vCol; varying float vA;
+uniform float uSize, uScale, uClipAll; uniform vec4 uPlane;
+void main() {
+  vec3 transformed = position;
+  #include <project_vertex>
+  gl_PointSize = uSize * uScale / -mvPosition.z;
+  vCol = color; vA = alpha;
+  if ((inHeart > 0.5 || uClipAll > 0.5) && dot(uPlane.xyz, position) + uPlane.w < 0.0) vA = 0.0;
+}`;
+const BLOOD_FS = `
+varying vec3 vCol; varying float vA;
+void main() {
+  vec2 d = gl_PointCoord * 2.0 - 1.0; float r2 = dot(d, d);
+  if (r2 > 1.0 || vA < 0.03) discard;
+  vec3 n = vec3(d.x, -d.y, sqrt(1.0 - r2)); vec3 l = normalize(vec3(0.35, 0.6, 0.72));
+  float dif = 0.3 + 0.7 * max(dot(n, l), 0.0); float sp = pow(max(dot(reflect(-l, n), vec3(0.0, 0.0, 1.0)), 0.0), 28.0);
+  gl_FragColor = vec4(vCol * dif + 0.45 * sp, 1.0);
+  if (vA < 0.97 && fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) > vA) discard;
+  #include <colorspace_fragment>
+}`;
+// modes: 'heart' (around the heart only), 'pulm' (pulmonary loop in full), 'body' (systemic loop in full)
+const FLOW_MODES = { heart: { R: [0, 0], L: [0, 0] }, pulm: { R: [0, 1], L: [1, 0] }, body: { R: [1, 0], L: [0, 1] } };
+class BloodFlow {
+  constructor(F, rig, n, mode, size) {
+    this.F = F; this.rig = rig; this.full = mode !== 'heart'; this.n = n;
+    this.routes = { R: [], L: [] }; const m = FLOW_MODES[mode];
+    for (let i = 0; i < (this.full ? 60 : 36); i++) { this.routes.R.push(buildRoute(F, rig, 'R', ...m.R)); this.routes.L.push(buildRoute(F, rig, 'L', ...m.L)); }
+    const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), alpha = new Float32Array(n), inHeart = new Float32Array(n);
+    this.p = Array.from({ length: n }, (_, i) => {
+      const side = i % 2 ? 'L' : 'R'; const route = this.pick(side);
+      const o = new THREE.Vector3().randomDirection().multiplyScalar(Math.cbrt(Math.random()));
+      return { side, route, s: Math.random() * route.end, holdAV: 0.002 + Math.random() * 0.85, holdSL: 0.002 + Math.random() * 0.85, o: [o.x, o.y, o.z], jitter: 0.7 + Math.random() * 0.6 };
+    });
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.setAttribute('alpha', new THREE.BufferAttribute(alpha, 1)); geo.setAttribute('inHeart', new THREE.BufferAttribute(inHeart, 1));
+    this.mat = new THREE.ShaderMaterial({ vertexShader: BLOOD_VS, fragmentShader: BLOOD_FS, uniforms: { uSize: { value: size }, uScale: { value: 800 }, uClipAll: { value: 0 }, uPlane: { value: new THREE.Vector4(0, 0, 0, 1) } } });
+    this.points = new THREE.Points(geo, this.mat); this.points.frustumCulled = false; this.points.visible = false; scene.add(this.points);
+    this.buf = new Float32Array(7);
+    this.step(0, 0);
+  }
+  pick(side) { const r = this.routes[side]; return r[(Math.random() * r.length) | 0]; }
+  speed(pl, s, tc, st) {
+    if (s < pl.sAtr) return 0.07 * (1 - 0.6 * st.uA); // venous return never stops
+    if (s < pl.sAV) return 0.035 + st.av * (0.05 + 0.22 * bump(tc, 0.58, 0.05) + 0.18 * bump(tc, 0.11, 0.04));
+    if (s < pl.sSL) return 0.035 + st.sl * (0.05 + 0.5 * bump(tc, 0.3, 0.07));
+    const lag = (s - pl.sSL) / 4.0; const tt = ((tc - lag) % CYC + CYC) % CYC;
+    return 0.12 + 0.55 * bump(tt, 0.3, 0.08);
+  }
+  step(dtc, tc) {
+    const st = cycleState(tc); const ga = this.points.geometry.attributes; const pos = ga.position.array, col = ga.color.array, al = ga.alpha.array, ih = ga.inHeart.array;
+    const b = this.buf;
+    for (let i = 0; i < this.n; i++) {
+      const q = this.p[i]; const pl = q.route;
+      let s = q.s + this.speed(pl, q.s, tc, st) * dtc * q.jitter;
+      // closed valves hold the blood in the chamber in front of them
+      if (q.s < pl.sAV && st.av < 0.35) s = Math.min(s, Math.max(q.s, pl.sAV - q.holdAV * pl.spanAtr));
+      if (q.s >= pl.sAV && q.s < pl.sSL && st.sl < 0.35) s = Math.min(s, Math.max(q.s, pl.sSL - q.holdSL * pl.spanVen));
+      if (s >= pl.end) { // leave the route: in the full circulation the other side of the heart takes over (lungs / body capillaries)
+        q.side = this.full ? (q.side === 'R' ? 'L' : 'R') : q.side; q.route = this.pick(q.side); s = 0;
+      }
+      q.s = s; pathAt(q.route, s, b);
+      const tl = Math.hypot(b[3], b[4], b[5]) || 1; const tx = b[3] / tl, ty = b[4] / tl, tz = b[5] / tl;
+      const od = q.o[0] * tx + q.o[1] * ty + q.o[2] * tz; const r = b[6] * 0.8;
+      pos[3 * i] = b[0] + (q.o[0] - od * tx) * r; pos[3 * i + 1] = b[1] + (q.o[1] - od * ty) * r; pos[3 * i + 2] = b[2] + (q.o[2] - od * tz) * r;
+      const c = q.side === 'R' ? BLOOD.co2 : BLOOD.o2; col[3 * i] = c.r; col[3 * i + 1] = c.g; col[3 * i + 2] = c.b;
+      ih[i] = s > pl.sAtr - 0.004 && s < pl.sSL + 0.004 ? 1 : 0;
+      al[i] = sstep(0, 0.008, s) * sstep(0, 0.01, q.route.end - s);
+    }
+    ga.position.needsUpdate = true; ga.color.needsUpdate = true; ga.alpha.needsUpdate = true; ga.inHeart.needsUpdate = true;
+  }
+}
+
+// ---------- setup & per-frame update ----------
+async function setupCardio() {
+  try {
+    const res = await fetch(DATA + 'heart_rig.json'); if (!res.ok) throw new Error('heart_rig.json: HTTP ' + res.status);
+    const rig = await res.json(); const F = rigFrame(rig);
+    buildAorticValve(F);
+    applyRig(F, rig);
+    CARDIO.rig = rig; CARDIO.F = F;
+    CARDIO.fx = buildConduction(F);
+    CARDIO.flows.heart = new BloodFlow(F, rig, isMobile ? 1300 : 2400, 'heart', 0.0022);
+    CARDIO.flows.pulm = new BloodFlow(F, rig, isMobile ? 1500 : 3000, 'pulm', 0.0032);
+    CARDIO.flows.body = new BloodFlow(F, rig, isMobile ? 1500 : 2800, 'body', 0.0032);
+    CARDIO.ready = true;
+  } catch (e) { console.warn('cardio rig unavailable', e); loadErrors.push('Kalp animasyonu: ' + e.message); }
+}
+function cardioTick(dt) {
+  if (!CARDIO.ready) return;
+  const run = state.anim.heart && CARDIO.playing;
+  let dtc = 0;
+  if (run) {
+    dtc = dt * CARDIO.speed * (CARDIO.bpm / 60) * CYC;
+    let tc = CARDIO.tc + dtc;
+    if (CARDIO.hold) { // play a window of the cycle once, then stop at its end
+      if (tc >= CARDIO.hold[1]) { tc = CARDIO.hold[1] - 1e-4; dtc = Math.max(0, tc - CARDIO.tc); CARDIO.playing = false; onCardioHold(); }
+    } else tc %= CYC;
+    CARDIO.tc = tc;
+  }
+  const tc = CARDIO.tc, st = cycleState(tc);
+  RIGU.uRigA.value = st.uA; RIGU.uRigV.value = st.uV;
+  RIGU.uRigOpen.value.set(st.av, st.av, st.sl, st.sl);
+  RIGU.uCycleT.value = tc;
+  RIGU.uPulseFront.value.set((tc - 0.25) * 2.4, (tc - 0.25) * 1.6);
+  RIGU.uPulseAmp.value = CARDIO.pulse ? 0.16 : 0.0;
+  RIGU.uGlow.value = CARDIO.glow || 0;
+  if (CARDIO.fx && CARDIO.fx.group.visible) for (const s of CARDIO.fx.segs) {
+    const on = tc >= s.t0 - 0.004 && tc <= s.t1 + 0.03 ? 1 - sstep(s.t1, s.t1 + 0.03, tc) : 0;
+    s.mat.emissiveIntensity = 0.45 + 3.2 * on;
+  }
+  for (const f of Object.values(CARDIO.flows)) if (f.points.visible) {
+    f.mat.uniforms.uScale.value = renderer.domElement.height / (2 * Math.tan(camera.fov * Math.PI / 360));
+    if (dtc > 0 || f.dirty) { f.step(Math.min(dtc, 0.05), tc); f.dirty = false; }
+  }
+  scenarioTick(st);
+}
+
+// ---- scenario.js ----
+// ===================== Scenario mode: step-by-step processes with YKS-level captions =====================
+const SCN = { active: false, step: 0, labels: true, flow: true, sound: { key: null, until: 0 }, prev: null, plane: new THREE.Plane() };
+const SPEEDS = [0.1, 0.25, 0.5, 1];
+
+// camera placements and label anchors derived from the heart rig
+function heartViews() {
+  const F = CARDIO.F; const n4 = F.n4;
+  const c = F.center.clone().lerp(F.B, 0.3);
+  return {
+    n4, c,
+    thorax: { pos: c.clone().add(new THREE.Vector3(0.12, 0.05, 0.62)), target: c.clone().add(new THREE.Vector3(0, 0.02, 0)) },
+    // the heart sits left of centre so the side panel does not cover it
+    fourCh: (() => { const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n4).normalize(); const t = c.clone().addScaledVector(right, 0.03).add(new THREE.Vector3(0, 0.004, 0)); return { pos: t.clone().addScaledVector(n4, 0.38).add(new THREE.Vector3(0, 0.02, 0)), target: t }; })(),
+    glass: { pos: c.clone().add(new THREE.Vector3(0.1, 0.06, 0.34)), target: c.clone().add(new THREE.Vector3(0.012, 0.012, 0)) },
+    lungs: { pos: new THREE.Vector3(0.04, 1.29, 0.6), target: new THREE.Vector3(0.0, 1.265, 0) },
+    body: { pos: new THREE.Vector3(0.18, 1.16, 1.5), target: new THREE.Vector3(0, 1.1, 0) },
+  };
+}
+// a point on a vessel's centreline `arc` metres from the heart; with a cut, the first one on the visible side
+function treePoint(tree, arc, cut) {
+  const q = CARDIO.rig.trees[tree][0]; let s = 0, pick = null;
+  for (let i = 0; i < q.p.length; i++) {
+    if (i) s += Math.hypot(q.p[i][0] - q.p[i - 1][0], q.p[i][1] - q.p[i - 1][1], q.p[i][2] - q.p[i - 1][2]);
+    if (s < arc) continue;
+    const p = V3(q.p[i]);
+    if (!cut || SCN.plane.distanceToPoint(p) > 0.003) return p;
+    pick ||= p;
+  }
+  return pick || V3(q.p[q.p.length - 1]);
+}
+function anchors(names, cut) {
+  const F = CARDIO.F; const v = F.val;
+  const A = {
+    RA: ['Sağ kulakçık', F.ch.RA.c], RV: ['Sağ karıncık', F.ch.RV.c.clone().lerp(F.A, 0.15)], LA: ['Sol kulakçık', F.ch.LA.c], LV: ['Sol karıncık', F.ch.LV.c.clone().lerp(F.A, 0.3)],
+    tri: ['Triküspit kapak', v.tricuspid.c], mit: ['Mitral (biküspit) kapak', v.mitral.c], pul: ['Akciğer atardamarı kapağı', v.pulmonary.c], aov: ['Aort kapağı', v.aortic.c],
+    sep: ['Karıncıklar arası bölme', F.sepC.clone().lerp(F.A, 0.35)],
+    aorta: ['Aort', treePoint('aorta', 0.04, cut)], pa: ['Akciğer atardamarı', treePoint('pa', 0.025, cut)],
+    svc: ['Üst ana toplardamar', treePoint('svc', 0.02, cut)], ivc: ['Alt ana toplardamar', treePoint('ivc', 0.02, cut)],
+    pv: ['Akciğer toplardamarları', treePoint('pv', 0.02, cut)],
+    sa: ['SA düğümü', F.sa], avn: ['AV düğümü', F.av], his: ['His demeti', F.av.clone().lerp(F.A, 0.18)],
+    branches: ['Sağ ve sol dallar', F.av.clone().lerp(F.A, 0.55)], purk: ['Purkinje lifleri', F.B.clone().addScaledVector(F.ax, F.L * 0.5).addScaledVector(F.sepN, F.ch.LV.r)],
+    heart: ['Kalp', F.center], lungR: ['Sağ akciğer', new THREE.Vector3(-0.08, 1.27, 0.0)], lungL: ['Sol akciğer', new THREE.Vector3(0.09, 1.25, -0.01)],
+    dia: ['Diyafram', new THREE.Vector3(-0.06, 1.17, 0.05)], cap: ['Akciğer kılcalları: CO₂ verilir, O₂ alınır', new THREE.Vector3(-0.1, 1.24, -0.02)],
+    desc: ['İnen aort', new THREE.Vector3(0.012, 1.05, 0.03)], body: ['Doku kılcalları: O₂ ve besin bırakılır', new THREE.Vector3(-0.05, 0.86, 0.04)],
+  };
+  const inside = new Set(['RA', 'RV', 'LA', 'LV', 'sep', 'sa', 'avn', 'his', 'branches', 'purk', 'tri', 'mit']);
+  return names.map(k => ({ key: 'scn:' + k, text: A[k][0], pos: A[k][1].clone(), inside: inside.has(k) }));
+}
+
+const HEART_ONLY = { heart: 1, arteries: 1, veins: 1 };
+const STEPS = [
+  {
+    title: 'Kalbin yeri ve yapısı', view: 'thorax', layers: { skeleton: 0.22, respiratory: 0.16, heart: 1, arteries: 1, veins: 1 }, speed: 1,
+    labels: ['heart', 'aorta', 'pa', 'svc', 'ivc', 'lungR', 'lungL'],
+    text: 'Kalp göğüs boşluğunda, iki akciğerin arasında, göğüs kemiğinin arkasında ve biraz solda yer alır. Yumruk büyüklüğünde, kaslı bir pompadır. Duvarı üç katmandan oluşur: dışta epikard, ortada kalp kası (miyokard), içte endokard. Kalp kası çizgilidir ama istemsiz çalışır. Yüzeyindeki koroner damarlar kalp kasının kendisini besler.',
+  },
+  {
+    title: 'Dört odacık ve kapaklar', view: 'fourCh', cut: true, layers: HEART_ONLY, flow: 'heart', speed: 0.35,
+    labels: ['RA', 'RV', 'LA', 'LV', 'tri', 'mit', 'sep', 'aorta', 'svc', 'ivc'],
+    text: 'Kalpte iki kulakçık ve iki karıncık vardır. Sağ taraf vücuttan gelen oksijence fakir kanı (mavi), sol taraf akciğerlerden gelen oksijence zengin kanı (kırmızı) taşır; aradaki bölme iki kanın karışmasını önler. Kulakçık ile karıncık arasında sağda triküspit, solda mitral (biküspit) kapak; karıncık çıkışlarında yarım ay kapaklar bulunur. Kapaklar kanın geri dönmesini engeller. Kanı tüm vücuda pompalayan sol karıncığın duvarı en kalındır.',
+  },
+  {
+    title: 'Uyarı iletim sistemi', view: 'fourCh', cut: true, layers: HEART_ONLY, conduction: true, glow: 1, flow: false, speed: 0.1, ecg: true,
+    labels: ['sa', 'avn', 'his', 'branches', 'purk'],
+    text: 'Kalp uyarısını kendisi üretir (otomatizma). Uyarı sağ kulakçıktaki SA düğümünde doğar ve kulakçıklara yayılır; kulakçıklar kasılır. AV düğümü uyarıyı kısa bir süre geciktirir, böylece karıncıklar kulakçıklar boşalınca kasılır. Uyarı His demeti, sağ–sol dallar ve Purkinje lifleriyle karıncıklara yayılır. EKG’de P dalgası kulakçıkların, QRS karıncıkların uyarılmasını, T dalgası karıncıkların dinlenmeye geçişini gösterir. Kalp hızını sempatik sinirler ve adrenalin artırır, parasempatik sinirler azaltır.',
+  },
+  {
+    title: '1 · Kulakçık sistolü', view: 'fourCh', cut: true, layers: HEART_ONLY, flow: 'heart', glow: 0.22, speed: 0.15, ecg: true, hold: [0.0, 0.16],
+    labels: ['RA', 'LA', 'tri', 'mit'],
+    text: 'SA düğümünden gelen uyarıyla kulakçıklar kasılır. Kulakçıklardaki kan, açık olan triküspit ve mitral kapaklardan karıncıklara geçer ve karıncıklar tamamen dolar. Bu sırada karıncıklar gevşektir; yarım ay kapaklar kapalıdır.',
+  },
+  {
+    title: '2 · Karıncık sistolü', view: 'fourCh', cut: true, layers: HEART_ONLY, flow: 'heart', glow: 0.22, speed: 0.15, ecg: true, hold: [0.16, 0.45],
+    labels: ['RV', 'LV', 'tri', 'mit', 'aorta'],
+    text: 'Uyarı karıncıklara ulaşınca karıncıklar kasılır. İçerideki basınç artınca AV kapaklar (triküspit ve mitral) kapanır: 1. kalp sesi (“lub”). Basınç atardamarlardakini geçince yarım ay kapaklar açılır; sağ karıncık kanı akciğer atardamarına, sol karıncık aorta pompalar. Bu sırada gevşeyen kulakçıklar toplardamarlardan gelen kanla dolmaya başlar.',
+  },
+  {
+    title: '3 · Diyastol', view: 'fourCh', cut: true, layers: HEART_ONLY, flow: 'heart', glow: 0.22, speed: 0.15, ecg: true, hold: [0.45, 0.8],
+    labels: ['RA', 'LA', 'tri', 'mit'],
+    text: 'Karıncıklar gevşer ve basınçları düşer. Atardamarlardaki kan geri kaçmaya çalışınca yarım ay kapaklar kapanır: 2. kalp sesi (“dub”). Karıncık basıncı kulakçıklarınkinin altına inince AV kapaklar açılır ve kanın büyük bölümü kendiliğinden karıncıklara akar. Kalp kası bu evrede dinlenir.',
+  },
+  {
+    title: 'Tam kalp döngüsü', view: 'fourCh', cut: true, layers: HEART_ONLY, flow: 'heart', glow: 0.18, speed: 0.35, ecg: true,
+    labels: ['RA', 'RV', 'LA', 'LV'],
+    text: 'Bir kalp döngüsü yaklaşık 0,8 saniye sürer (dakikada ~72 atım): kulakçık sistolü ~0,1 sn, karıncık sistolü ~0,3 sn, genel diyastol ~0,4 sn. Her kasılmada sol karıncık yaklaşık 70 mL kan pompalar; bu da dakikada yaklaşık 5 litre eder (kalp debisi).',
+  },
+  {
+    title: 'Kan kalbe nasıl girer, nasıl çıkar?', view: 'glass', layers: { heart: 0.28, arteries: 0.3, veins: 0.3 }, flow: 'heart', speed: 0.3, ecg: true, pulse: true,
+    labels: ['svc', 'ivc', 'RA', 'RV', 'pul', 'pa', 'pv', 'LA', 'LV', 'aov', 'aorta'],
+    text: 'Kalp duvarı saydamlaştırıldı. Oksijence fakir kan üst ve alt ana toplardamarlarla sağ kulakçığa gelir, sağ karıncıktan akciğer atardamarına pompalanır. Akciğerlerden dönen oksijence zengin kan akciğer toplardamarlarıyla sol kulakçığa gelir, sol karıncıktan aorta pompalanır. İki karıncık aynı anda kasılır ve eşit miktarda kan pompalar.',
+  },
+  {
+    title: 'Küçük dolaşım (akciğer dolaşımı)', view: 'lungs', layers: { respiratory: 0.1, heart: 0.55, arteries: 0.35, veins: 0.35 }, flow: 'pulm', speed: 0.5, pulse: true,
+    labels: ['RV', 'pa', 'cap', 'pv', 'LA'],
+    text: 'Sağ karıncık → akciğer atardamarı → akciğer kılcalları → akciğer toplardamarları → sol kulakçık. Akciğerlerde kan CO₂ bırakıp O₂ alır; oksijence fakir kan (mavi) oksijence zengin hâle gelir (kırmızı). Akciğer atardamarı oksijence fakir kan taşıyan tek atardamar, akciğer toplardamarı oksijence zengin kan taşıyan tek toplardamardır.',
+  },
+  {
+    title: 'Büyük dolaşım (sistemik dolaşım)', view: 'body', layers: { skeleton: 0.12, heart: 0.55, arteries: 0.32, veins: 0.32 }, flow: 'body', speed: 0.6, pulse: true,
+    labels: ['LV', 'aorta', 'desc', 'body', 'ivc', 'svc', 'RA'],
+    text: 'Sol karıncık → aort → atardamarlar → doku kılcalları → toplardamarlar → üst ve alt ana toplardamar → sağ kulakçık. Dokulara O₂ ve besin bırakılır, CO₂ ve atıklar alınır. Her kasılmada aort duvarında başlayan basınç dalgası atardamarlar boyunca yayılır; bileğimizde hissettiğimiz nabız budur.',
+  },
+];
+
+// ---------- entering / leaving ----------
+function enterScenario() {
+  if (!CARDIO.ready) return;
+  SCN.prev = { layers: Object.fromEntries(LAYERS.map(l => [l.key, [l.on, layerOpacity[l.key]]])), split: state.split, cut: state.cut };
+  SCN.active = true; SCN.views = heartViews(); document.body.classList.add('scn'); document.body.classList.remove('show-layers');
+  if (state.cut) $('tCut').click();
+  setSplit(false); select(null);
+  $('scn').hidden = false;
+  goStep(0);
+}
+function exitScenario() {
+  SCN.active = false; document.body.classList.remove('scn'); $('scn').hidden = true;
+  setHeartCut(false); showFlow(null); CARDIO.fx.group.visible = false;
+  Object.assign(CARDIO, { hold: null, playing: true, speed: 1, glow: 0, pulse: false });
+  for (const l of LAYERS) { const [on, op] = SCN.prev.layers[l.key]; setLayer(l.key, on); setOpacity(l.key, op); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(op * 100); }
+  setSplit(SCN.prev.split);
+  flyTo(HOME[0], HOME[1]);
+  renderInfo();
+}
+function setHeartCut(on) {
+  const pl = SCN.plane;
+  if (on) {
+    const V = SCN.views; const F = CARDIO.F;
+    // four-chamber plane through both AV valves and the apex; the side facing the camera is removed
+    pl.setFromNormalAndCoplanarPoint(V.n4.clone().negate(), F.val.tricuspid.c.clone().addScaledVector(V.n4, 0.002));
+  }
+  // heart and vessels are cut; blood particles are cut only inside the heart, so ejected blood stays visible
+  for (const [k, m] of Object.entries(MATS)) {
+    const cut = on && RIG_LAYERS.has(k.split(':')[0]);
+    if (!!m.clippingPlanes !== cut) { m.clippingPlanes = cut ? [pl] : null; m.needsUpdate = true; }
+  }
+  for (const [b, h] of hlCache) { h.clippingPlanes = b.clippingPlanes; h.needsUpdate = true; }
+  for (const f of Object.values(CARDIO.flows)) { f.mat.uniforms.uPlane.value.set(pl.normal.x, pl.normal.y, pl.normal.z, on ? pl.constant : 1e3); f.mat.uniforms.uClipAll.value = on ? 1 : 0; }
+  for (const s of CARDIO.fx.segs) s.mat.clippingPlanes = null;
+  markShadows();
+}
+function showFlow(kind) {
+  for (const [k, f] of Object.entries(CARDIO.flows)) { f.points.visible = kind === k && SCN.flow; f.dirty = true; }
+}
+function goStep(i) {
+  SCN.step = clamp(i, 0, STEPS.length - 1); const S = STEPS[SCN.step];
+  for (const l of LAYERS) { const v = S.layers[l.key] || 0; setLayer(l.key, v > 0); if (v > 0) { setOpacity(l.key, v); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(v * 100); } }
+  setHeartCut(!!S.cut);
+  SCN.flowKind = S.flow || null; showFlow(SCN.flowKind);
+  CARDIO.fx.group.visible = !!S.conduction;
+  Object.assign(CARDIO, { speed: S.speed, glow: S.glow || 0, pulse: !!S.pulse, playing: true });
+  state.anim.heart = true; $('aHeart').classList.add('on');
+  CARDIO.hold = S.hold ? S.hold.slice() : null;
+  if (S.hold) CARDIO.tc = S.hold[0];
+  const v = SCN.views[S.view]; flyTo(v.pos, v.target, 1.1);
+  SCN.anchorList = anchors(S.labels || [], !!S.cut);
+  renderScenario();
+}
+function onCardioHold() { renderScenarioControls(); }
+function replayStep() { const S = STEPS[SCN.step]; if (S.hold) CARDIO.tc = S.hold[0]; CARDIO.playing = true; renderScenarioControls(); }
+function scenarioLabels() {
+  if (!SCN.active || !SCN.labels) return null;
+  // anchors inside the heart that fall on the removed side are moved onto the cut surface
+  const S = STEPS[SCN.step];
+  if (S.cut) for (const a of SCN.anchorList) if (a.inside) { const d = SCN.plane.distanceToPoint(a.pos); if (d < 0) a.pos.addScaledVector(SCN.plane.normal, -d + 0.001); }
+  return SCN.anchorList;
+}
+
+// ---------- panel ----------
+const ECG_W = 300, ECG_H = 64;
+function ecgPath() {
+  let d = '';
+  for (let i = 0; i <= 240; i++) { const t = i / 240 * CYC; d += (i ? 'L' : 'M') + (t / CYC * ECG_W).toFixed(1) + ',' + (ECG_H * 0.62 - ecgAt(t) * ECG_H * 0.5).toFixed(1); }
+  return d;
+}
+function renderScenario() {
+  const S = STEPS[SCN.step]; const box = $('scn');
+  box.innerHTML = `
+    <div class="eyebrow"><span><b>Süreç</b> · Kalp ve dolaşım</span><span>${SCN.step + 1} / ${STEPS.length}</span></div>
+    <h2>${S.title}</h2>
+    <p class="txt">${S.text}</p>
+    <div class="live">
+      <div class="phase"><b id="scPhase"></b><span id="scTime"></span></div>
+      <div class="sub" id="scSub"></div>
+      <svg class="ecg" viewBox="0 0 ${ECG_W} ${ECG_H}" preserveAspectRatio="none" aria-label="EKG">
+        <rect x="0" y="0" width="${(0.16 / CYC * ECG_W).toFixed(1)}" height="${ECG_H}" fill="rgba(111,208,224,0.07)"/>
+        <rect x="${(0.16 / CYC * ECG_W).toFixed(1)}" y="0" width="${(0.29 / CYC * ECG_W).toFixed(1)}" height="${ECG_H}" fill="rgba(224,113,93,0.08)"/>
+        <path d="${ecgPath()}" fill="none" stroke="#9fe3b5" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+        <text x="${(0.05 / CYC * ECG_W).toFixed(1)}" y="12" fill="#8b9aa6" font-size="9" text-anchor="middle">P</text>
+        <text x="${(0.19 / CYC * ECG_W).toFixed(1)}" y="9" fill="#8b9aa6" font-size="9" text-anchor="middle">QRS</text>
+        <text x="${(0.44 / CYC * ECG_W).toFixed(1)}" y="12" fill="#8b9aa6" font-size="9" text-anchor="middle">T</text>
+        <line id="scCur" x1="0" x2="0" y1="0" y2="${ECG_H}" stroke="#e8dcc0" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="chips"><span id="chAV">AV kapaklar</span><span id="chSL">Yarım ay kapaklar</span><span id="chS1">1. ses</span><span id="chS2">2. ses</span></div>
+    </div>
+    <div class="steps">${STEPS.map((s, i) => `<button type="button" class="${i === SCN.step ? 'on' : ''}" data-i="${i}" title="${s.title}">${i + 1}</button>`).join('')}</div>
+    <div class="ctl" id="scCtl"></div>
+    <div class="opts">
+      <label><input type="checkbox" id="scLab" ${SCN.labels ? 'checked' : ''}> Etiketler</label>
+      <label><input type="checkbox" id="scFlow" ${SCN.flow ? 'checked' : ''}> Kan akışı</label>
+    </div>
+    <div class="exp">
+      <button class="btn" type="button" id="exOpen">Föy görseli / video kaydet</button>
+    </div>`;
+  box.querySelectorAll('.steps button').forEach(b => b.onclick = () => goStep(+b.dataset.i));
+  $('scLab').onchange = (e) => { SCN.labels = e.target.checked; };
+  $('scFlow').onchange = (e) => { SCN.flow = e.target.checked; showFlow(SCN.flowKind); };
+  $('exOpen').onclick = () => openExport();
+  renderScenarioControls();
+  SCN.lastPhase = null;
+}
+function renderScenarioControls() {
+  const S = STEPS[SCN.step]; const c = $('scCtl'); if (!c) return;
+  const ended = S.hold && !CARDIO.playing && CARDIO.tc >= S.hold[1] - 0.001;
+  c.innerHTML = `
+    <button class="btn" type="button" data-a="prev" ${SCN.step === 0 ? 'disabled' : ''}>‹ Önceki</button>
+    <button class="btn on" type="button" data-a="play">${ended ? '↻ Tekrar' : CARDIO.playing ? '❚❚ Durdur' : '▶ Oynat'}</button>
+    <button class="btn" type="button" data-a="next" ${SCN.step === STEPS.length - 1 ? 'disabled' : ''}>Sonraki ›</button>
+    <span class="grow"></span>
+    <div class="speed" role="group" aria-label="Hız">${SPEEDS.map(v => `<button type="button" data-s="${v}" class="${Math.abs(CARDIO.speed - v) < 1e-6 ? 'on' : ''}">${String(v).replace('.', ',')}×</button>`).join('')}</div>
+    <button class="btn" type="button" data-a="exit">Çık</button>`;
+  c.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'prev') goStep(SCN.step - 1);
+    if (a === 'next') goStep(SCN.step + 1);
+    if (a === 'exit') exitScenario();
+    if (a === 'play') { if (ended) replayStep(); else { CARDIO.playing = !CARDIO.playing; renderScenarioControls(); } }
+  });
+  c.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { CARDIO.speed = +b.dataset.s; renderScenarioControls(); });
+}
+function scenarioTick(st) {
+  if (!SCN.active) return;
+  const tc = CARDIO.tc;
+  if (SCN.lastPhase !== st.phase) {
+    SCN.lastPhase = st.phase; $('scPhase').textContent = st.phase.tr; $('scSub').textContent = st.phase.sub;
+  }
+  $('scTime').textContent = (tc / CYC * 60 / CARDIO.bpm).toFixed(2).replace('.', ',') + ' sn';
+  $('scCur').setAttribute('x1', (tc / CYC * ECG_W).toFixed(1)); $('scCur').setAttribute('x2', (tc / CYC * ECG_W).toFixed(1));
+  const av = $('chAV'), sl = $('chSL');
+  av.textContent = 'AV kapaklar: ' + (st.av > 0.5 ? 'açık' : 'kapalı'); av.className = st.av > 0.5 ? 'open' : 'shut';
+  sl.textContent = 'Yarım ay kapaklar: ' + (st.sl > 0.5 ? 'açık' : 'kapalı'); sl.className = st.sl > 0.5 ? 'open' : 'shut';
+  $('chS1').className = tc > 0.18 && tc < 0.26 ? 'snd' : ''; $('chS1').textContent = '1. ses (lub)';
+  $('chS2').className = tc > 0.44 && tc < 0.52 ? 'snd' : ''; $('chS2').textContent = '2. ses (dub)';
+}
+$('pHeart').addEventListener('click', () => enterScenario());
+
+// ---- export.js ----
+// ===================== Export: print-quality images for worksheets, MP4 videos for lessons =====================
+const EXPORT = { bg: 'white', labels: 'names', size: 3000, busy: false };
+const CREDIT = '3B model: BodyParts3D © 2008 DBCLS (CC BY-SA 2.1 JP) · Corpus Atlas';
+const MUXER_URL = 'https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.mjs';
+const THEMES = {
+  dark: { box: 'rgba(7,11,15,0.84)', boxLine: 'rgba(176,198,214,0.28)', text: '#e4e9ec', line: 'rgba(228,233,236,0.6)', dot: '#6fd0e0', dim: '#8b9aa6' },
+  white: { box: 'rgba(255,255,255,0.94)', boxLine: '#3c4650', text: '#11161b', line: '#2c343c', dot: '#c0392b', dim: '#5c6670' },
+};
+THEMES.transparent = THEMES.white;
+
+// render the scene into a width×height buffer (page layout untouched); returns a restore function
+function beginExportView(width, height) {
+  const prev = { pr: renderer.getPixelRatio(), aspect: camera.aspect, decor: decor.map(d => d.visible) };
+  decor.forEach(d => (d.visible = false));
+  renderer.setPixelRatio(1); renderer.setSize(width, height, false);
+  camera.aspect = width / height; camera.updateProjectionMatrix();
+  for (const f of Object.values(CARDIO.flows)) f.mat.uniforms.uScale.value = height / (2 * Math.tan(camera.fov * Math.PI / 360));
+  return () => {
+    decor.forEach((d, i) => (d.visible = prev.decor[i]));
+    renderer.setPixelRatio(prev.pr); renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = prev.aspect; camera.updateProjectionMatrix();
+  };
+}
+function paintBackground(ctx, w, h, bg) {
+  if (bg === 'transparent') return;
+  if (bg === 'white') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); return; }
+  const g = ctx.createRadialGradient(w * 0.5, h * 0.38, 0, w * 0.5, h * 0.38, Math.max(w, h) * 0.75);
+  g.addColorStop(0, '#142231'); g.addColorStop(0.45, '#0b131b'); g.addColorStop(1, '#070b0f');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+}
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+// labels in the same two-column layout as on screen; mode 'numbers' draws numbered circles (for questions)
+function paintLabels(ctx, w, h, k, mode, th) {
+  if (mode === 'none') return [];
+  const items = layoutLabels(labelItems(w, h), w, h, 24 * k, 120 * k);
+  items.sort((a, b) => a.side - b.side || a.ly - b.ly).forEach((it, i) => (it.n = i + 1));
+  ctx.font = `500 ${13 * k}px "IBM Plex Sans", "Segoe UI", sans-serif`; ctx.textBaseline = 'middle';
+  for (const it of items) {
+    const tip = it.ex - it.side * 18 * k;
+    ctx.strokeStyle = th.line; ctx.lineWidth = 1.3 * k; ctx.beginPath(); ctx.moveTo(it.x, it.y); ctx.lineTo(tip, it.ly); ctx.lineTo(it.ex, it.ly); ctx.stroke();
+    ctx.fillStyle = th.dot; ctx.beginPath(); ctx.arc(it.x, it.y, 3.2 * k, 0, TAU); ctx.fill();
+    if (mode === 'numbers') {
+      const r = 11 * k, cx = it.lx + it.side * r;
+      ctx.fillStyle = th.box; ctx.strokeStyle = th.boxLine; ctx.lineWidth = 1.2 * k; ctx.beginPath(); ctx.arc(cx, it.ly, r, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = th.text; ctx.textAlign = 'center'; ctx.fillText(String(it.n), cx, it.ly + 0.5 * k);
+    } else {
+      const tw = ctx.measureText(it.text).width, px = 7 * k, bh = 21 * k;
+      const bx = it.side < 0 ? it.lx - tw - 2 * px : it.lx;
+      ctx.fillStyle = th.box; ctx.strokeStyle = th.boxLine; ctx.lineWidth = 1 * k; roundRect(ctx, bx, it.ly - bh / 2, tw + 2 * px, bh, 5 * k); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = th.text; ctx.textAlign = 'left'; ctx.fillText(it.text, bx + px, it.ly + 0.5 * k);
+    }
+  }
+  ctx.textAlign = 'left';
+  return items;
+}
+function paintCredit(ctx, w, h, k, th) {
+  ctx.font = `400 ${10.5 * k}px "IBM Plex Sans", sans-serif`; ctx.fillStyle = th.dim; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(CREDIT, w - 14 * k, h - 12 * k); ctx.textAlign = 'left';
+}
+function renderFrame() {
+  renderer.shadowMap.needsUpdate = renderer.shadowMap.enabled;
+  renderer.render(scene, camera);
+}
+
+async function exportPNG() {
+  if (EXPORT.busy) return; EXPORT.busy = true; dlgOut('Görsel hazırlanıyor…');
+  await document.fonts?.ready; await new Promise(r => setTimeout(r, 30));
+  const W = EXPORT.size, H = Math.round(W * innerHeight / innerWidth); const k = H / innerHeight;
+  const restore = beginExportView(W, H);
+  let items = [];
+  try {
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
+    renderFrame();
+    paintBackground(ctx, W, H, EXPORT.bg); ctx.drawImage(renderer.domElement, 0, 0);
+    const th = THEMES[EXPORT.bg];
+    items = paintLabels(ctx, W, H, k, EXPORT.labels, th); paintCredit(ctx, W, H, k, th);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const key = EXPORT.labels === 'numbers' && items.length ? `<p class="key"><b>Cevap anahtarı:</b> ${items.map(it => `${it.n}. ${it.text}`).join(' · ')}</p>` : '';
+    deliver(blob, `${exportName()}.png`, key);
+  } catch (e) { console.error(e); dlgOut('Görsel oluşturulamadı: ' + e.message); }
+  finally { restore(); EXPORT.busy = false; }
+}
+function exportName() {
+  const base = SCN.active ? `kalp-${SCN.step + 1}-${STEPS[SCN.step].title}` : 'corpus-atlas';
+  return fold(base).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ---------- video: deterministic frame-by-frame render of the current scenario step ----------
+function paintHud(ctx, w, h, k, st) {
+  const S = STEPS[SCN.step];
+  const pad = 26 * k, bw = 560 * k; const showEcg = S.ecg || S.hold;
+  const bh = (showEcg ? 214 : 118) * k; const x = pad, y = h - pad - bh;
+  ctx.fillStyle = 'rgba(9,14,19,0.82)'; roundRect(ctx, x, y, bw, bh, 12 * k); ctx.fill();
+  ctx.strokeStyle = 'rgba(176,198,214,0.18)'; ctx.lineWidth = 1 * k; ctx.stroke();
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#e0715d'; ctx.font = `500 ${12 * k}px "IBM Plex Mono", monospace`; ctx.fillText('KALP VE DOLAŞIM', x + 20 * k, y + 28 * k);
+  ctx.fillStyle = '#e8dcc0'; ctx.font = `600 ${34 * k}px "Cormorant Garamond", Georgia, serif`; ctx.fillText(S.title, x + 20 * k, y + 64 * k);
+  ctx.fillStyle = '#e4e9ec'; ctx.font = `600 ${17 * k}px "IBM Plex Sans", sans-serif`; ctx.fillText(st.phase.tr, x + 20 * k, y + 94 * k);
+  ctx.fillStyle = '#a9b6bf'; ctx.font = `400 ${14 * k}px "IBM Plex Sans", sans-serif`; ctx.fillText(st.phase.sub, x + 20 * k, y + 114 * k);
+  if (!showEcg) return;
+  const ex = x + 20 * k, ey = y + 128 * k, ew = bw - 40 * k, eh = 52 * k; const tc = CARDIO.tc;
+  ctx.fillStyle = 'rgba(111,208,224,0.08)'; ctx.fillRect(ex, ey, 0.16 / CYC * ew, eh);
+  ctx.fillStyle = 'rgba(224,113,93,0.10)'; ctx.fillRect(ex + 0.16 / CYC * ew, ey, 0.29 / CYC * ew, eh);
+  ctx.strokeStyle = '#9fe3b5'; ctx.lineWidth = 2 * k; ctx.beginPath();
+  for (let i = 0; i <= 200; i++) { const t = i / 200 * CYC; const px = ex + t / CYC * ew, py = ey + eh * 0.62 - ecgAt(t) * eh * 0.5; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+  ctx.stroke();
+  ctx.strokeStyle = '#e8dcc0'; ctx.lineWidth = 2 * k; ctx.beginPath(); ctx.moveTo(ex + tc / CYC * ew, ey); ctx.lineTo(ex + tc / CYC * ew, ey + eh); ctx.stroke();
+  const chips = [[`AV kapaklar: ${st.av > 0.5 ? 'açık' : 'kapalı'}`, st.av > 0.5], [`Yarım ay kapaklar: ${st.sl > 0.5 ? 'açık' : 'kapalı'}`, st.sl > 0.5]];
+  if (tc > 0.18 && tc < 0.26) chips.push(['1. kalp sesi (lub)', null]); if (tc > 0.44 && tc < 0.52) chips.push(['2. kalp sesi (dub)', null]);
+  ctx.font = `500 ${12.5 * k}px "IBM Plex Mono", monospace`; let cx = ex; const cy = ey + eh + 12 * k;
+  for (const [t, open] of chips) {
+    const tw = ctx.measureText(t).width + 16 * k;
+    ctx.fillStyle = open === null ? '#e8dcc0' : open ? 'rgba(60,160,100,0.3)' : 'rgba(224,113,93,0.26)'; roundRect(ctx, cx, cy, tw, 22 * k, 11 * k); ctx.fill();
+    ctx.fillStyle = open === null ? '#070b0f' : open ? '#bff3d0' : '#ffd2c8'; ctx.textBaseline = 'middle'; ctx.fillText(t, cx + 8 * k, cy + 11.5 * k); ctx.textBaseline = 'alphabetic';
+    cx += tw + 8 * k;
+  }
+}
+async function exportVideo() {
+  if (EXPORT.busy || !SCN.active) return;
+  if (!('VideoEncoder' in window) || !('VideoFrame' in window)) { dlgOut('Bu tarayıcı video kaydını desteklemiyor. Chrome veya Edge ile deneyin.'); return; }
+  EXPORT.busy = true; dlgOut('Video hazırlanıyor…');
+  const W = 1920, H = 1080, fps = 30; const k = H / 900;
+  const S = STEPS[SCN.step]; const rate = CARDIO.speed * (CARDIO.bpm / 60) * CYC;
+  const secs = S.hold ? (S.hold[1] - S.hold[0]) / rate + 1.2 : S.flow === 'pulm' || S.flow === 'body' ? 9 : Math.min(12, 2 * CYC / rate);
+  const nFrames = Math.round(secs * fps);
+  let restore = null; const saved = { tc: CARDIO.tc, playing: CARDIO.playing, paused: state.paused };
+  try {
+    // H.264 plays everywhere (and in video editors); VP9 in MP4 is the fallback where no H.264 encoder exists
+    let codec = null, kind = null;
+    for (const [c, kd] of [['avc1.640028', 'avc'], ['avc1.4d0028', 'avc'], ['avc1.42e028', 'avc'], ['vp09.00.40.08', 'vp9']]) {
+      const sup = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: 14e6, framerate: fps }).catch(() => null);
+      if (sup && sup.supported) { codec = c; kind = kd; break; }
+    }
+    if (!codec) throw new Error('uygun video kodlayıcı bulunamadı');
+    const { Muxer, ArrayBufferTarget } = await import(MUXER_URL);
+    const muxer = new Muxer({ target: new ArrayBufferTarget(), video: { codec: kind, width: W, height: H, frameRate: fps }, fastStart: 'in-memory' });
+    let encErr = null;
+    const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: (e) => { encErr = e; } });
+    enc.configure({ codec, width: W, height: H, bitrate: 14e6, framerate: fps });
+    state.paused = true; await document.fonts?.ready;
+    if (S.hold) CARDIO.tc = S.hold[0];
+    CARDIO.playing = true; for (const f of Object.values(CARDIO.flows)) f.dirty = true;
+    restore = beginExportView(W, H);
+    // the on-screen view leaves room for the side panel; in the video the caption box sits bottom-left instead
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+    const shift = right.multiplyScalar(-0.1 * camera.position.distanceTo(controls.target));
+    camera.position.add(shift); controls.target.add(shift);
+    const unshift = () => { camera.position.sub(shift); controls.target.sub(shift); controls.update(); };
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
+    const restoreView = restore; restore = () => { unshift(); restoreView(); };
+    for (let i = 0; i < nFrames; i++) {
+      if (encErr) throw encErr;
+      cardioTick(i ? 1 / fps : 0); controls.update();
+      renderFrame();
+      paintBackground(ctx, W, H, 'dark'); ctx.drawImage(renderer.domElement, 0, 0);
+      if (SCN.labels) paintLabels(ctx, W, H, k, 'names', THEMES.dark);
+      paintHud(ctx, W, H, k, cycleState(CARDIO.tc)); paintCredit(ctx, W, H, k, THEMES.dark);
+      const frame = new VideoFrame(c, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+      enc.encode(frame, { keyFrame: i % (fps * 2) === 0 }); frame.close();
+      if (enc.encodeQueueSize > 6 || i % 10 === 0) { dlgOut(`Video kaydediliyor… %${Math.round(i / nFrames * 100)}`); await new Promise(r => setTimeout(r, 0)); }
+    }
+    await enc.flush(); muxer.finalize(); enc.close();
+    deliver(new Blob([muxer.target.buffer], { type: 'video/mp4' }), `${exportName()}.mp4`, kind === 'vp9' ? '<p class="hint">Not: bu tarayıcıda H.264 kodlayıcı olmadığı için video VP9 ile kaydedildi; bazı video düzenleyiciler açamayabilir.</p>' : '');
+  } catch (e) { console.error(e); dlgOut('Video oluşturulamadı: ' + (e.message || e)); }
+  finally {
+    if (restore) restore();
+    Object.assign(CARDIO, { tc: saved.tc, playing: saved.playing }); state.paused = saved.paused; EXPORT.busy = false;
+  }
+}
+
+// ---------- dialog ----------
+function deliver(blob, name, extra = '') {
+  const url = URL.createObjectURL(blob); const isVid = blob.type.startsWith('video');
+  const mb = (blob.size / 1e6).toFixed(1).replace('.', ',');
+  dlgOut(`${isVid ? `<video src="${url}" controls playsinline></video>` : `<img src="${url}" alt="Dışa aktarılan görsel">`}
+    <p class="hint"><a class="btn on" href="${url}" download="${name}">İndir (${mb} MB)</a> İndirme başlamazsa ${isVid ? 'videoya' : 'görsele'} sağ tıklayıp “Farklı kaydet”i seçin.</p>${extra}`);
+  try { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch (e) { /* the preview link remains */ }
+}
+function dlgOut(html) { const o = $('dOut'); if (o) o.innerHTML = html; }
+function openExport() {
+  const d = $('dlg'); d.hidden = false;
+  const seg = (key, opts) => opts.map(([v, t]) => `<button type="button" data-k="${key}" data-v="${v}" class="${String(EXPORT[key]) === String(v) ? 'on' : ''}">${t}</button>`).join('');
+  d.querySelector('.box').innerHTML = `
+    <button class="close" type="button" aria-label="Kapat">×</button>
+    <h3>Dışa aktar</h3>
+    <p class="lead">Ekrandaki görünüm baskıya uygun çözünürlükte kaydedilir. Görseller ve videolar BodyParts3D verisinden türetildiği için kaynak satırı otomatik eklenir.</p>
+    <div class="row"><span>Arka plan</span><div class="seg">${seg('bg', [['white', 'Beyaz'], ['dark', 'Koyu'], ['transparent', 'Şeffaf']])}</div></div>
+    <div class="row"><span>Etiketler</span><div class="seg">${seg('labels', [['names', 'Adlarıyla'], ['numbers', 'Numaralı (soru)'], ['none', 'Yok']])}</div></div>
+    <div class="row"><span>Genişlik</span><div class="seg">${seg('size', [[2000, '2000 px'], [3000, '3000 px'], [4000, '4000 px']])}</div></div>
+    <div class="acts"><button class="btn on" type="button" id="dPng">PNG oluştur</button>${SCN.active ? '<button class="btn" type="button" id="dVid">Bu adımın videosu (MP4, 1080p)</button>' : ''}</div>
+    <div id="dOut"></div>`;
+  d.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { const v = b.dataset.v; EXPORT[b.dataset.k] = isNaN(+v) ? v : +v; d.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b)); });
+  d.querySelector('.close').onclick = () => { d.hidden = true; };
+  $('dPng').onclick = () => exportPNG();
+  if (SCN.active) $('dVid').onclick = () => exportVideo();
+  if (!SCN.active || STEPS[SCN.step]) {
+    const lab = SCN.active ? SCN.labels : state.labels;
+    if (!lab) dlgOut('<p class="hint">İpucu: etiketli görsel için önce etiketleri açın.</p>');
+  }
+}
+$('tExport').addEventListener('click', openExport);
+$('dlg').addEventListener('click', (e) => { if (e.target.id === 'dlg') $('dlg').hidden = true; });
+
+// ---- main.js ----
+// ===================== Startup =====================
 let revealed = false;
 function revealStage() { if (revealed) return; revealed = true; $('loader').classList.add('done'); }
 buildPresetUI();
@@ -1587,6 +2588,7 @@ buildPresetUI();
     animate();
     await loadAll();
     setupAnimation();
+    await setupCardio();
     buildLayerUI();
     applyPreset(currentPreset);
     setOpacity('skin', layerOpacity.skin);

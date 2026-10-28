@@ -1,5 +1,5 @@
 // Builds the two standalone pages:
-//   index.html      — real-anatomy viewer (viewer/page.html + viewer/desc.js + viewer/app.js), loads data/*.bin.gz
+//   index.html      — real-anatomy viewer (viewer/page.html + viewer/*.js), loads data/*.bin.gz and data/heart_rig.json
 //   prosedurel.html — procedural atlas (src/page.html + src/*.js), generates all geometry in the browser
 // With --artifact <dir>, also writes variants without the document wrapper tags for publishing as claude.ai artifacts,
 // plus a copy of data/ with the packs as base64 text.
@@ -14,7 +14,7 @@ function bundle(pageFile, jsFiles) {
 }
 const srcFiles = fs.readdirSync(path.join(dir, 'src')).filter(f => f.endsWith('.js')).sort().map(f => path.join('src', f));
 const pages = {
-  'index.html': bundle('viewer/page.html', ['viewer/desc.js', 'viewer/app.js']),
+  'index.html': bundle('viewer/page.html', ['viewer/desc.js', 'viewer/app.js', 'viewer/cardio.js', 'viewer/scenario.js', 'viewer/export.js', 'viewer/main.js']),
   'prosedurel.html': bundle('src/page.html', srcFiles),
 };
 for (const [name, html] of Object.entries(pages)) {
@@ -42,5 +42,6 @@ if (ai > 0) {
     fs.writeFileSync(path.join(dataOut, L.file), b64);
   }
   fs.writeFileSync(path.join(dataOut, 'manifest.json'), JSON.stringify(man));
+  fs.copyFileSync(path.join(dir, 'data', 'heart_rig.json'), path.join(dataOut, 'heart_rig.json'));
   console.log('artifact variants written to', out);
 }

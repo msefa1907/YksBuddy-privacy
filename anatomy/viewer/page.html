@@ -145,6 +145,57 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 #step { margin-top: 10px; display: flex; justify-content: space-between; font: 400 12px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
 #loader .err { color: var(--danger); margin-top: 14px; font: 400 12px var(--f-data); white-space: pre-wrap; }
 
+/* scenario (step-by-step process) panel */
+#procs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 10px; }
+#procs button { display: flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--danger) 16%, var(--ink-2)); border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); border-radius: 20px; padding: 5px 11px; font-size: 12px; color: var(--text); }
+#procs button:hover { border-color: var(--danger); }
+#procs svg { width: 13px; height: 13px; fill: var(--danger); }
+#scn { padding: 14px 16px 12px; overflow: auto; position: relative; }
+body.scn #searchBox, body.scn #info, body.scn #hint { display: none !important; }
+#scn .eyebrow { display: flex; justify-content: space-between; align-items: center; font: 500 10.5px var(--f-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+#scn .eyebrow b { color: var(--danger); font-weight: 500; }
+#scn h2 { margin: 8px 0 0; font: 600 25px/1.1 var(--f-display); color: var(--bone); text-wrap: balance; }
+#scn .txt { margin: 10px 0 0; color: #c3cdd4; font-size: 13.5px; line-height: 1.5; }
+#scn .steps { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
+#scn .steps button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--rule); background: var(--ink-2); color: var(--text-dim); font: 500 11px var(--f-data); padding: 0; }
+#scn .steps button.on { background: var(--bone); color: var(--ink-0); border-color: var(--bone); }
+#scn .live { margin-top: 12px; padding: 10px; border-radius: 8px; background: var(--ink-2); border: 1px solid var(--rule); }
+#scn .phase { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+#scn .phase b { font: 600 15px var(--f-ui); color: var(--text); }
+#scn .phase span { font: 400 11px var(--f-data); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+#scn .sub { margin-top: 4px; font-size: 12.5px; color: var(--text-dim); min-height: 2.6em; }
+#scn svg.ecg { display: block; width: 100%; height: 64px; margin-top: 6px; }
+#scn .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+#scn .chips span { font: 500 11px var(--f-data); padding: 3px 7px; border-radius: 12px; background: #1d2731; color: var(--text-dim); border: 1px solid var(--rule); transition: background .12s, color .12s; }
+#scn .chips span.open { color: #bff3d0; border-color: rgba(120, 220, 160, 0.5); background: rgba(60, 160, 100, 0.18); }
+#scn .chips span.shut { color: #ffd2c8; border-color: rgba(224, 113, 93, 0.5); background: rgba(224, 113, 93, 0.16); }
+#scn .chips span.snd { color: var(--ink-0); background: var(--bone); border-color: var(--bone); }
+#scn .ctl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; align-items: center; }
+#scn .ctl .grow { flex: 1; }
+#scn .speed { display: flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+#scn .speed button { background: var(--ink-2); border: 0; padding: 6px 8px; font: 500 11px var(--f-data); color: var(--text-dim); }
+#scn .speed button.on { background: color-mix(in srgb, var(--probe) 28%, var(--ink-2)); color: var(--text); }
+#scn .opts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--text-dim); }
+#scn .opts label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#scn .exp { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule); }
+#scn .exp .note { flex-basis: 100%; font-size: 11.5px; color: var(--text-dim); }
+
+#dlg { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(4, 7, 10, 0.55); padding: var(--gutter); }
+#dlg .box { position: relative; width: min(560px, 100%); max-height: calc(100vh - 2 * var(--gutter)); overflow: auto; padding: 18px 20px; }
+#dlg h3 { margin: 0; font: 600 26px var(--f-display); color: var(--bone); }
+#dlg .lead { margin: 6px 0 12px; color: var(--text-dim); font-size: 12.5px; }
+#dlg .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--rule); font-size: 13px; }
+#dlg .seg { display: flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; }
+#dlg .seg button { background: var(--ink-2); border: 0; padding: 6px 10px; font-size: 12px; color: var(--text-dim); }
+#dlg .seg button.on { background: color-mix(in srgb, var(--probe) 28%, var(--ink-2)); color: var(--text); }
+#dlg .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#dlg .close { position: absolute; top: 10px; right: 12px; background: none; border: 0; color: var(--text-dim); font-size: 22px; }
+#dOut { margin-top: 12px; font-size: 12.5px; color: var(--text-dim); }
+#dOut img, #dOut video { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--rule); background: #fff; }
+#dOut .hint { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#dOut a.btn { text-decoration: none; }
+#dOut .key { margin: 8px 0 0; color: var(--text); }
+
 #tools #mobileBar { display: none; }
 @media (max-width: 860px) {
   #leftCol { right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; bottom: auto; }
@@ -156,6 +207,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
   #stats div { padding: 4px 6px; }
   #layers, #side { display: none; }
   body.show-layers #layers { display: block; position: fixed; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 52%; }
+  body.scn #side { display: flex; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 48%; }
+  #scn h2 { font-size: 20px; } #scn .txt { font-size: 12.5px; }
   body.show-info #side { display: flex; top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; max-height: 55%; }
   #tools #mobileBar { display: flex; }
   #tools { left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); transform: none; max-width: none; }
@@ -184,6 +237,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 </header>
 
 <nav id="layers" class="panel" aria-label="Katmanlar">
+  <div class="sec-title"><span>Süreçler</span></div>
+  <div id="procs"><button id="pHeart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3 4.5 6.6 4.5c2.1 0 3.5 1.2 4.3 2.4.4.6 1.8.6 2.2 0 .8-1.2 2.2-2.4 4.3-2.4 3.6 0 5.7 3.6 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>Kalp döngüsü</button></div>
   <div class="sec-title"><span>Hazır görünümler</span></div>
   <div id="presets"></div>
   <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
@@ -198,6 +253,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <div id="results" role="listbox"></div>
   </div>
   <section id="info" class="panel" hidden></section>
+  <section id="scn" class="panel" hidden aria-live="polite"></section>
   <section id="hint" class="panel"><b>Sol tık</b> yapı seç · <b>sürükle</b> döndür · <b>sağ tık / iki parmak</b> kaydır · <b>tekerlek</b> yakınlaş · <b>çift tık</b> odakla</section>
 </aside>
 
@@ -228,10 +284,12 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
     <button id="tLabels" type="button">Etiketler</button>
     <button id="tSpin" type="button">Döndür</button>
     <button id="tShadow" type="button" class="on">Gölge</button>
+    <button id="tExport" type="button" title="Föy için görsel ya da video kaydet (PNG / MP4)">Kaydet</button>
   </div>
 </div>
 
 <div id="tip" hidden></div>
+<div id="dlg" hidden role="dialog" aria-modal="true" aria-label="Dışa aktar"><div class="panel box"></div></div>
 
 <div id="loader">
   <div class="box">

@@ -159,15 +159,45 @@ if (!gl_FrontFacing) {
   outgoingLight = cc * 0.72;
 }
 `;
-function patchSurface(mat, kind) {
+// ---------- heart rig: per-vertex displacement fields driven by the cardiac cycle (see cardio.js) ----------
+// rigA/rigV: wall displacement at full atrial / ventricular contraction; rigO: valve leaflet motion;
+// rigT = (activation time s, arterial arc length m [+10 for the pulmonary tree], valve id, pulse amplitude m).
+const RIG_LAYERS = new Set(['heart', 'arteries', 'veins']);
+const RIGU = {
+  uRigA: { value: 0 }, uRigV: { value: 0 }, uRigOpen: { value: new THREE.Vector4(1, 1, 0, 0) },
+  uPulseFront: { value: new THREE.Vector2(-1, -1) }, uPulseAmp: { value: 0 }, uCycleT: { value: -1 }, uGlow: { value: 0 },
+};
+const GLSL_RIG_VERT = `
+#ifdef RIG
+{
+  float vid = rigT.z;
+  float op = vid < 0.5 ? 1.0 : vid < 1.5 ? uRigOpen.x : vid < 2.5 ? uRigOpen.y : vid < 3.5 ? uRigOpen.z : uRigOpen.w;
+  float k = vid < 2.5 ? 1.0 - op : op; // AV leaflets are modelled open (rigO closes them), semilunar cusps closed (rigO opens them)
+  transformed += uRigA * rigA + uRigV * rigV + k * rigO;
+  if (rigT.w > 0.0) {
+    bool pul = rigT.y >= 10.0;
+    float d = (pul ? rigT.y - 10.0 : rigT.y) - (pul ? uPulseFront.y : uPulseFront.x);
+    transformed += objectNormal * rigT.w * uPulseAmp * exp(-d * d / 0.0018);
+  }
+  vAct = rigT.x;
+}
+#endif
+`;
+function patchSurface(mat, kind, rigged = false) {
   const capU = mat.userData.capU || (mat.userData.capU = { value: 1 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uCap = capU;
+    if (rigged) Object.assign(sh.uniforms, RIGU);
+    const rigDecl = rigged ? `#define RIG\nattribute vec3 rigA; attribute vec3 rigV; attribute vec3 rigO; attribute vec4 rigT;\nuniform float uRigA, uRigV, uPulseAmp; uniform vec4 uRigOpen; uniform vec2 uPulseFront;\nvarying float vAct;` : '';
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\nvarying vec3 vOP;\n#if SURF == 2\nattribute vec4 fiber; varying vec4 vFib;\n#endif`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = transformed;\n#if SURF == 2\nvFib = fiber;\n#endif`);
+      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigDecl}\nvarying vec3 vOP;\n#if SURF == 2\nattribute vec4 fiber; varying vec4 vFib;\n#endif`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = transformed;\n#if SURF == 2\nvFib = fiber;\n#endif\n${GLSL_RIG_VERT}`);
     let fs = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${GLSL_COMMON}`)
+      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigged ? '#define RIG\nvarying float vAct; uniform float uCycleT, uGlow;' : ''}\n${GLSL_COMMON}`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+#ifdef RIG
+if (vAct > -0.5 && uGlow > 0.0) { float e = (uCycleT - vAct - 0.018) / 0.02; totalEmissiveRadiance += vec3(1.0, 0.78, 0.3) * uGlow * exp(-e * e); }
+#endif`)
       .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\nif (!gl_FrontFacing && uCap < 0.5) discard;`)
       .replace('#include <color_fragment>', `#include <color_fragment>\n${GLSL_SURFACE}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor * rMul, 0.04, 1.0);`)
@@ -181,8 +211,8 @@ function patchSurface(mat, kind) {
     fs = fs.replace('#include <opaque_fragment>', `${glass}\n${GLSL_CAP}\n#include <opaque_fragment>`);
     sh.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => 'surf' + kind;
-  mat.userData.surf = kind;
+  mat.customProgramCacheKey = () => 'surf' + kind + (rigged ? 'r' : '');
+  mat.userData.surf = kind; mat.userData.rigged = rigged;
   return mat;
 }
 
@@ -212,6 +242,8 @@ const MAT_DEFS = {
   pulmArtery: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
   vein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
   pulmVein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
+  coronaryA: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0xff6a6a }],
+  coronaryV: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
   skin: [SURF.skin, { roughness: 0.52, clearcoat: 0.06, clearcoatRoughness: 0.45, sheen: 0.35, sheenColor: 0xffb89c, sheenRoughness: 0.55 }],
 };
 const MATS = {};
@@ -220,7 +252,7 @@ function getMat(layer, mat) {
   const k = layer + ':' + mat;
   if (MATS[k]) return MATS[k];
   const [kind, params] = MAT_DEFS[mat] || MAT_DEFS.organ;
-  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind);
+  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind, RIG_LAYERS.has(layer));
   m.userData.layer = layer; m.userData.baseOpacity = 1;
   (layerMats[layer] ||= new Set()).add(m);
   if (state.split && (layer === 'muscle' || layer === 'skin')) m.clippingPlanes = [splitPlane];
@@ -380,14 +412,16 @@ function ingest(layer, meta, rec) {
   if (rec.fib) geo.setAttribute('fiber', new THREE.BufferAttribute(rec.fib, 4, true));
   geo.setIndex(new THREE.BufferAttribute(rec.idx, 1));
   geo.computeBoundingSphere(); geo.computeBoundingBox();
-  const mat = getMat(layer, meta.mat);
+  // coronary vessels get their own material so they can be cut together with the heart wall
+  const matKey = /coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches/.test(meta.base) ? (layer === 'arteries' ? 'coronaryA' : 'coronaryV') : meta.mat;
+  const mat = getMat(layer, matKey);
   const mesh = new THREE.Mesh(geo, state.isolate && state.selected ? ghostMat : mat);
   const small = geo.boundingSphere.radius < 0.015;
   mesh.castShadow = !small && layer !== 'skin'; mesh.receiveShadow = true;
   const center = geo.boundingSphere.center.clone();
   const d = describe(meta);
   mesh.userData = {
-    layer, id: meta.id, en: meta.en, base: meta.base, side: meta.side, mat: meta.mat, tr: meta.tr,
+    layer, id: meta.id, en: meta.en, base: meta.base, side: meta.side, mat: matKey, tr: meta.tr,
     la: d.la, desc: d.desc, group: d.group || regionOf(center), center, basePos: new THREE.Vector3(), pickIndex: PARTS_LIST.length + 1,
   };
   mesh.matrixAutoUpdate = true;
@@ -527,7 +561,7 @@ function pick(clientX, clientY) {
 const hlCache = new Map();
 function highlightMat(m) {
   if (!hlCache.has(m)) {
-    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf);
+    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf, m.userData.rigged);
     h.emissive = new THREE.Color(0x1f9fbf); h.emissiveIntensity = 0.28;
     hlCache.set(m, h);
   }
@@ -800,62 +834,69 @@ const LABEL_EN = ['frontal bone', 'mandible', 'left clavicle', 'body of sternum'
   'long head of left biceps brachii', 'left sartorius', 'descending part of left trapezius', 'left sternocleidomastoid', 'left tibialis anterior', 'left external oblique', 'left temporalis'];
 const labelEls = new Map();
 const _lv = new THREE.Vector3();
-function drawLabels() {
-  const host = $('labels'); const svg = host.querySelector('svg');
-  if (!state.labels) { if (labelEls.size) { labelEls.forEach(el => el.remove()); labelEls.clear(); svg.innerHTML = ''; } return; }
-  const w = innerWidth, h = innerHeight; const items = [];
+// visible label anchors projected to a w×h viewport: [{ key, text, x, y }]
+function labelItems(w, h) {
+  const out = []; const anchors = scenarioLabels(); // scenario steps bring their own labels anchored to points
+  const push = (key, text, p) => {
+    _lv.copy(p).project(camera);
+    const x = (_lv.x * 0.5 + 0.5) * w, y = (-_lv.y * 0.5 + 0.5) * h;
+    if (_lv.z <= 1 && x >= 0 && x <= w && y >= 0 && y <= h) out.push({ key, text, x, y });
+  };
+  if (anchors) { for (const a of anchors) push(a.key, a.text, a.pos); return out; }
+  if (!state.labels) return out;
   for (const en of LABEL_EN) {
-    const m = byEn.get(en); let el = labelEls.get(en);
+    const m = byEn.get(en);
     let vis = m && m.visible && !m.userData.hidden && groups[m.userData.layer].visible && layerOpacity[m.userData.layer] >= 0.3;
     if (vis && state.split && (m.userData.layer === 'muscle' || m.userData.layer === 'skin') && m.userData.center.x < 0) vis = false;
     if (vis && state.cut && cutPlane.distanceToPoint(m.userData.center) < 0) vis = false;
     if (vis && state.isolate && state.selected !== m) vis = false;
-    if (!vis) { if (el) el.style.display = 'none'; continue; }
-    if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = m.userData.tr.replace(/ \((sol|sağ)\)$/, ''); host.appendChild(el); labelEls.set(en, el); }
-    _lv.copy(m.geometry.boundingSphere.center).applyMatrix4(m.matrixWorld).project(camera);
-    const x = (_lv.x * 0.5 + 0.5) * w, y = (-_lv.y * 0.5 + 0.5) * h;
-    if (_lv.z > 1 || x < 0 || x > w || y < 0 || y > h) { el.style.display = 'none'; continue; }
-    items.push({ el, x, y });
+    if (vis) push(en, m.userData.tr.replace(/ \((sol|sağ)\)$/, ''), _lv.copy(m.geometry.boundingSphere.center).applyMatrix4(m.matrixWorld).clone());
   }
-  if (!items.length) { svg.innerHTML = ''; return; }
+  return out;
+}
+// two columns of labels left and right of the subject; sets lx (column x), ly, side and ex (leader end)
+function layoutLabels(items, w, h, rowH = 21, margin = 120) {
+  if (!items.length) return items;
   const cx = items.reduce((a, it) => a + it.x, 0) / items.length;
   const spread = Math.max(...items.map(it => Math.abs(it.x - cx)));
-  const off = Math.min(Math.max(150, spread + 70), w * 0.42);
-  let lines = '';
+  const off = Math.min(Math.max(margin * 1.25, spread + margin * 0.6), w * 0.42);
   for (const side of [-1, 1]) {
     const col = items.filter(it => (it.x < cx) === (side < 0)).sort((a, b) => a.y - b.y);
-    const colX = clamp(cx + side * off, 120, w - 120);
+    const colX = clamp(cx + side * off, margin, w - margin);
     let last = -Infinity;
-    for (const it of col) { it.ly = Math.max(it.y, last + 21); last = it.ly; }
-    const over = last - (h - 90); if (over > 0) for (const it of col) it.ly -= over;
-    for (const it of col) {
-      it.el.style.display = ''; it.el.style.left = colX + 'px'; it.el.style.top = it.ly + 'px';
-      it.el.style.transform = side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
-      const ex = colX - side * 6;
-      lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(ex - side * 18).toFixed(1)},${it.ly.toFixed(1)} ${ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
-    }
+    for (const it of col) { it.ly = Math.max(it.y, last + rowH); last = it.ly; }
+    const over = last - (h - rowH * 4.3); if (over > 0) for (const it of col) it.ly -= over;
+    for (const it of col) { it.side = side; it.lx = colX; it.ex = colX - side * rowH * 0.3; }
+  }
+  return items;
+}
+function drawLabels() {
+  const host = $('labels'); const svg = host.querySelector('svg');
+  const w = innerWidth, h = innerHeight; const items = labelItems(w, h);
+  const keys = new Set(items.map(it => it.key));
+  for (const [k, el] of labelEls) if (!keys.has(k)) { el.remove(); labelEls.delete(k); }
+  if (!items.length) { svg.innerHTML = ''; return; }
+  layoutLabels(items, w, h);
+  let lines = '';
+  for (const it of items) {
+    let el = labelEls.get(it.key);
+    if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = it.text; host.appendChild(el); labelEls.set(it.key, el); }
+    el.style.left = it.lx + 'px'; el.style.top = it.ly + 'px';
+    el.style.transform = it.side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+    lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(it.ex - it.side * 18).toFixed(1)},${it.ly.toFixed(1)} ${it.ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
   }
   svg.innerHTML = lines;
 }
 
 // ---------- heartbeat & breathing ----------
-const ANIM = { heart: [], lungs: [], diaphragm: [] };
+const ANIM = { lungs: [], diaphragm: [] };
 function setPivot(mesh, p) {
   // move the mesh origin to p without changing where it renders
   mesh.geometry.translate(-p.x, -p.y, -p.z); mesh.userData.basePos.copy(p); mesh.position.copy(p);
   mesh.geometry.computeBoundingSphere();
 }
 function setupAnimation() {
-  const heart = byEn.get('wall of heart');
-  if (heart) {
-    const hc = heart.geometry.boundingBox.getCenter(new THREE.Vector3());
-    for (const m of PARTS_LIST) {
-      const b = m.userData.base;
-      if (m.userData.layer === 'heart' || /coronary|cardiac vein|veins of ventricle|coronary sinus/.test(b) || /^(anterior|posterior) interventricular|marginal branch|posterolateral branch|circumflex branch|septal branches|stem of coronary|trunk of coronary/.test(b)) {
-        setPivot(m, hc); m.castShadow = false; ANIM.heart.push(m);
-      }
-    }
-  }
+  // the heart itself is animated by the rig in cardio.js
   for (const side of ['left', 'right']) {
     const lobes = PARTS_LIST.filter(m => /lobe of lung/.test(m.userData.base) && (m.userData.side === side || (!m.userData.side && side === 'right')));
     if (!lobes.length) continue;
@@ -864,11 +905,6 @@ function setupAnimation() {
     for (const m of lobes) { setPivot(m, p); m.castShadow = false; ANIM.lungs.push(m); }
   }
   const dia = byEn.get('diaphragm'); if (dia) { dia.castShadow = false; ANIM.diaphragm.push(dia); }
-}
-function heartCurve(t) {
-  const a = Math.exp(-(((t - 0.08) / 0.05) ** 2));
-  const v = Math.exp(-(((t - 0.32) / 0.09) ** 2));
-  return { a, v };
 }
 
 // ---------- main loop ----------
@@ -887,10 +923,7 @@ function animate() {
   }
   controls.update();
   updateRig();
-  if (state.anim.heart) {
-    const hc = heartCurve((t * 1.15) % 1);
-    for (const m of ANIM.heart) m.scale.setScalar(1 - 0.045 * hc.v + 0.012 * hc.a);
-  }
+  cardioTick(dt);
   if (state.anim.breath) {
     const b = 0.5 - 0.5 * Math.cos(t * TAU / 4.4);
     for (const m of ANIM.lungs) m.scale.set(1 + 0.022 * b, 1 + 0.06 * b, 1 + 0.035 * b);
@@ -899,7 +932,7 @@ function animate() {
   doHover();
   if (shadowDirty > 0) { renderer.shadowMap.needsUpdate = true; shadowDirty--; }
   renderer.render(scene, camera);
-  if (state.labels || labelEls.size) drawLabels();
+  if (state.labels || labelEls.size || SCN.active) drawLabels();
   fpsEma = fpsEma * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (t - fpsT > 0.5) { fpsT = t; $('stFps').textContent = Math.round(fpsEma); }
   requestAnimationFrame(animate);
@@ -908,7 +941,7 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 
 const fmtK = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(n);
 window.__anatomy = {
-  ready: false, THREE, scene, camera, controls, renderer, state, byId, byEn, PARTS_LIST, MATS,
+  ready: false, THREE, scene, camera, controls, renderer, state, byId, byEn, PARTS_LIST, MATS, get CARDIO() { return CARDIO; }, get SCN() { return SCN; },
   setView: (i) => { const v = VIEWS[i]; camera.position.copy(vec(v[1])); controls.target.copy(vec(v[2])); controls.update(); },
   look: (p, t) => { camera.position.copy(vec(p)); controls.target.copy(vec(t)); controls.update(); },
   setLayer, setOpacity, setSplit, applyPreset, select: (en) => select(byEn.get(en) || byId.get(en) || null), pick,
@@ -919,23 +952,3 @@ window.__anatomy = {
   shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; markShadows(); },
 };
 
-let revealed = false;
-function revealStage() { if (revealed) return; revealed = true; $('loader').classList.add('done'); }
-buildPresetUI();
-(async () => {
-  try {
-    animate();
-    await loadAll();
-    setupAnimation();
-    buildLayerUI();
-    applyPreset(currentPreset);
-    setOpacity('skin', layerOpacity.skin);
-    setProgress(1, `${(STATS.loadMs / 1000).toFixed(1)} sn'de hazır`);
-    $('buildInfo').textContent = `${(STATS.bytes / 1e6).toFixed(1)} MB · ${(STATS.loadMs / 1000).toFixed(1)} sn · ${STATS.workers || 1} iş parçacığı`;
-    if (loadErrors.length) { $('err').textContent = loadErrors.join('\n'); console.warn(loadErrors); }
-    revealStage();
-    window.__anatomy.ready = true;
-  } catch (e) {
-    console.error(e); $('err').textContent = String((e && e.stack) || e);
-  }
-})();

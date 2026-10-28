@@ -104,6 +104,7 @@ const DESC = {
   'tricuspid valve': D('valva atrioventricularis dextra', 'Kalp', 'Sağ kulakçık ile sağ karıncık arasındaki üç yaprakçıklı kapak; karıncık kasılınca kanın kulakçığa geri kaçmasını önler.'),
   'mitral valve': D('valva atrioventricularis sinistra', 'Kalp', 'Sol kulakçık ile sol karıncık arasındaki iki yaprakçıklı (biküspit) kapak. Kapanması birinci kalp sesinin ("lub") bir parçasıdır.'),
   'pulmonary valve': D('valva trunci pulmonalis', 'Kalp', 'Sağ karıncıktan akciğer atardamarına çıkışı kontrol eden yarım ay kapak; kanın karıncığa geri dönmesini engeller.'),
+  'aortic valve': D('valva aortae', 'Kalp', 'Sol karıncıktan aorta çıkışı kontrol eden üç cepli yarım ay kapak; karıncık sistolünde açılır, diyastolün başında kapanarak 2. kalp sesini (“dub”) oluşturur. Veri setinde bulunmadığı için şematik olarak eklenmiştir.'),
   'papillary muscle of ventricle, nsn': D('m. papillaris', 'Kalp', 'Karıncık duvarından çıkan kas çıkıntıları; kiriş iplikleriyle (chordae tendineae) kapak yaprakçıklarını tutarak kapağın kulakçığa doğru açılmasını önler.'),
   'anterior papillary muscle of ventricle': D('m. papillaris anterior', 'Kalp', 'Ön papiller kas; kiriş iplikleri aracılığıyla kapak yaprakçıklarını gergin tutar.'),
   'posterior papillary muscle of ventricle': D('m. papillaris posterior', 'Kalp', 'Arka papiller kas; kiriş iplikleri aracılığıyla kapak yaprakçıklarını gergin tutar.'),
