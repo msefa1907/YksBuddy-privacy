@@ -2546,12 +2546,22 @@ async function exportVideo() {
 }
 
 // ---------- dialog ----------
+// inside the claude.ai viewer files are offered through the `downloads` capability; elsewhere a normal link is used
+const DOWNLOADS = window.claude && typeof window.claude.use === 'function' ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
 function deliver(blob, name, extra = '') {
   const url = URL.createObjectURL(blob); const isVid = blob.type.startsWith('video');
   const mb = (blob.size / 1e6).toFixed(1).replace('.', ',');
   dlgOut(`${isVid ? `<video src="${url}" controls playsinline></video>` : `<img src="${url}" alt="Dışa aktarılan görsel">`}
-    <p class="hint"><a class="btn on" href="${url}" download="${name}">İndir (${mb} MB)</a> İndirme başlamazsa ${isVid ? 'videoya' : 'görsele'} sağ tıklayıp “Farklı kaydet”i seçin.</p>${extra}`);
-  try { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); } catch (e) { /* the preview link remains */ }
+    <p class="hint"><a class="btn on" id="dSave" href="${url}" download="${name}">İndir (${mb} MB)</a><span id="dSaveNote">İndirme başlamazsa ${isVid ? 'videoya' : 'görsele'} sağ tıklayıp “Farklı kaydet”i seçin.</span></p>${extra}`);
+  DOWNLOADS.then((dl) => {
+    const btn = $('dSave'); if (!btn) return;
+    if (!dl) { if (!window.claude) btn.click(); return; } // plain page: start the download right away
+    btn.onclick = async (e) => {
+      e.preventDefault(); const note = $('dSaveNote');
+      try { await dl.save({ filename: name, data: blob }); note.textContent = 'Kaydedildi.'; }
+      catch (err) { note.textContent = err && err.code === 'declined' ? 'Kaydetme iptal edildi.' : `Kaydedilemedi (${(err && err.code) || 'hata'}); ${isVid ? 'videoya' : 'görsele'} sağ tıklayıp “Farklı kaydet”i deneyin.`; }
+    };
+  });
 }
 function dlgOut(html) { const o = $('dOut'); if (o) o.innerHTML = html; }
 function openExport() {
