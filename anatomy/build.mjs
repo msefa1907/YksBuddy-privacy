@@ -1,7 +1,8 @@
 // Builds the two standalone pages:
 //   index.html      — real-anatomy viewer (viewer/page.html + viewer/desc.js + viewer/app.js), loads data/*.bin.gz
 //   prosedurel.html — procedural atlas (src/page.html + src/*.js), generates all geometry in the browser
-// With --artifact <dir>, also writes variants without the document wrapper tags for publishing as claude.ai artifacts.
+// With --artifact <dir>, also writes variants without the document wrapper tags for publishing as claude.ai artifacts,
+// plus a copy of data/ with the packs as base64 text.
 import fs from 'fs';
 import path from 'path';
 const dir = path.dirname(new URL(import.meta.url).pathname);
@@ -32,5 +33,14 @@ if (ai > 0) {
       .replace(/<meta charset[^>]*>\s*/i, '').replace(/<meta name="viewport"[^>]*>\s*/i, '');
     fs.writeFileSync(path.join(out, name), art);
   }
+  // the artifact host serves only web media types, so packs go up as base64 text
+  const dataOut = path.join(out, 'data'); fs.mkdirSync(dataOut, { recursive: true });
+  const man = JSON.parse(read('data', 'manifest.json'));
+  for (const L of Object.values(man.layers)) {
+    const b64 = fs.readFileSync(path.join(dir, 'data', L.file)).toString('base64');
+    L.file = L.file.replace(/\.bin\.gz$/, '.b64.txt'); L.size = b64.length;
+    fs.writeFileSync(path.join(dataOut, L.file), b64);
+  }
+  fs.writeFileSync(path.join(dataOut, 'manifest.json'), JSON.stringify(man));
   console.log('artifact variants written to', out);
 }

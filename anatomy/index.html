@@ -999,7 +999,11 @@ async function runJob(job, post) {
       const reader = res.body.getReader();
       for (;;) { const r = await reader.read(); if (r.done) break; chunks.push(r.value); got += r.value.length; post({ type: 'progress', layer: job.layer, bytes: got }); }
     } else { const u = new Uint8Array(await res.arrayBuffer()); chunks.push(u); got = u.length; }
-    const buf = new Uint8Array(got); let o = 0; for (const c of chunks) { buf.set(c, o); o += c.length; }
+    let buf = new Uint8Array(got); let o = 0; for (const c of chunks) { buf.set(c, o); o += c.length; }
+    if (job.b64) { // hosts that only serve text get the same pack as base64
+      const bin = atob(new TextDecoder().decode(buf).replace(/\s+/g, ''));
+      buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    }
     const raw = await gunzipBytes(buf);
     let batch = [], tr = [];
     for (let k = 0; k < job.parts.length; k++) {
@@ -1076,7 +1080,7 @@ async function loadAll() {
   const jobs = order.map((L) => {
     layerParts[L] = man.layers[L].parts;
     return {
-      layer: L, url: new URL(DATA + man.layers[L].file, document.baseURI).href, gmin: man.gmin, gsize: man.gsize,
+      layer: L, url: new URL(DATA + man.layers[L].file, document.baseURI).href, b64: /\.txt$/.test(man.layers[L].file), gmin: man.gmin, gsize: man.gsize,
       parts: man.layers[L].parts.map((p, j) => ({
         j, nv: p.nv, nt: p.nt, off: p.off, ib: p.ib, tw: !!p.tw, tint: tintFor(p), fib: p.mat === 'muscle' || p.mat === 'tendon', tendon: p.mat === 'tendon',
         tendonTint: [TENDON_TINT.r, TENDON_TINT.g, TENDON_TINT.b], aoMin: L === 'skin' ? 0.45 : L === 'muscle' ? 0.22 : 0.3,
