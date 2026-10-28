@@ -34,7 +34,7 @@ function bodySDF() {
   const trunk = U(0.045,
     E([0, 1.29, -0.005], [0.153, 0.17, 0.117]),
     E([0, 1.405, -0.012], [0.165, 0.065, 0.098]),
-    E([0.075, 1.338, 0.08], [0.074, 0.044, 0.03]), E([-0.075, 1.338, 0.08], [0.074, 0.044, 0.03]),
+    E([0.075, 1.345, 0.08], [0.074, 0.042, 0.018]), E([-0.075, 1.345, 0.08], [0.074, 0.042, 0.018]),
     E([0.09, 1.245, -0.058], [0.075, 0.13, 0.064]), E([-0.09, 1.245, -0.058], [0.075, 0.13, 0.064]),
     E([0, 1.085, 0.006], [0.132, 0.15, 0.096]),
     E([0.03, 1.12, -0.082], [0.026, 0.12, 0.026]), E([-0.03, 1.12, -0.082], [0.026, 0.12, 0.026]),
@@ -155,9 +155,9 @@ const SKIN_REGIONS = {
   head: { keep: (x, y) => y > 1.466 && Math.abs(x) < 0.16, box: [-0.17, 1.462, -0.13, 0.17, 1.76, 0.13], h: 0.0022 },
   hand: { keep: (x, y, z) => x > 0.2 && dot3(sub3([x, y, z], HAND.O), HAND.D) > -0.022, box: [0.2, 0.62, -0.05, 0.37, 0.88, 0.06], h: 0.0017 },
   foot: { keep: (x, y) => x > 0 && y < 0.116, box: [0.03, -0.004, -0.09, 0.15, 0.12, 0.23], h: 0.0023 },
-  torsoU: { keep: (x, y, z) => (y <= 1.476 || Math.abs(x) >= 0.15) && y >= 1.05 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 1.044, -0.16, 0.4, 1.56, 0.14], h: 0.0044 },
-  torsoL: { keep: (x, y, z) => y < 1.06 && y >= 0.598 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 0.594, -0.16, 0.4, 1.066, 0.14], h: 0.0044 },
-  legs: { keep: (x, y) => y < 0.608 && y >= 0.104, box: [-0.16, 0.1, -0.1, 0.16, 0.612, 0.09], h: 0.0042 },
+  torsoU: { keep: (x, y, z) => (y <= 1.476 || Math.abs(x) >= 0.15) && y >= 1.05 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 1.03, -0.16, 0.4, 1.56, 0.14], h: 0.0044 },
+  torsoL: { keep: (x, y, z) => y < 1.058 && y >= 0.594 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 0.594, -0.16, 0.4, 1.066, 0.14], h: 0.0044 },
+  legs: { keep: (x, y) => y < 0.61 && y >= 0.104, box: [-0.16, 0.1, -0.1, 0.16, 0.612, 0.09], h: 0.0044 },
 };
 
 function skinColor(x, y, z) {
@@ -175,26 +175,26 @@ function buildSkin(T) {
   const desc = 'Vücudun en büyük organı (yetişkinde ~2 m²). Epidermis, dermis ve deri altı yağ dokusundan oluşur; koruma, ısı düzenleme, duyu ve D vitamini sentezinde görev alır.';
   T('Deri: göğüs ve kollar', () => {
     const R = SKIN_REGIONS.torsoU;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoU', tr: 'Deri (göğüs ve kollar)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinTorsoU', tr: 'Deri (göğüs ve kollar)', la: 'cutis', desc });
   });
   T('Deri: karın ve kalça', () => {
     const R = SKIN_REGIONS.torsoL;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoL', tr: 'Deri (karın, kalça ve uyluk)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinTorsoL', tr: 'Deri (karın, kalça ve uyluk)', la: 'cutis', desc });
   });
   T('Deri: bacaklar', () => {
     const R = SKIN_REGIONS.legs;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinLegs', tr: 'Deri (bacaklar)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinLegs', tr: 'Deri (bacaklar)', la: 'cutis', desc });
   });
   T('Deri: baş ve yüz', () => {
     const R = SKIN_REGIONS.head;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.012, aoMin: 0.5 }), 'skin', { ...meta, id: 'skinHead', tr: 'Deri (baş ve yüz)', la: 'cutis faciei', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinHead', tr: 'Deri (baş ve yüz)', la: 'cutis faciei', desc });
   });
   T('Deri: eller', () => {
     const R = SKIN_REGIONS.hand;
-    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.01, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinHand', tr: 'Deri (el)', la: 'cutis manus', desc });
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinHand', tr: 'Deri (el)', la: 'cutis manus', desc });
   });
   T('Deri: ayaklar', () => {
     const R = SKIN_REGIONS.foot;
-    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.012, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinFoot', tr: 'Deri (ayak)', la: 'cutis pedis', desc });
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinFoot', tr: 'Deri (ayak)', la: 'cutis pedis', desc });
   });
 }

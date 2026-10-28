@@ -59,10 +59,16 @@ button { cursor: pointer; }
 #layers { overflow: auto; padding: 10px 8px 8px; min-height: 0; flex: 0 1 auto; }
 .sec-title { font: 500 10.5px/1 var(--f-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 4px 8px 8px; display: flex; justify-content: space-between; align-items: center; }
 .sec-title button { background: none; border: 0; color: var(--probe); font: 500 10.5px var(--f-data); letter-spacing: 0.06em; padding: 2px 4px; }
-.layer { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 7px; }
+.layer { display: grid; grid-template-columns: 12px minmax(0, 1fr) 52px auto; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; }
+.layer input[type=range] { opacity: 0.35; pointer-events: none; }
+.layer.on input[type=range] { opacity: 1; pointer-events: auto; }
+#presets { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 10px; }
+#presets button { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text-dim); }
+#presets button:hover { color: var(--text); }
+#presets button.on { color: var(--ink-0); background: var(--bone); border-color: var(--bone); }
 .layer:hover { background: var(--ink-2); }
 .layer .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
-.layer label { cursor: pointer; user-select: none; }
+.layer label { cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .layer .count { color: var(--text-dim); font: 400 11px var(--f-data); margin-left: 6px; }
 .switch { position: relative; width: 30px; height: 17px; flex: none; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
@@ -70,8 +76,7 @@ button { cursor: pointer; }
 .switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #9aa8b3; transition: transform .15s, background .15s; }
 .switch input:checked + i { background: color-mix(in srgb, var(--probe) 45%, #1d2a33); }
 .switch input:checked + i::after { transform: translateX(13px); background: #e9f8fb; }
-.layer .op { grid-column: 2 / 4; display: none; align-items: center; gap: 8px; color: var(--text-dim); font: 400 11px var(--f-data); }
-.layer.on .op { display: flex; }
+
 input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: 18px; }
 input[type=range]::-webkit-slider-runnable-track { height: 3px; background: #2a3641; border-radius: 2px; }
 input[type=range]::-moz-range-track { height: 3px; background: #2a3641; border-radius: 2px; }
@@ -80,7 +85,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 
 /* search + info */
 #side { top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: 330px; display: flex; flex-direction: column; gap: 10px; position: fixed; max-height: calc(100% - 2 * var(--gutter) - 70px); }
-#searchBox { position: relative; padding: 0; }
+#side .panel { position: relative; }
+#searchBox { padding: 0; }
 #search { width: 100%; background: transparent; border: 0; padding: 12px 14px 12px 38px; outline: none; font-size: 14px; }
 #searchBox svg { position: absolute; left: 13px; top: 13px; width: 16px; height: 16px; stroke: var(--text-dim); }
 #results { max-height: 300px; overflow: auto; border-top: 1px solid var(--rule); }
@@ -121,7 +127,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 #tip small { display: block; font: italic 500 13px var(--f-display); color: var(--text-dim); }
 #labels { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 #labels svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-#labels .lb { position: absolute; transform: translate(-50%, -100%); font: 500 11.5px var(--f-ui); color: var(--text); background: rgba(7, 11, 15, 0.78); border: 1px solid var(--rule); padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+#labels .lb { position: absolute; font: 500 11.5px var(--f-ui); color: var(--text); background: rgba(7, 11, 15, 0.78); border: 1px solid var(--rule); padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
 
 /* loading */
 #loader { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: radial-gradient(90% 70% at 50% 45%, #0f1a24, var(--ink-0)); transition: opacity .6s; }
@@ -173,6 +179,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 </header>
 
 <nav id="layers" class="panel" aria-label="Katmanlar">
+  <div class="sec-title"><span>Hazır görünümler</span></div>
+  <div id="presets"></div>
   <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
   <div id="layerList"></div>
 </nav>
@@ -213,6 +221,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
   </div>
   <div class="sep"></div>
   <div class="grp">
+    <button id="tSplit" type="button" class="on" title="Kasları ve deriyi yalnızca vücudun bir yarısında göster">Yarı kesit</button>
     <button id="tLabels" type="button">Etiketler</button>
     <button id="tSpin" type="button">Döndür</button>
     <button id="tShadow" type="button" class="on">Gölge</button>

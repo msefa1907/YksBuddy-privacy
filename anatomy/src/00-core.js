@@ -113,7 +113,10 @@ const SD = {
           const px = x - cx, py = y - cy, pz = z - cz;
           const k0 = Math.sqrt(px * px * ia2 + py * py * ib2 + pz * pz * id2);
           const k1 = Math.sqrt(px * px * ia2 * ia2 + py * py * ib2 * ib2 + pz * pz * id2 * id2);
-          return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+          const v = k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+          // the approximation can undershoot; never report less than the distance to the box
+          if (v > 0) { const ex = Math.max(Math.abs(px) - a, 0), ey = Math.max(Math.abs(py) - b, 0), ez = Math.max(Math.abs(pz) - d, 0); const bd = Math.sqrt(ex * ex + ey * ey + ez * ez); return bd > v ? bd : v; }
+          return v;
         }, b: [cx - a, cy - b, cz - d, cx + a, cy + b, cz + d]
       };
     }
@@ -127,7 +130,9 @@ const SD = {
         const lu = px * U[0] + py * U[1] + pz * U[2], lv = px * Vv[0] + py * Vv[1] + pz * Vv[2], lw = px * W[0] + py * W[1] + pz * W[2];
         const k0 = Math.sqrt(lu * lu * ia2 + lv * lv * ib2 + lw * lw * id2);
         const k1 = Math.sqrt(lu * lu * ia2 * ia2 + lv * lv * ib2 * ib2 + lw * lw * id2 * id2);
-        return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+        const v = k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+        if (v > 0) { const qx = Math.max(Math.abs(lu) - a, 0), qy = Math.max(Math.abs(lv) - b, 0), qz = Math.max(Math.abs(lw) - d, 0); const bd = Math.sqrt(qx * qx + qy * qy + qz * qz); return bd > v ? bd : v; }
+        return v;
       }, b: [cx - ex, cy - ey, cz - ez, cx + ex, cy + ey, cz + ez]
     };
   },
@@ -215,7 +220,7 @@ const SD = {
         const twc = Math.abs(q[2]) - (tb + eAdd) * 0.5;
         const du = Math.max(u0 - q[0], 0, q[0] - u1), dv = Math.max(v0 - q[1], 0, q[1] - v1);
         const db = Math.sqrt(du * du + dv * dv);
-        if (twc > 0.005 || db > 0.005) return Math.max(twc, db) * 0.8;
+        if (twc > 0.005 || db > 0.005) return Math.max(Math.max(twc, db) * 0.8, boxDist(box, x, y, z));
         const d2 = sdPolygon(q[0], q[1], P);
         const t = tb + (eAdd ? eAdd * Math.exp(Math.min(d2, 0) / eW) : 0);
         const dw = Math.abs(q[2]) - t * 0.5 + round;
@@ -278,15 +283,19 @@ function U(k, ...shapes) {
   const bd = new Float64Array(n);
   return {
     f: (x, y, z) => {
-      // evaluate the nearest child first, then only children whose box can still matter
+      // the nearest child bounds the result; children whose box is farther than that bound
+      // (+k) cannot change it. The rest are folded in a FIXED order: smooth min is not
+      // associative, so a position-dependent order would make the field jump.
       let m = 0;
       for (let i = 0; i < n; i++) { bd[i] = boxDist2(bs[i], x, y, z); if (bd[i] < bd[m]) m = i; }
-      let d = fs[m](x, y, z);
+      const vm = fs[m](x, y, z);
+      const lim = vm + k, lim2 = lim * lim;
+      let d = Infinity;
       for (let i = 0; i < n; i++) {
-        if (i === m) continue;
-        const lim = d + k;
-        if (lim <= 0 || bd[i] >= lim * lim) continue;
-        d = smin(d, fs[i](x, y, z), k);
+        let v;
+        if (i === m) v = vm;
+        else { if (lim <= 0 || bd[i] >= lim2) continue; v = fs[i](x, y, z); }
+        d = d === Infinity ? v : smin(d, v, k);
       }
       return d;
     }, b: expandBox(b, k * 0.3)
@@ -344,13 +353,18 @@ function sdfGrad(f, x, y, z, e) {
 }
 
 const STATS = { evals: 0, tris: 0, meshes: 0 };
+let H_MUL = 1; // global mesh resolution multiplier (quality setting)
+const setQuality = (m) => { H_MUL = m; };
 
 // Adaptive sampling: blocks whose corners prove (via the Lipschitz bound) that no surface
 // passes through them are filled by interpolation; only a thin band around the surface is
 // evaluated exactly. opts: { ao: distance, aoMin, color(x,y,z,n)->[r,g,b], keepField, lip }
 function meshSDF(shape, h, opts = {}) {
+  h *= H_MUL;
   const f = shape.f;
-  const b = opts.box || shape.b;
+  let b = opts.box || shape.b;
+  // snap to a world-aligned lattice so neighbouring regions meshed separately share vertices
+  if (opts.align) b = [Math.floor(b[0] / h) * h, Math.floor(b[1] / h) * h, Math.floor(b[2] / h) * h, b[3], b[4], b[5]];
   const pad = 2.5 * h;
   const x0 = b[0] - pad, y0 = b[1] - pad, z0 = b[2] - pad;
   const nx = Math.ceil((b[3] + pad - x0) / h) + 1, ny = Math.ceil((b[4] + pad - y0) / h) + 1, nz = Math.ceil((b[5] + pad - z0) / h) + 1;

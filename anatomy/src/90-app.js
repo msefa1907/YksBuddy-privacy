@@ -5,16 +5,16 @@ const isMobile = matchMedia('(max-width: 860px)').matches || matchMedia('(pointe
 
 const LAYERS = [
   { key: 'skin', tr: 'Deri', color: '#d2a185', on: false },
-  { key: 'muscle', tr: 'Kas sistemi', color: '#b5392f', on: false },
-  { key: 'skeleton', tr: 'İskelet sistemi', color: '#e6dcc3', on: true },
+  { key: 'muscle', tr: 'Kaslar', color: '#b5392f', on: true },
+  { key: 'skeleton', tr: 'İskelet', color: '#e6dcc3', on: true },
   { key: 'nervous', tr: 'Sinir sistemi', color: '#f0c64a', on: true },
   { key: 'heart', tr: 'Kalp', color: '#a8322e', on: true },
   { key: 'arteries', tr: 'Atardamarlar', color: '#d6343c', on: true },
   { key: 'veins', tr: 'Toplardamarlar', color: '#3d64c8', on: true },
-  { key: 'respiratory', tr: 'Solunum sistemi', color: '#e09c9c', on: true },
-  { key: 'digestive', tr: 'Sindirim sistemi', color: '#d8946f', on: true },
-  { key: 'urinary', tr: 'Boşaltım sistemi', color: '#b0603f', on: true },
-  { key: 'endocrine', tr: 'Endokrin bezler', color: '#d0a43e', on: true },
+  { key: 'respiratory', tr: 'Solunum', color: '#e09c9c', on: true },
+  { key: 'digestive', tr: 'Sindirim', color: '#d8946f', on: true },
+  { key: 'urinary', tr: 'Boşaltım', color: '#b0603f', on: true },
+  { key: 'endocrine', tr: 'Endokrin', color: '#d0a43e', on: true },
 ];
 const LAYER = Object.fromEntries(LAYERS.map(l => [l.key, l]));
 
@@ -26,9 +26,13 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = !isMobile;
+const strongDevice = !isMobile && (navigator.hardwareConcurrency || 4) >= 8;
+renderer.shadowMap.enabled = strongDevice;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.localClippingEnabled = false;
+renderer.localClippingEnabled = true;
+const params = new URLSearchParams(location.search);
+const qParam = params.get('kalite') || location.hash.replace('#', '');
+setQuality(qParam === 'dusuk' ? 1.45 : qParam === 'yuksek' ? 0.85 : isMobile ? 1.45 : 1);
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -177,6 +181,8 @@ function ingest(rec) {
   mesh.castShadow = !meta.noShadow; mesh.receiveShadow = true;
   if (meta.pivot) { const p = vec(meta.pivot); geo.translate(-p.x, -p.y, -p.z); mesh.position.copy(p); }
   geo.computeBoundingSphere();
+  if (geo.boundingSphere.radius < 0.018) meta.noShadow = true; // tiny parts: skip the shadow pass
+  mesh.castShadow = !meta.noShadow;
   mesh.userData = { ...meta, mat: rec.mat, basePos: mesh.position.clone() };
   mesh.userData.center = geo.boundingSphere.center.clone().add(mesh.position);
   if (state.selected === null && state.isolate) mesh.material = ghostMat;
@@ -243,10 +249,10 @@ async function buildAll() {
         }
       };
       for (const w of workers) {
-        w.onerror = (e) => { console.warn('worker error', e.message); if (!readyCount && !failed) { failed = true; clearTimeout(timer); resolve(false); } };
+        w.onerror = (e) => { console.warn('worker error', e.message, e.filename, e.lineno); if (!readyCount && !failed) { failed = true; clearTimeout(timer); resolve(false); } };
         w.onmessage = (e) => {
           const m = e.data; if (failed) return;
-          if (m.type === 'ready') { readyCount++; idle.push(w); dispatch(); return; }
+          if (m.type === 'ready') { readyCount++; STATS.readyWorkers = readyCount; w.postMessage({ type: 'config', hMul: H_MUL }); idle.push(w); dispatch(); return; }
           if (m.type !== 'done') return;
           if (m.shared) { available.add(m.shared.key); SHARED[m.shared.key] = m.shared.data; for (const w2 of workers) w2.postMessage({ type: 'shared', key: m.shared.key, data: m.shared.data }); }
           onDone(m.index, m.recs, m.err);
@@ -263,7 +269,7 @@ async function buildAll() {
 }
 
 // ---------- interaction state ----------
-const state = { selected: null, isolate: false, explode: 0, cut: false, cutAxis: 'z', cutPos: 0.52, anim: { heart: true, breath: true, flow: false, nerve: false }, labels: false, spin: false };
+const state = { split: false, selected: null, isolate: false, explode: 0, cut: false, cutAxis: 'z', cutPos: 0.52, anim: { heart: true, breath: true, flow: false, nerve: false }, labels: false, spin: false };
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 function pickables() {
@@ -285,6 +291,7 @@ function pick(clientX, clientY) {
   const hits = raycaster.intersectObjects(objs, false);
   for (const h of hits) {
     if (state.cut && cutPlane.distanceToPoint(h.point) < 0) continue;
+    if (state.split && (h.object.userData.layer === 'muscle' || h.object.userData.layer === 'skin') && h.point.x < 0) continue;
     if (state.isolate && h.object !== state.selected) continue;
     return h;
   }
@@ -295,7 +302,7 @@ function pick(clientX, clientY) {
 const hlCache = new Map();
 function highlightMat(m) {
   if (!hlCache.has(m)) {
-    const h = m.clone(); h.emissive = new THREE.Color(0x3fb6cc); h.emissiveIntensity = 0.55; h.userData = { ...m.userData, hl: true };
+    const h = m.clone(); h.emissive = new THREE.Color(0x1f9fbf); h.emissiveIntensity = 0.32; h.userData = { ...m.userData, hl: true };
     hlCache.set(m, h);
   }
   return hlCache.get(m);
@@ -307,7 +314,7 @@ function refreshMaterials() {
     if (state.isolate && state.selected && m !== state.selected) m.material = ghostMat;
     else m.material = m === state.selected ? highlightMat(base) : base;
   }
-  for (const [b, h] of hlCache) { h.opacity = b.opacity; h.transparent = b.transparent; h.depthWrite = b.depthWrite; }
+  for (const [b, h] of hlCache) { h.opacity = b.opacity; h.transparent = b.transparent; h.depthWrite = b.depthWrite; h.clippingPlanes = b.clippingPlanes; }
 }
 function select(mesh, focus = false) {
   state.selected = mesh || null;
@@ -345,6 +352,15 @@ function applyCut() {
   renderer.clippingPlanes = state.cut ? [cutPlane] : [];
 }
 
+// ---------- split (sagittal half) view for skin & muscles ----------
+const splitPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+function setSplit(on) {
+  state.split = on;
+  for (const key of ['muscle', 'skin']) for (const m of layerMats[key] || []) { m.clippingPlanes = on ? [splitPlane] : null; m.clipShadows = true; m.needsUpdate = true; }
+  for (const [b, h] of hlCache) { h.clippingPlanes = b.clippingPlanes; h.needsUpdate = true; }
+  const btn = $('tSplit'); if (btn) btn.classList.toggle('on', on);
+}
+
 // ---------- explode ----------
 function applyExplode() {
   const a = state.explode;
@@ -365,16 +381,48 @@ function buildLayerUI() {
     if (!count) continue;
     const row = document.createElement('div'); row.className = 'layer' + (l.on ? ' on' : '');
     row.innerHTML = `<span class="dot" style="background:${l.color}"></span><label for="ly_${l.key}">${l.tr}<span class="count">${count}</span></label>
-      <span class="switch"><input type="checkbox" id="ly_${l.key}" ${l.on ? 'checked' : ''}><i></i></span>
-      <div class="op"><span>opaklık</span><input type="range" id="op_${l.key}" min="5" max="100" value="${Math.round(layerOpacity[l.key] * 100)}" aria-label="${l.tr} opaklığı"></div>`;
+      <input type="range" id="op_${l.key}" min="5" max="100" value="${Math.round(layerOpacity[l.key] * 100)}" aria-label="${l.tr} opaklığı" title="Opaklık">
+      <span class="switch"><input type="checkbox" id="ly_${l.key}" ${l.on ? 'checked' : ''}><i></i></span>`;
     list.appendChild(row);
-    row.querySelector('input[type=checkbox]').addEventListener('change', (e) => { setLayer(l.key, e.target.checked); row.classList.toggle('on', e.target.checked); });
-    row.querySelector('input[type=range]').addEventListener('input', (e) => setOpacity(l.key, e.target.value / 100));
+    row.querySelector('input[type=checkbox]').addEventListener('change', (e) => { setLayer(l.key, e.target.checked); clearPreset(); });
+    row.querySelector('input[type=range]').addEventListener('input', (e) => { setOpacity(l.key, e.target.value / 100); clearPreset(); });
   }
+  const pr = $('presets'); pr.innerHTML = '';
+  for (const [name] of PRESETS) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = name; b.dataset.p = name;
+    b.onclick = () => applyPreset(name); pr.appendChild(b);
+  }
+  markPreset(currentPreset);
+}
+// layer presets: [name, {layer: opacity|0}, split]
+const ORG = ['heart', 'respiratory', 'digestive', 'urinary', 'endocrine'];
+const PRESETS = [
+  ['Tümü', { skin: 0, muscle: 1, skeleton: 1, nervous: 1, heart: 1, arteries: 1, veins: 1, respiratory: 1, digestive: 1, urinary: 1, endocrine: 1 }, true],
+  ['Kaslar', { muscle: 1, skeleton: 1 }, false],
+  ['İskelet', { skeleton: 1 }, false],
+  ['Organlar', { skeleton: 0.22, nervous: 1, ...Object.fromEntries(ORG.map(k => [k, 1])) }, false],
+  ['Dolaşım', { skeleton: 0.25, heart: 1, arteries: 1, veins: 1 }, false],
+  ['Sinir', { skeleton: 0.28, nervous: 1 }, false],
+  ['Röntgen', { skin: 0.3, skeleton: 1, heart: 1, respiratory: 1, digestive: 1, urinary: 1, nervous: 1 }, false],
+  ['Deri', { skin: 1 }, false],
+];
+let currentPreset = 'Tümü';
+function markPreset(name) { currentPreset = name; document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === name)); }
+function clearPreset() { markPreset(null); }
+function applyPreset(name) {
+  const p = PRESETS.find(x => x[0] === name); if (!p) return;
+  for (const l of LAYERS) {
+    const v = p[1][l.key] || 0;
+    setLayer(l.key, v > 0);
+    if (v > 0) { const op = l.key === 'skin' && v === 1 ? 1 : v; setOpacity(l.key, op); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(op * 100); }
+  }
+  setSplit(p[2]);
+  markPreset(name);
 }
 function setLayer(key, on) {
   LAYER[key].on = on; groups[key].visible = on;
   const cb = $('ly_' + key); if (cb) { cb.checked = on; cb.closest('.layer').classList.toggle('on', on); }
+  if (FLOW.points && (key === 'arteries' || key === 'veins')) FLOW.points.visible = state.anim.flow && (groups.arteries.visible || groups.veins.visible);
   if (!on && state.selected && state.selected.userData.layer === key) select(null);
   updateLabels(true);
 }
@@ -387,7 +435,7 @@ function setOpacity(key, v) {
   for (const mesh of groups[key].children) mesh.castShadow = v > 0.6 && !mesh.userData.noShadow;
   refreshMaterials();
 }
-$('allOn').addEventListener('click', () => { for (const l of LAYERS) if (groups[l.key].children.length && l.key !== 'skin') setLayer(l.key, true); });
+$('allOn').addEventListener('click', () => applyPreset('Tümü'));
 
 // ---------- UI: info ----------
 function triCount(m) { const g = m.geometry; return Math.round((g.index ? g.index.count : g.attributes.position.count) / 3); }
@@ -468,8 +516,9 @@ toggleBtn('aBreath', (on) => state.anim.breath = on);
 toggleBtn('aFlow', (on) => { state.anim.flow = on; if (FLOW.points) FLOW.points.visible = on; });
 toggleBtn('aNerve', (on) => { state.anim.nerve = on; if (FLOW.nervePts) FLOW.nervePts.visible = on; });
 toggleBtn('tLabels', (on) => { state.labels = on; updateLabels(true); });
+$('tSplit').addEventListener('click', () => { setSplit(!state.split); clearPreset(); });
 toggleBtn('tSpin', (on) => { state.spin = on; controls.autoRotate = on; controls.autoRotateSpeed = 1.2; });
-if (isMobile) $('tShadow').classList.remove('on');
+if (!strongDevice) $('tShadow').classList.remove('on');
 toggleBtn('tShadow', (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; });
 $('mLayers').onclick = () => { document.body.classList.toggle('show-layers'); document.body.classList.remove('show-info'); };
 $('mInfo').onclick = () => { document.body.classList.toggle('show-info'); document.body.classList.remove('show-layers'); };
@@ -514,19 +563,37 @@ function updateLabels(force) { if (force) labelDirty = true; }
 function drawLabels() {
   const host = $('labels'); const svg = host.querySelector('svg');
   if (!state.labels) { if (labelEls.size) { labelEls.forEach(el => el.remove()); labelEls.clear(); svg.innerHTML = ''; } return; }
-  let lines = '';
-  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3();
+  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3(); const items = [];
   for (const id of LABEL_IDS) {
     const m = byId.get(id); let el = labelEls.get(id);
-    const vis = m && m.visible && groups[m.userData.layer].visible;
+    let vis = m && m.visible && groups[m.userData.layer].visible;
+    if (vis && state.split && (m.userData.layer === 'muscle' || m.userData.layer === 'skin') && m.userData.center.x < 0) vis = false;
+    if (vis && state.cut && cutPlane.distanceToPoint(m.userData.center) < 0) vis = false;
+    if (vis && layerOpacity[m.userData.layer] < 0.3) vis = false;
     if (!vis) { if (el) el.style.display = 'none'; continue; }
     if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = m.userData.tr.replace(/ \((sol|sağ)\)/, ''); host.appendChild(el); labelEls.set(id, el); }
     v.copy(m.geometry.boundingSphere.center).add(m.position).project(camera);
-    if (v.z > 1) { el.style.display = 'none'; continue; }
     const x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
-    const side = x > w / 2 ? 1 : -1; const lx = x + side * 46, ly = y - 26;
-    el.style.display = ''; el.style.left = lx + 'px'; el.style.top = ly + 'px';
-    lines += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(ly).toFixed(1)}" stroke="rgba(228,233,236,0.55)" stroke-width="1"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#6fd0e0"/>`;
+    if (v.z > 1 || x < 0 || x > w || y < 0 || y > h) { el.style.display = 'none'; continue; }
+    items.push({ el, x, y });
+  }
+  if (!items.length) { svg.innerHTML = ''; return; }
+  const cx = items.reduce((a, it) => a + it.x, 0) / items.length;
+  const spread = Math.max(...items.map(it => Math.abs(it.x - cx)));
+  const off = Math.min(Math.max(150, spread + 70), w * 0.42);
+  let lines = '';
+  for (const side of [-1, 1]) {
+    const col = items.filter(it => (it.x < cx) === (side < 0)).sort((a, b) => a.y - b.y);
+    const colX = clamp(cx + side * off, 120, w - 120);
+    let last = -Infinity;
+    for (const it of col) { it.ly = Math.max(it.y, last + 21); last = it.ly; }
+    const over = last - (h - 90); if (over > 0) for (const it of col) it.ly -= over;
+    for (const it of col) {
+      it.el.style.display = ''; it.el.style.left = colX + 'px'; it.el.style.top = it.ly + 'px';
+      it.el.style.transform = side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+      const ex = colX - side * 6;
+      lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(ex - side * 18).toFixed(1)},${it.ly.toFixed(1)} ${ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
+    }
   }
   svg.innerHTML = lines;
 }
@@ -545,11 +612,11 @@ function buildFlowParticles() {
     const pos = new Float32Array(items.length * 3), col = new Float32Array(items.length * 3);
     items.forEach((it, i) => { const c = colorFn(it.p); col.set(c, i * 3); });
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, map: sprite, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
-    pts.frustumCulled = false; pts.userData.items = items; pts.visible = false; scene.add(pts);
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, map: sprite, vertexColors: true, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    pts.frustumCulled = false; pts.renderOrder = 10; pts.userData.items = items; pts.visible = false; scene.add(pts);
     return pts;
   };
-  if (FLOW.paths.length) FLOW.points = mk(FLOW.paths, 60, (p) => p.kind === 'a' ? [1.0, 0.25, 0.22] : [0.35, 0.55, 1.0], 0.012);
+  if (FLOW.paths.length) FLOW.points = mk(FLOW.paths, 70, (p) => p.kind === 'a' ? [1.0, 0.16, 0.12] : [0.22, 0.48, 1.0], 0.011);
   if (FLOW.nervePaths.length) FLOW.nervePts = mk(FLOW.nervePaths, 9, () => [1.0, 0.92, 0.55], 0.016);
   if (FLOW.points) FLOW.points.visible = state.anim.flow;
   if (FLOW.nervePts) FLOW.nervePts.visible = state.anim.nerve;
@@ -617,13 +684,15 @@ window.__anatomy = {
   ready: false, THREE, scene, camera, controls, state, byId, PARTS_LIST,
   setView: (i) => { const v = VIEWS[i]; camera.position.copy(vec(v[1])); controls.target.copy(vec(v[2])); controls.update(); },
   look: (p, t) => { camera.position.copy(vec(p)); controls.target.copy(vec(t)); controls.update(); },
-  setLayer, setOpacity, select: (id) => select(byId.get(id) || null),
-  stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, errors: buildErrors }),
+  setLayer, setOpacity, setSplit, applyPreset, select: (id) => select(byId.get(id) || null),
+  stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, ready: STATS.readyWorkers || 0, errors: buildErrors }),
   render: () => { controls.update(); renderer.render(scene, camera); if (state.labels) drawLabels(); },
   pause: (p = true) => { state.paused = p; },
+  tick: (n = 30) => { for (let i = 0; i < n; i++) { stepFlow(FLOW.points, 0.05, ['arteries', 'veins']); stepFlow(FLOW.nervePts, 0.05, ['nervous']); } },
   shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; },
 };
 
+setSplit(true);
 let revealed = false;
 function revealStage() { if (revealed) return; revealed = true; $('loader').classList.add('done'); }
 (async () => {

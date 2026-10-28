@@ -266,7 +266,7 @@ function buildOrgans(T) {
     liv = I(0.01, liv, Round(DOME_R, -0.003), SD.plane([-0.04, 1.11, 0.06], [-0.15, -1, -0.25]));
     liv = Sub(liv, 0.006, E([0.0, 1.21, 0.075], [0.004, 0.03, 0.03]), S([0.045, 1.135, 0.01], 0.032));
     addPart(organMesh(wet(liv, 0.0005, 120), 0.002, solid(0x7b2a1d, 0.1, 60)), 'digest', { ...dig, id: 'liver', tr: 'Karaciğer', la: 'hepar', desc: 'Vücudun en büyük iç organı (~1,5 kg). Safra üretir; glikozu glikojen olarak depolar; plazma proteinleri (albümin, fibrinojen) üretir; zararlı maddeleri etkisizleştirir ve amonyağı üreye çevirir.' });
-    addPart(organMesh(U(0.008, C([-0.056, 1.104, 0.072], [-0.046, 1.135, 0.046], 0.0125, 0.0075), C([-0.046, 1.135, 0.046], [-0.04, 1.15, 0.03], 0.0045, 0.003)), 0.0009, solid(0x4f7a38, 0.06)), 'digest', { ...dig, id: 'gallbladder', tr: 'Safra kesesi', la: 'vesica biliaris', desc: 'Karaciğerin ürettiği safrayı depolar ve yoğunlaştırır. Yağlı besin onikiparmak bağırsağına geldiğinde kasılarak safrayı boşaltır; safra yağları emülsifiye eder.' });
+    addPart(organMesh(U(0.008, C([-0.054, 1.112, 0.064], [-0.046, 1.138, 0.044], 0.01, 0.0065), C([-0.046, 1.138, 0.044], [-0.04, 1.15, 0.03], 0.004, 0.0028)), 0.0009, solid(0x5a7048, 0.06)), 'digest', { ...dig, id: 'gallbladder', tr: 'Safra kesesi', la: 'vesica biliaris', desc: 'Karaciğerin ürettiği safrayı depolar ve yoğunlaştırır. Yağlı besin onikiparmak bağırsağına geldiğinde kasılarak safrayı boşaltır; safra yağları emülsifiye eder.' });
   });
   T('Dalak ve pankreas', () => {
     const spl = SD.ell([0.108, 1.152, -0.058], [0.018, 0.044, 0.03], [norm3([0.85, 0.1, -0.5]), norm3([-0.15, 1, -0.1]), norm3([0.5, 0.1, 0.86])]);

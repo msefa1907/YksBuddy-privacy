@@ -58,7 +58,8 @@ function skullParts() {
 
 // tube stretched vertically by `s` around height yc (lower bound of true distance, so safe to mesh)
 function stretchY(shape, yc, s) {
-  return { f: (x, y, z) => shape.f(x, yc + (y - yc) / s, z), b: [shape.b[0], yc + (shape.b[1] - yc) * s, shape.b[2], shape.b[3], yc + (shape.b[4] - yc) * s, shape.b[5]] };
+  const b = [shape.b[0], yc + (shape.b[1] - yc) * s, shape.b[2], shape.b[3], yc + (shape.b[4] - yc) * s, shape.b[5]];
+  return { f: (x, y, z) => { const v = shape.f(x, yc + (y - yc) / s, z); return v > 0 ? Math.max(v, boxDist(b, x, y, z)) : v; }, b };
 }
 function mandibleSDF() {
   const pts = [];

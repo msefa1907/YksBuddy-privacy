@@ -59,10 +59,16 @@ button { cursor: pointer; }
 #layers { overflow: auto; padding: 10px 8px 8px; min-height: 0; flex: 0 1 auto; }
 .sec-title { font: 500 10.5px/1 var(--f-data); letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); padding: 4px 8px 8px; display: flex; justify-content: space-between; align-items: center; }
 .sec-title button { background: none; border: 0; color: var(--probe); font: 500 10.5px var(--f-data); letter-spacing: 0.06em; padding: 2px 4px; }
-.layer { display: grid; grid-template-columns: 12px 1fr auto; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 7px; }
+.layer { display: grid; grid-template-columns: 12px minmax(0, 1fr) 52px auto; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 7px; }
+.layer input[type=range] { opacity: 0.35; pointer-events: none; }
+.layer.on input[type=range] { opacity: 1; pointer-events: auto; }
+#presets { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 10px; }
+#presets button { background: var(--ink-2); border: 1px solid var(--rule); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text-dim); }
+#presets button:hover { color: var(--text); }
+#presets button.on { color: var(--ink-0); background: var(--bone); border-color: var(--bone); }
 .layer:hover { background: var(--ink-2); }
 .layer .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
-.layer label { cursor: pointer; user-select: none; }
+.layer label { cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .layer .count { color: var(--text-dim); font: 400 11px var(--f-data); margin-left: 6px; }
 .switch { position: relative; width: 30px; height: 17px; flex: none; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
@@ -70,8 +76,7 @@ button { cursor: pointer; }
 .switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #9aa8b3; transition: transform .15s, background .15s; }
 .switch input:checked + i { background: color-mix(in srgb, var(--probe) 45%, #1d2a33); }
 .switch input:checked + i::after { transform: translateX(13px); background: #e9f8fb; }
-.layer .op { grid-column: 2 / 4; display: none; align-items: center; gap: 8px; color: var(--text-dim); font: 400 11px var(--f-data); }
-.layer.on .op { display: flex; }
+
 input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: 18px; }
 input[type=range]::-webkit-slider-runnable-track { height: 3px; background: #2a3641; border-radius: 2px; }
 input[type=range]::-moz-range-track { height: 3px; background: #2a3641; border-radius: 2px; }
@@ -80,7 +85,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 
 /* search + info */
 #side { top: calc(var(--gutter) + env(safe-area-inset-top, 0px)); right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: 330px; display: flex; flex-direction: column; gap: 10px; position: fixed; max-height: calc(100% - 2 * var(--gutter) - 70px); }
-#searchBox { position: relative; padding: 0; }
+#side .panel { position: relative; }
+#searchBox { padding: 0; }
 #search { width: 100%; background: transparent; border: 0; padding: 12px 14px 12px 38px; outline: none; font-size: 14px; }
 #searchBox svg { position: absolute; left: 13px; top: 13px; width: 16px; height: 16px; stroke: var(--text-dim); }
 #results { max-height: 300px; overflow: auto; border-top: 1px solid var(--rule); }
@@ -121,7 +127,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 #tip small { display: block; font: italic 500 13px var(--f-display); color: var(--text-dim); }
 #labels { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 #labels svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-#labels .lb { position: absolute; transform: translate(-50%, -100%); font: 500 11.5px var(--f-ui); color: var(--text); background: rgba(7, 11, 15, 0.78); border: 1px solid var(--rule); padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+#labels .lb { position: absolute; font: 500 11.5px var(--f-ui); color: var(--text); background: rgba(7, 11, 15, 0.78); border: 1px solid var(--rule); padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
 
 /* loading */
 #loader { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: radial-gradient(90% 70% at 50% 45%, #0f1a24, var(--ink-0)); transition: opacity .6s; }
@@ -173,6 +179,8 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
 </header>
 
 <nav id="layers" class="panel" aria-label="Katmanlar">
+  <div class="sec-title"><span>Hazır görünümler</span></div>
+  <div id="presets"></div>
   <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
   <div id="layerList"></div>
 </nav>
@@ -213,6 +221,7 @@ input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 
   </div>
   <div class="sep"></div>
   <div class="grp">
+    <button id="tSplit" type="button" class="on" title="Kasları ve deriyi yalnızca vücudun bir yarısında göster">Yarı kesit</button>
     <button id="tLabels" type="button">Etiketler</button>
     <button id="tSpin" type="button">Döndür</button>
     <button id="tShadow" type="button" class="on">Gölge</button>
@@ -354,7 +363,10 @@ const SD = {
           const px = x - cx, py = y - cy, pz = z - cz;
           const k0 = Math.sqrt(px * px * ia2 + py * py * ib2 + pz * pz * id2);
           const k1 = Math.sqrt(px * px * ia2 * ia2 + py * py * ib2 * ib2 + pz * pz * id2 * id2);
-          return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+          const v = k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+          // the approximation can undershoot; never report less than the distance to the box
+          if (v > 0) { const ex = Math.max(Math.abs(px) - a, 0), ey = Math.max(Math.abs(py) - b, 0), ez = Math.max(Math.abs(pz) - d, 0); const bd = Math.sqrt(ex * ex + ey * ey + ez * ez); return bd > v ? bd : v; }
+          return v;
         }, b: [cx - a, cy - b, cz - d, cx + a, cy + b, cz + d]
       };
     }
@@ -368,7 +380,9 @@ const SD = {
         const lu = px * U[0] + py * U[1] + pz * U[2], lv = px * Vv[0] + py * Vv[1] + pz * Vv[2], lw = px * W[0] + py * W[1] + pz * W[2];
         const k0 = Math.sqrt(lu * lu * ia2 + lv * lv * ib2 + lw * lw * id2);
         const k1 = Math.sqrt(lu * lu * ia2 * ia2 + lv * lv * ib2 * ib2 + lw * lw * id2 * id2);
-        return k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+        const v = k1 > 1e-12 ? k0 * (k0 - 1) / k1 : -mn;
+        if (v > 0) { const qx = Math.max(Math.abs(lu) - a, 0), qy = Math.max(Math.abs(lv) - b, 0), qz = Math.max(Math.abs(lw) - d, 0); const bd = Math.sqrt(qx * qx + qy * qy + qz * qz); return bd > v ? bd : v; }
+        return v;
       }, b: [cx - ex, cy - ey, cz - ez, cx + ex, cy + ey, cz + ez]
     };
   },
@@ -456,7 +470,7 @@ const SD = {
         const twc = Math.abs(q[2]) - (tb + eAdd) * 0.5;
         const du = Math.max(u0 - q[0], 0, q[0] - u1), dv = Math.max(v0 - q[1], 0, q[1] - v1);
         const db = Math.sqrt(du * du + dv * dv);
-        if (twc > 0.005 || db > 0.005) return Math.max(twc, db) * 0.8;
+        if (twc > 0.005 || db > 0.005) return Math.max(Math.max(twc, db) * 0.8, boxDist(box, x, y, z));
         const d2 = sdPolygon(q[0], q[1], P);
         const t = tb + (eAdd ? eAdd * Math.exp(Math.min(d2, 0) / eW) : 0);
         const dw = Math.abs(q[2]) - t * 0.5 + round;
@@ -519,15 +533,19 @@ function U(k, ...shapes) {
   const bd = new Float64Array(n);
   return {
     f: (x, y, z) => {
-      // evaluate the nearest child first, then only children whose box can still matter
+      // the nearest child bounds the result; children whose box is farther than that bound
+      // (+k) cannot change it. The rest are folded in a FIXED order: smooth min is not
+      // associative, so a position-dependent order would make the field jump.
       let m = 0;
       for (let i = 0; i < n; i++) { bd[i] = boxDist2(bs[i], x, y, z); if (bd[i] < bd[m]) m = i; }
-      let d = fs[m](x, y, z);
+      const vm = fs[m](x, y, z);
+      const lim = vm + k, lim2 = lim * lim;
+      let d = Infinity;
       for (let i = 0; i < n; i++) {
-        if (i === m) continue;
-        const lim = d + k;
-        if (lim <= 0 || bd[i] >= lim * lim) continue;
-        d = smin(d, fs[i](x, y, z), k);
+        let v;
+        if (i === m) v = vm;
+        else { if (lim <= 0 || bd[i] >= lim2) continue; v = fs[i](x, y, z); }
+        d = d === Infinity ? v : smin(d, v, k);
       }
       return d;
     }, b: expandBox(b, k * 0.3)
@@ -585,13 +603,18 @@ function sdfGrad(f, x, y, z, e) {
 }
 
 const STATS = { evals: 0, tris: 0, meshes: 0 };
+let H_MUL = 1; // global mesh resolution multiplier (quality setting)
+const setQuality = (m) => { H_MUL = m; };
 
 // Adaptive sampling: blocks whose corners prove (via the Lipschitz bound) that no surface
 // passes through them are filled by interpolation; only a thin band around the surface is
 // evaluated exactly. opts: { ao: distance, aoMin, color(x,y,z,n)->[r,g,b], keepField, lip }
 function meshSDF(shape, h, opts = {}) {
+  h *= H_MUL;
   const f = shape.f;
-  const b = opts.box || shape.b;
+  let b = opts.box || shape.b;
+  // snap to a world-aligned lattice so neighbouring regions meshed separately share vertices
+  if (opts.align) b = [Math.floor(b[0] / h) * h, Math.floor(b[1] / h) * h, Math.floor(b[2] / h) * h, b[3], b[4], b[5]];
   const pad = 2.5 * h;
   const x0 = b[0] - pad, y0 = b[1] - pad, z0 = b[2] - pad;
   const nx = Math.ceil((b[3] + pad - x0) / h) + 1, ny = Math.ceil((b[4] + pad - y0) / h) + 1, nz = Math.ceil((b[5] + pad - z0) / h) + 1;
@@ -915,10 +938,12 @@ function runTask(task) {
 }
 
 if (IS_WORKER) {
-  const tasks = planTasks();
+  let tasks = null; // planned lazily: later modules' constants are not initialised yet at this point
   self.onmessage = (e) => {
     const m = e.data;
+    tasks ||= planTasks();
     if (m.type === 'shared') { SHARED[m.key] = m.data; return; }
+    if (m.type === 'config') { setQuality(m.hMul); return; }
     if (m.type !== 'run') return;
     const task = tasks[m.index]; let recs = [], err = null;
     const t0 = performance.now();
@@ -928,7 +953,7 @@ if (IS_WORKER) {
     const shared = task.provides && SHARED[task.provides] ? { key: task.provides, data: SHARED[task.provides] } : null;
     self.postMessage({ type: 'done', index: m.index, recs, err, shared, ms: performance.now() - t0 }, [...transfer]);
   };
-  self.postMessage({ type: 'ready' });
+  setTimeout(() => self.postMessage({ type: 'ready' }), 0);
 }
 
 // ---- 10-landmarks.js ----
@@ -1171,7 +1196,8 @@ function skullParts() {
 
 // tube stretched vertically by `s` around height yc (lower bound of true distance, so safe to mesh)
 function stretchY(shape, yc, s) {
-  return { f: (x, y, z) => shape.f(x, yc + (y - yc) / s, z), b: [shape.b[0], yc + (shape.b[1] - yc) * s, shape.b[2], shape.b[3], yc + (shape.b[4] - yc) * s, shape.b[5]] };
+  const b = [shape.b[0], yc + (shape.b[1] - yc) * s, shape.b[2], shape.b[3], yc + (shape.b[4] - yc) * s, shape.b[5]];
+  return { f: (x, y, z) => { const v = shape.f(x, yc + (y - yc) / s, z); return v > 0 ? Math.max(v, boxDist(b, x, y, z)) : v; }, b };
 }
 function mandibleSDF() {
   const pts = [];
@@ -1773,7 +1799,7 @@ function bodySDF() {
   const trunk = U(0.045,
     E([0, 1.29, -0.005], [0.153, 0.17, 0.117]),
     E([0, 1.405, -0.012], [0.165, 0.065, 0.098]),
-    E([0.075, 1.338, 0.08], [0.074, 0.044, 0.03]), E([-0.075, 1.338, 0.08], [0.074, 0.044, 0.03]),
+    E([0.075, 1.345, 0.08], [0.074, 0.042, 0.018]), E([-0.075, 1.345, 0.08], [0.074, 0.042, 0.018]),
     E([0.09, 1.245, -0.058], [0.075, 0.13, 0.064]), E([-0.09, 1.245, -0.058], [0.075, 0.13, 0.064]),
     E([0, 1.085, 0.006], [0.132, 0.15, 0.096]),
     E([0.03, 1.12, -0.082], [0.026, 0.12, 0.026]), E([-0.03, 1.12, -0.082], [0.026, 0.12, 0.026]),
@@ -1894,9 +1920,9 @@ const SKIN_REGIONS = {
   head: { keep: (x, y) => y > 1.466 && Math.abs(x) < 0.16, box: [-0.17, 1.462, -0.13, 0.17, 1.76, 0.13], h: 0.0022 },
   hand: { keep: (x, y, z) => x > 0.2 && dot3(sub3([x, y, z], HAND.O), HAND.D) > -0.022, box: [0.2, 0.62, -0.05, 0.37, 0.88, 0.06], h: 0.0017 },
   foot: { keep: (x, y) => x > 0 && y < 0.116, box: [0.03, -0.004, -0.09, 0.15, 0.12, 0.23], h: 0.0023 },
-  torsoU: { keep: (x, y, z) => (y <= 1.476 || Math.abs(x) >= 0.15) && y >= 1.05 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 1.044, -0.16, 0.4, 1.56, 0.14], h: 0.0044 },
-  torsoL: { keep: (x, y, z) => y < 1.06 && y >= 0.598 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 0.594, -0.16, 0.4, 1.066, 0.14], h: 0.0044 },
-  legs: { keep: (x, y) => y < 0.608 && y >= 0.104, box: [-0.16, 0.1, -0.1, 0.16, 0.612, 0.09], h: 0.0042 },
+  torsoU: { keep: (x, y, z) => (y <= 1.476 || Math.abs(x) >= 0.15) && y >= 1.05 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 1.03, -0.16, 0.4, 1.56, 0.14], h: 0.0044 },
+  torsoL: { keep: (x, y, z) => y < 1.058 && y >= 0.594 && !(Math.abs(x) > 0.2 && dot3(sub3([Math.abs(x), y, z], HAND.O), HAND.D) > -0.012), box: [-0.4, 0.594, -0.16, 0.4, 1.066, 0.14], h: 0.0044 },
+  legs: { keep: (x, y) => y < 0.61 && y >= 0.104, box: [-0.16, 0.1, -0.1, 0.16, 0.612, 0.09], h: 0.0044 },
 };
 
 function skinColor(x, y, z) {
@@ -1914,27 +1940,27 @@ function buildSkin(T) {
   const desc = 'Vücudun en büyük organı (yetişkinde ~2 m²). Epidermis, dermis ve deri altı yağ dokusundan oluşur; koruma, ısı düzenleme, duyu ve D vitamini sentezinde görev alır.';
   T('Deri: göğüs ve kollar', () => {
     const R = SKIN_REGIONS.torsoU;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoU', tr: 'Deri (göğüs ve kollar)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinTorsoU', tr: 'Deri (göğüs ve kollar)', la: 'cutis', desc });
   });
   T('Deri: karın ve kalça', () => {
     const R = SKIN_REGIONS.torsoL;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinTorsoL', tr: 'Deri (karın, kalça ve uyluk)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinTorsoL', tr: 'Deri (karın, kalça ve uyluk)', la: 'cutis', desc });
   });
   T('Deri: bacaklar', () => {
     const R = SKIN_REGIONS.legs;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.03, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinLegs', tr: 'Deri (bacaklar)', la: 'cutis', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4, align: true }), 'skin', { ...meta, id: 'skinLegs', tr: 'Deri (bacaklar)', la: 'cutis', desc });
   });
   T('Deri: baş ve yüz', () => {
     const R = SKIN_REGIONS.head;
-    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0.012, aoMin: 0.5 }), 'skin', { ...meta, id: 'skinHead', tr: 'Deri (baş ve yüz)', la: 'cutis faciei', desc });
+    addPart(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, color: skinColor, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinHead', tr: 'Deri (baş ve yüz)', la: 'cutis faciei', desc });
   });
   T('Deri: eller', () => {
     const R = SKIN_REGIONS.hand;
-    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.01, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinHand', tr: 'Deri (el)', la: 'cutis manus', desc });
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinHand', tr: 'Deri (el)', la: 'cutis manus', desc });
   });
   T('Deri: ayaklar', () => {
     const R = SKIN_REGIONS.foot;
-    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0.012, aoMin: 0.55 }), 'skin', { ...meta, id: 'skinFoot', tr: 'Deri (ayak)', la: 'cutis pedis', desc });
+    addPair(meshSDF(bodySDF(), R.h, { box: R.box, keep: R.keep, ao: 0, aoMin: 1, lip: 2.4 }), 'skin', { ...meta, id: 'skinFoot', tr: 'Deri (ayak)', la: 'cutis pedis', desc });
   });
 }
 
@@ -2119,7 +2145,7 @@ const MUSCLES = () => [
   { g: 'Baş', id: 'sternocleido', tr: 'Göğüs-köprücük-meme kası', la: 'm. sternocleidomastoideus', o: [[0.056, 1.6, -0.022], [0.048, 1.596, -0.036]], i: [[0.01, 1.432, 0.07], [0.045, 1.437, 0.062]], depth: 0.0022, th: 0.012, belly: 1.25, tend: [0.08, 0.1], desc: 'Boynun yan yüzünde belirgin şerit; başı karşı tarafa döndürür ve öne eğer. Boynun ön ve arka üçgenlerini ayıran önemli bir işarettir.' },
   { g: 'Sırt', id: 'trapezius', tr: 'Trapez kası', la: 'm. trapezius', o: [[0, 1.63, -0.098], [0, 1.56, -0.07], [0, 1.47, -0.078], [0, 1.36, -0.125], [0, 1.23, -0.125], [0, 1.13, -0.108]], i: [[0.13, 1.468, 0.016], [0.172, 1.462, -0.016], [0.16, 1.45, -0.05], [0.12, 1.43, -0.085], [0.075, 1.405, -0.105]], via: [[0.04, 1.56, -0.05], [0.09, 1.5, -0.055], [0.1, 1.44, -0.095], [0.06, 1.37, -0.125], [0.04, 1.27, -0.124]], nu: 18, nv: 26, depth: 0.003, th: 0.008, tend: [0.08, 0.05], desc: 'Sırtın üst kısmındaki elmas biçimli yüzeyel kas. Kürek kemiğini yukarı kaldırır (omuz silkme), içe çeker ve döndürür; başı arkaya eğer.' },
   // ---------- trunk ----------
-  { g: 'Göğüs', id: 'pectoralis', tr: 'Büyük göğüs kası', la: 'm. pectoralis major', o: [[0.085, 1.444, 0.05], [0.04, 1.434, 0.068], [0.016, 1.405, 0.09], [0.014, 1.33, 0.1], [0.02, 1.27, 0.105], [0.05, 1.236, 0.104], [0.085, 1.245, 0.095]], i: [[0.2, 1.392, 0.016], [0.206, 1.36, 0.012]], via: [[0.15, 1.43, 0.06], [0.13, 1.41, 0.08], [0.12, 1.38, 0.09], [0.12, 1.34, 0.095], [0.13, 1.31, 0.09], [0.15, 1.3, 0.075], [0.17, 1.31, 0.05]], nu: 18, nv: 24, depth: 0.003, th: 0.016, tend: [0.03, 0.14], desc: 'Göğsün ön yüzündeki yelpaze biçimli kas; kolu öne ve içe getirir, içe döndürür. Şınav ve itme hareketlerinin ana kasıdır.' },
+  { g: 'Göğüs', id: 'pectoralis', tr: 'Büyük göğüs kası', la: 'm. pectoralis major', o: [[0.085, 1.444, 0.05], [0.04, 1.434, 0.068], [0.016, 1.405, 0.09], [0.014, 1.33, 0.1], [0.02, 1.27, 0.105], [0.05, 1.236, 0.104], [0.085, 1.245, 0.095]], i: [[0.2, 1.392, 0.016], [0.206, 1.36, 0.012]], via: [[0.15, 1.43, 0.06], [0.13, 1.41, 0.08], [0.12, 1.38, 0.09], [0.12, 1.34, 0.095], [0.13, 1.31, 0.09], [0.15, 1.3, 0.075], [0.17, 1.31, 0.05]], nu: 18, nv: 24, depth: 0.0035, th: 0.012, tend: [0.03, 0.14], desc: 'Göğsün ön yüzündeki yelpaze biçimli kas; kolu öne ve içe getirir, içe döndürür. Şınav ve itme hareketlerinin ana kasıdır.' },
   { g: 'Göğüs', id: 'pectoralisMinor', tr: 'Küçük göğüs kası', la: 'm. pectoralis minor', o: [[0.07, 1.385, 0.085], [0.085, 1.33, 0.09], [0.1, 1.28, 0.083]], i: [[0.138, 1.408, 0.036]], depth: 0.018, th: 0.006, tend: [0.05, 0.15], desc: 'Büyük göğüs kasının altında; kürek kemiğinin korakoid çıkıntısını öne-aşağı çeker.' },
   { g: 'Göğüs', id: 'serratus', tr: 'Ön dişli kas', la: 'm. serratus anterior', o: [[0.118, 1.33, 0.07], [0.135, 1.285, 0.062], [0.146, 1.24, 0.048], [0.15, 1.2, 0.032], [0.148, 1.165, 0.015]], i: [[0.128, 1.38, -0.05], [0.13, 1.33, -0.06], [0.125, 1.3, -0.07], [0.115, 1.28, -0.075], [0.1, 1.27, -0.08]], via: [[0.15, 1.34, 0.02], [0.16, 1.3, 0.005], [0.165, 1.26, -0.01], [0.16, 1.23, -0.02], [0.155, 1.2, -0.03]], nu: 15, nv: 18, depth: 0.004, th: 0.007, tend: [0.03, 0.05], digit: 5, desc: 'Göğüs yan duvarında testere dişi gibi parmaksı uzantılarla kaburgalara tutunur; kürek kemiğini göğüs kafesine bastırır ve öne çeker ("boksör kası").' },
   { g: 'Karın', id: 'rectusAbd', tr: 'Düz karın kası', la: 'm. rectus abdominis', o: [[0.005, 0.888, 0.074], [0.03, 0.89, 0.072]], i: [[0.006, 1.226, 0.104], [0.075, 1.25, 0.096]], belly: 1.25, depth: 0.0028, th: 0.011, tend: [0.07, 0.03], bands: [0.5, 0.68, 0.84], nu: 8, nv: 30, edge: 0.35, desc: 'Karın ön duvarında dikey uzanan kas; kiriş bölmeleri (intersectio tendinea) ile "altı kas" görünümü verir. Gövdeyi öne büker ve karın içi basıncını artırır.' },
@@ -2483,7 +2509,7 @@ function buildOrgans(T) {
     liv = I(0.01, liv, Round(DOME_R, -0.003), SD.plane([-0.04, 1.11, 0.06], [-0.15, -1, -0.25]));
     liv = Sub(liv, 0.006, E([0.0, 1.21, 0.075], [0.004, 0.03, 0.03]), S([0.045, 1.135, 0.01], 0.032));
     addPart(organMesh(wet(liv, 0.0005, 120), 0.002, solid(0x7b2a1d, 0.1, 60)), 'digest', { ...dig, id: 'liver', tr: 'Karaciğer', la: 'hepar', desc: 'Vücudun en büyük iç organı (~1,5 kg). Safra üretir; glikozu glikojen olarak depolar; plazma proteinleri (albümin, fibrinojen) üretir; zararlı maddeleri etkisizleştirir ve amonyağı üreye çevirir.' });
-    addPart(organMesh(U(0.008, C([-0.056, 1.104, 0.072], [-0.046, 1.135, 0.046], 0.0125, 0.0075), C([-0.046, 1.135, 0.046], [-0.04, 1.15, 0.03], 0.0045, 0.003)), 0.0009, solid(0x4f7a38, 0.06)), 'digest', { ...dig, id: 'gallbladder', tr: 'Safra kesesi', la: 'vesica biliaris', desc: 'Karaciğerin ürettiği safrayı depolar ve yoğunlaştırır. Yağlı besin onikiparmak bağırsağına geldiğinde kasılarak safrayı boşaltır; safra yağları emülsifiye eder.' });
+    addPart(organMesh(U(0.008, C([-0.054, 1.112, 0.064], [-0.046, 1.138, 0.044], 0.01, 0.0065), C([-0.046, 1.138, 0.044], [-0.04, 1.15, 0.03], 0.004, 0.0028)), 0.0009, solid(0x5a7048, 0.06)), 'digest', { ...dig, id: 'gallbladder', tr: 'Safra kesesi', la: 'vesica biliaris', desc: 'Karaciğerin ürettiği safrayı depolar ve yoğunlaştırır. Yağlı besin onikiparmak bağırsağına geldiğinde kasılarak safrayı boşaltır; safra yağları emülsifiye eder.' });
   });
   T('Dalak ve pankreas', () => {
     const spl = SD.ell([0.108, 1.152, -0.058], [0.018, 0.044, 0.03], [norm3([0.85, 0.1, -0.5]), norm3([-0.15, 1, -0.1]), norm3([0.5, 0.1, 0.86])]);
@@ -2799,16 +2825,16 @@ const isMobile = matchMedia('(max-width: 860px)').matches || matchMedia('(pointe
 
 const LAYERS = [
   { key: 'skin', tr: 'Deri', color: '#d2a185', on: false },
-  { key: 'muscle', tr: 'Kas sistemi', color: '#b5392f', on: false },
-  { key: 'skeleton', tr: 'İskelet sistemi', color: '#e6dcc3', on: true },
+  { key: 'muscle', tr: 'Kaslar', color: '#b5392f', on: true },
+  { key: 'skeleton', tr: 'İskelet', color: '#e6dcc3', on: true },
   { key: 'nervous', tr: 'Sinir sistemi', color: '#f0c64a', on: true },
   { key: 'heart', tr: 'Kalp', color: '#a8322e', on: true },
   { key: 'arteries', tr: 'Atardamarlar', color: '#d6343c', on: true },
   { key: 'veins', tr: 'Toplardamarlar', color: '#3d64c8', on: true },
-  { key: 'respiratory', tr: 'Solunum sistemi', color: '#e09c9c', on: true },
-  { key: 'digestive', tr: 'Sindirim sistemi', color: '#d8946f', on: true },
-  { key: 'urinary', tr: 'Boşaltım sistemi', color: '#b0603f', on: true },
-  { key: 'endocrine', tr: 'Endokrin bezler', color: '#d0a43e', on: true },
+  { key: 'respiratory', tr: 'Solunum', color: '#e09c9c', on: true },
+  { key: 'digestive', tr: 'Sindirim', color: '#d8946f', on: true },
+  { key: 'urinary', tr: 'Boşaltım', color: '#b0603f', on: true },
+  { key: 'endocrine', tr: 'Endokrin', color: '#d0a43e', on: true },
 ];
 const LAYER = Object.fromEntries(LAYERS.map(l => [l.key, l]));
 
@@ -2820,9 +2846,13 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = !isMobile;
+const strongDevice = !isMobile && (navigator.hardwareConcurrency || 4) >= 8;
+renderer.shadowMap.enabled = strongDevice;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.localClippingEnabled = false;
+renderer.localClippingEnabled = true;
+const params = new URLSearchParams(location.search);
+const qParam = params.get('kalite') || location.hash.replace('#', '');
+setQuality(qParam === 'dusuk' ? 1.45 : qParam === 'yuksek' ? 0.85 : isMobile ? 1.45 : 1);
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -2971,6 +3001,8 @@ function ingest(rec) {
   mesh.castShadow = !meta.noShadow; mesh.receiveShadow = true;
   if (meta.pivot) { const p = vec(meta.pivot); geo.translate(-p.x, -p.y, -p.z); mesh.position.copy(p); }
   geo.computeBoundingSphere();
+  if (geo.boundingSphere.radius < 0.018) meta.noShadow = true; // tiny parts: skip the shadow pass
+  mesh.castShadow = !meta.noShadow;
   mesh.userData = { ...meta, mat: rec.mat, basePos: mesh.position.clone() };
   mesh.userData.center = geo.boundingSphere.center.clone().add(mesh.position);
   if (state.selected === null && state.isolate) mesh.material = ghostMat;
@@ -3037,10 +3069,10 @@ async function buildAll() {
         }
       };
       for (const w of workers) {
-        w.onerror = (e) => { console.warn('worker error', e.message); if (!readyCount && !failed) { failed = true; clearTimeout(timer); resolve(false); } };
+        w.onerror = (e) => { console.warn('worker error', e.message, e.filename, e.lineno); if (!readyCount && !failed) { failed = true; clearTimeout(timer); resolve(false); } };
         w.onmessage = (e) => {
           const m = e.data; if (failed) return;
-          if (m.type === 'ready') { readyCount++; idle.push(w); dispatch(); return; }
+          if (m.type === 'ready') { readyCount++; STATS.readyWorkers = readyCount; w.postMessage({ type: 'config', hMul: H_MUL }); idle.push(w); dispatch(); return; }
           if (m.type !== 'done') return;
           if (m.shared) { available.add(m.shared.key); SHARED[m.shared.key] = m.shared.data; for (const w2 of workers) w2.postMessage({ type: 'shared', key: m.shared.key, data: m.shared.data }); }
           onDone(m.index, m.recs, m.err);
@@ -3057,7 +3089,7 @@ async function buildAll() {
 }
 
 // ---------- interaction state ----------
-const state = { selected: null, isolate: false, explode: 0, cut: false, cutAxis: 'z', cutPos: 0.52, anim: { heart: true, breath: true, flow: false, nerve: false }, labels: false, spin: false };
+const state = { split: false, selected: null, isolate: false, explode: 0, cut: false, cutAxis: 'z', cutPos: 0.52, anim: { heart: true, breath: true, flow: false, nerve: false }, labels: false, spin: false };
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 function pickables() {
@@ -3079,6 +3111,7 @@ function pick(clientX, clientY) {
   const hits = raycaster.intersectObjects(objs, false);
   for (const h of hits) {
     if (state.cut && cutPlane.distanceToPoint(h.point) < 0) continue;
+    if (state.split && (h.object.userData.layer === 'muscle' || h.object.userData.layer === 'skin') && h.point.x < 0) continue;
     if (state.isolate && h.object !== state.selected) continue;
     return h;
   }
@@ -3089,7 +3122,7 @@ function pick(clientX, clientY) {
 const hlCache = new Map();
 function highlightMat(m) {
   if (!hlCache.has(m)) {
-    const h = m.clone(); h.emissive = new THREE.Color(0x3fb6cc); h.emissiveIntensity = 0.55; h.userData = { ...m.userData, hl: true };
+    const h = m.clone(); h.emissive = new THREE.Color(0x1f9fbf); h.emissiveIntensity = 0.32; h.userData = { ...m.userData, hl: true };
     hlCache.set(m, h);
   }
   return hlCache.get(m);
@@ -3101,7 +3134,7 @@ function refreshMaterials() {
     if (state.isolate && state.selected && m !== state.selected) m.material = ghostMat;
     else m.material = m === state.selected ? highlightMat(base) : base;
   }
-  for (const [b, h] of hlCache) { h.opacity = b.opacity; h.transparent = b.transparent; h.depthWrite = b.depthWrite; }
+  for (const [b, h] of hlCache) { h.opacity = b.opacity; h.transparent = b.transparent; h.depthWrite = b.depthWrite; h.clippingPlanes = b.clippingPlanes; }
 }
 function select(mesh, focus = false) {
   state.selected = mesh || null;
@@ -3139,6 +3172,15 @@ function applyCut() {
   renderer.clippingPlanes = state.cut ? [cutPlane] : [];
 }
 
+// ---------- split (sagittal half) view for skin & muscles ----------
+const splitPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+function setSplit(on) {
+  state.split = on;
+  for (const key of ['muscle', 'skin']) for (const m of layerMats[key] || []) { m.clippingPlanes = on ? [splitPlane] : null; m.clipShadows = true; m.needsUpdate = true; }
+  for (const [b, h] of hlCache) { h.clippingPlanes = b.clippingPlanes; h.needsUpdate = true; }
+  const btn = $('tSplit'); if (btn) btn.classList.toggle('on', on);
+}
+
 // ---------- explode ----------
 function applyExplode() {
   const a = state.explode;
@@ -3159,16 +3201,48 @@ function buildLayerUI() {
     if (!count) continue;
     const row = document.createElement('div'); row.className = 'layer' + (l.on ? ' on' : '');
     row.innerHTML = `<span class="dot" style="background:${l.color}"></span><label for="ly_${l.key}">${l.tr}<span class="count">${count}</span></label>
-      <span class="switch"><input type="checkbox" id="ly_${l.key}" ${l.on ? 'checked' : ''}><i></i></span>
-      <div class="op"><span>opaklık</span><input type="range" id="op_${l.key}" min="5" max="100" value="${Math.round(layerOpacity[l.key] * 100)}" aria-label="${l.tr} opaklığı"></div>`;
+      <input type="range" id="op_${l.key}" min="5" max="100" value="${Math.round(layerOpacity[l.key] * 100)}" aria-label="${l.tr} opaklığı" title="Opaklık">
+      <span class="switch"><input type="checkbox" id="ly_${l.key}" ${l.on ? 'checked' : ''}><i></i></span>`;
     list.appendChild(row);
-    row.querySelector('input[type=checkbox]').addEventListener('change', (e) => { setLayer(l.key, e.target.checked); row.classList.toggle('on', e.target.checked); });
-    row.querySelector('input[type=range]').addEventListener('input', (e) => setOpacity(l.key, e.target.value / 100));
+    row.querySelector('input[type=checkbox]').addEventListener('change', (e) => { setLayer(l.key, e.target.checked); clearPreset(); });
+    row.querySelector('input[type=range]').addEventListener('input', (e) => { setOpacity(l.key, e.target.value / 100); clearPreset(); });
   }
+  const pr = $('presets'); pr.innerHTML = '';
+  for (const [name] of PRESETS) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = name; b.dataset.p = name;
+    b.onclick = () => applyPreset(name); pr.appendChild(b);
+  }
+  markPreset(currentPreset);
+}
+// layer presets: [name, {layer: opacity|0}, split]
+const ORG = ['heart', 'respiratory', 'digestive', 'urinary', 'endocrine'];
+const PRESETS = [
+  ['Tümü', { skin: 0, muscle: 1, skeleton: 1, nervous: 1, heart: 1, arteries: 1, veins: 1, respiratory: 1, digestive: 1, urinary: 1, endocrine: 1 }, true],
+  ['Kaslar', { muscle: 1, skeleton: 1 }, false],
+  ['İskelet', { skeleton: 1 }, false],
+  ['Organlar', { skeleton: 0.22, nervous: 1, ...Object.fromEntries(ORG.map(k => [k, 1])) }, false],
+  ['Dolaşım', { skeleton: 0.25, heart: 1, arteries: 1, veins: 1 }, false],
+  ['Sinir', { skeleton: 0.28, nervous: 1 }, false],
+  ['Röntgen', { skin: 0.3, skeleton: 1, heart: 1, respiratory: 1, digestive: 1, urinary: 1, nervous: 1 }, false],
+  ['Deri', { skin: 1 }, false],
+];
+let currentPreset = 'Tümü';
+function markPreset(name) { currentPreset = name; document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', b.dataset.p === name)); }
+function clearPreset() { markPreset(null); }
+function applyPreset(name) {
+  const p = PRESETS.find(x => x[0] === name); if (!p) return;
+  for (const l of LAYERS) {
+    const v = p[1][l.key] || 0;
+    setLayer(l.key, v > 0);
+    if (v > 0) { const op = l.key === 'skin' && v === 1 ? 1 : v; setOpacity(l.key, op); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(op * 100); }
+  }
+  setSplit(p[2]);
+  markPreset(name);
 }
 function setLayer(key, on) {
   LAYER[key].on = on; groups[key].visible = on;
   const cb = $('ly_' + key); if (cb) { cb.checked = on; cb.closest('.layer').classList.toggle('on', on); }
+  if (FLOW.points && (key === 'arteries' || key === 'veins')) FLOW.points.visible = state.anim.flow && (groups.arteries.visible || groups.veins.visible);
   if (!on && state.selected && state.selected.userData.layer === key) select(null);
   updateLabels(true);
 }
@@ -3181,7 +3255,7 @@ function setOpacity(key, v) {
   for (const mesh of groups[key].children) mesh.castShadow = v > 0.6 && !mesh.userData.noShadow;
   refreshMaterials();
 }
-$('allOn').addEventListener('click', () => { for (const l of LAYERS) if (groups[l.key].children.length && l.key !== 'skin') setLayer(l.key, true); });
+$('allOn').addEventListener('click', () => applyPreset('Tümü'));
 
 // ---------- UI: info ----------
 function triCount(m) { const g = m.geometry; return Math.round((g.index ? g.index.count : g.attributes.position.count) / 3); }
@@ -3262,8 +3336,9 @@ toggleBtn('aBreath', (on) => state.anim.breath = on);
 toggleBtn('aFlow', (on) => { state.anim.flow = on; if (FLOW.points) FLOW.points.visible = on; });
 toggleBtn('aNerve', (on) => { state.anim.nerve = on; if (FLOW.nervePts) FLOW.nervePts.visible = on; });
 toggleBtn('tLabels', (on) => { state.labels = on; updateLabels(true); });
+$('tSplit').addEventListener('click', () => { setSplit(!state.split); clearPreset(); });
 toggleBtn('tSpin', (on) => { state.spin = on; controls.autoRotate = on; controls.autoRotateSpeed = 1.2; });
-if (isMobile) $('tShadow').classList.remove('on');
+if (!strongDevice) $('tShadow').classList.remove('on');
 toggleBtn('tShadow', (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; });
 $('mLayers').onclick = () => { document.body.classList.toggle('show-layers'); document.body.classList.remove('show-info'); };
 $('mInfo').onclick = () => { document.body.classList.toggle('show-info'); document.body.classList.remove('show-layers'); };
@@ -3308,19 +3383,37 @@ function updateLabels(force) { if (force) labelDirty = true; }
 function drawLabels() {
   const host = $('labels'); const svg = host.querySelector('svg');
   if (!state.labels) { if (labelEls.size) { labelEls.forEach(el => el.remove()); labelEls.clear(); svg.innerHTML = ''; } return; }
-  let lines = '';
-  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3();
+  const w = innerWidth, h = innerHeight; const v = new THREE.Vector3(); const items = [];
   for (const id of LABEL_IDS) {
     const m = byId.get(id); let el = labelEls.get(id);
-    const vis = m && m.visible && groups[m.userData.layer].visible;
+    let vis = m && m.visible && groups[m.userData.layer].visible;
+    if (vis && state.split && (m.userData.layer === 'muscle' || m.userData.layer === 'skin') && m.userData.center.x < 0) vis = false;
+    if (vis && state.cut && cutPlane.distanceToPoint(m.userData.center) < 0) vis = false;
+    if (vis && layerOpacity[m.userData.layer] < 0.3) vis = false;
     if (!vis) { if (el) el.style.display = 'none'; continue; }
     if (!el) { el = document.createElement('div'); el.className = 'lb'; el.textContent = m.userData.tr.replace(/ \((sol|sağ)\)/, ''); host.appendChild(el); labelEls.set(id, el); }
     v.copy(m.geometry.boundingSphere.center).add(m.position).project(camera);
-    if (v.z > 1) { el.style.display = 'none'; continue; }
     const x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
-    const side = x > w / 2 ? 1 : -1; const lx = x + side * 46, ly = y - 26;
-    el.style.display = ''; el.style.left = lx + 'px'; el.style.top = ly + 'px';
-    lines += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${lx.toFixed(1)}" y2="${(ly).toFixed(1)}" stroke="rgba(228,233,236,0.55)" stroke-width="1"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.2" fill="#6fd0e0"/>`;
+    if (v.z > 1 || x < 0 || x > w || y < 0 || y > h) { el.style.display = 'none'; continue; }
+    items.push({ el, x, y });
+  }
+  if (!items.length) { svg.innerHTML = ''; return; }
+  const cx = items.reduce((a, it) => a + it.x, 0) / items.length;
+  const spread = Math.max(...items.map(it => Math.abs(it.x - cx)));
+  const off = Math.min(Math.max(150, spread + 70), w * 0.42);
+  let lines = '';
+  for (const side of [-1, 1]) {
+    const col = items.filter(it => (it.x < cx) === (side < 0)).sort((a, b) => a.y - b.y);
+    const colX = clamp(cx + side * off, 120, w - 120);
+    let last = -Infinity;
+    for (const it of col) { it.ly = Math.max(it.y, last + 21); last = it.ly; }
+    const over = last - (h - 90); if (over > 0) for (const it of col) it.ly -= over;
+    for (const it of col) {
+      it.el.style.display = ''; it.el.style.left = colX + 'px'; it.el.style.top = it.ly + 'px';
+      it.el.style.transform = side < 0 ? 'translate(-100%, -50%)' : 'translate(0, -50%)';
+      const ex = colX - side * 6;
+      lines += `<polyline points="${it.x.toFixed(1)},${it.y.toFixed(1)} ${(ex - side * 18).toFixed(1)},${it.ly.toFixed(1)} ${ex.toFixed(1)},${it.ly.toFixed(1)}" fill="none" stroke="rgba(228,233,236,0.45)" stroke-width="1"/><circle cx="${it.x.toFixed(1)}" cy="${it.y.toFixed(1)}" r="2.4" fill="#6fd0e0"/>`;
+    }
   }
   svg.innerHTML = lines;
 }
@@ -3339,11 +3432,11 @@ function buildFlowParticles() {
     const pos = new Float32Array(items.length * 3), col = new Float32Array(items.length * 3);
     items.forEach((it, i) => { const c = colorFn(it.p); col.set(c, i * 3); });
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, map: sprite, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
-    pts.frustumCulled = false; pts.userData.items = items; pts.visible = false; scene.add(pts);
+    const pts = new THREE.Points(g, new THREE.PointsMaterial({ size, map: sprite, vertexColors: true, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
+    pts.frustumCulled = false; pts.renderOrder = 10; pts.userData.items = items; pts.visible = false; scene.add(pts);
     return pts;
   };
-  if (FLOW.paths.length) FLOW.points = mk(FLOW.paths, 60, (p) => p.kind === 'a' ? [1.0, 0.25, 0.22] : [0.35, 0.55, 1.0], 0.012);
+  if (FLOW.paths.length) FLOW.points = mk(FLOW.paths, 70, (p) => p.kind === 'a' ? [1.0, 0.16, 0.12] : [0.22, 0.48, 1.0], 0.011);
   if (FLOW.nervePaths.length) FLOW.nervePts = mk(FLOW.nervePaths, 9, () => [1.0, 0.92, 0.55], 0.016);
   if (FLOW.points) FLOW.points.visible = state.anim.flow;
   if (FLOW.nervePts) FLOW.nervePts.visible = state.anim.nerve;
@@ -3411,13 +3504,15 @@ window.__anatomy = {
   ready: false, THREE, scene, camera, controls, state, byId, PARTS_LIST,
   setView: (i) => { const v = VIEWS[i]; camera.position.copy(vec(v[1])); controls.target.copy(vec(v[2])); controls.update(); },
   look: (p, t) => { camera.position.copy(vec(p)); controls.target.copy(vec(t)); controls.update(); },
-  setLayer, setOpacity, select: (id) => select(byId.get(id) || null),
-  stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, errors: buildErrors }),
+  setLayer, setOpacity, setSplit, applyPreset, select: (id) => select(byId.get(id) || null),
+  stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, ready: STATS.readyWorkers || 0, errors: buildErrors }),
   render: () => { controls.update(); renderer.render(scene, camera); if (state.labels) drawLabels(); },
   pause: (p = true) => { state.paused = p; },
+  tick: (n = 30) => { for (let i = 0; i < n; i++) { stepFlow(FLOW.points, 0.05, ['arteries', 'veins']); stepFlow(FLOW.nervePts, 0.05, ['nervous']); } },
   shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; },
 };
 
+setSplit(true);
 let revealed = false;
 function revealStage() { if (revealed) return; revealed = true; $('loader').classList.add('done'); }
 (async () => {

@@ -36,10 +36,12 @@ function runTask(task) {
 }
 
 if (IS_WORKER) {
-  const tasks = planTasks();
+  let tasks = null; // planned lazily: later modules' constants are not initialised yet at this point
   self.onmessage = (e) => {
     const m = e.data;
+    tasks ||= planTasks();
     if (m.type === 'shared') { SHARED[m.key] = m.data; return; }
+    if (m.type === 'config') { setQuality(m.hMul); return; }
     if (m.type !== 'run') return;
     const task = tasks[m.index]; let recs = [], err = null;
     const t0 = performance.now();
@@ -49,5 +51,5 @@ if (IS_WORKER) {
     const shared = task.provides && SHARED[task.provides] ? { key: task.provides, data: SHARED[task.provides] } : null;
     self.postMessage({ type: 'done', index: m.index, recs, err, shared, ms: performance.now() - t0 }, [...transfer]);
   };
-  self.postMessage({ type: 'ready' });
+  setTimeout(() => self.postMessage({ type: 'ready' }), 0);
 }
