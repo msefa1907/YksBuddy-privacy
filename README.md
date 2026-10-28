@@ -1,3 +1,3 @@
 # YksBuddy-privacy
 
-- [Corpus Atlas](anatomy/) — tarayıcıda prosedürel olarak üretilen 3B insan anatomisi (three.js)
+- [Corpus Atlas](anatomy/) — gerçek anatomi verisinden (BodyParts3D) etkileşimli 3B insan atlası (three.js)
