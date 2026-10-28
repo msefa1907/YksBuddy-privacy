@@ -24,6 +24,9 @@ const cross3 = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], 
 const len3 = (a) => Math.sqrt(dot3(a, a));
 const norm3 = (a) => { const l = len3(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 const mirX = (p) => [-p[0], p[1], p[2]];
+// sRGB hex -> linear rgb triple for vertex colours
+const lin = (hex) => [((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255].map(c => Math.pow(c, 2.2));
+const mixc = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
 
 function mulberry32(a) {
   return function () {

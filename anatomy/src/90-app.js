@@ -140,6 +140,24 @@ skinMat.onBeforeCompile = (sh) => {
     #include <opaque_fragment>`);
 };
 Object.assign(skinMat, { opacity: 0.32, transparent: true, depthWrite: false });
+const WET = { roughness: 0.38, clearcoat: 0.55, clearcoatRoughness: 0.28, vertexColors: true, color: 0xffffff };
+defMat('brain', 'nervous', { ...WET, roughness: 0.5, clearcoat: 0.3 });
+defMat('eye', 'nervous', { color: 0xffffff, vertexColors: true, roughness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.05 });
+defMat('heart', 'heart', { ...WET, sheen: 0.3, sheenColor: 0xff8a70 });
+defMat('lung', 'respiratory', { ...WET, roughness: 0.55, clearcoat: 0.25, opacity: 0.8, transparent: true, depthWrite: false });
+defMat('airway', 'respiratory', { ...WET, roughness: 0.35 });
+defMat('diaphragm', 'respiratory', { ...WET, roughness: 0.45 });
+defMat('digest', 'digestive', { ...WET });
+defMat('urinary', 'urinary', { ...WET });
+defMat('endocrine', 'endocrine', { ...WET });
+const VES = { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 };
+defMat('artery', 'arteries', { ...VES, color: 0xc4202c, sheen: 0.4, sheenColor: 0xff6a6a });
+defMat('pulmArtery', 'arteries', { ...VES, color: 0x2f55b8 });
+defMat('vein', 'veins', { ...VES, color: 0x2e4fae, sheen: 0.4, sheenColor: 0x7aa0ff });
+defMat('pulmVein', 'veins', { ...VES, color: 0xc4202c });
+defMat('portal', 'veins', { ...VES, color: 0x6a3f9e });
+defMat('nerve', 'nervous', { color: 0xf0c85a, roughness: 0.42, clearcoat: 0.45, clearcoatRoughness: 0.3, sheen: 0.6, sheenColor: 0xfff0b0, emissive: 0x2a1c00 });
+defMat('muscle', 'muscle', { color: 0xffffff, vertexColors: true, map: TEX.muscleMap, normalMap: TEX.muscleNormal, normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.5, clearcoat: 0.35, clearcoatRoughness: 0.35, sheen: 0.35, sheenColor: 0xff8070, side: THREE.DoubleSide });
 defMat('tooth', 'skeleton', { color: 0xf4f0e6, roughness: 0.22, vertexColors: true, clearcoat: 0.8, clearcoatRoughness: 0.15 });
 
 // ---------- registry ----------
@@ -603,6 +621,7 @@ window.__anatomy = {
   stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), buildMs: Math.round(STATS.buildMs), workers: STATS.workers, errors: buildErrors }),
   render: () => { controls.update(); renderer.render(scene, camera); if (state.labels) drawLabels(); },
   pause: (p = true) => { state.paused = p; },
+  shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; },
 };
 
 let revealed = false;
