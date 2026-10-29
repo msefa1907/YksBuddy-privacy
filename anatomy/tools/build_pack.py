@@ -15,6 +15,18 @@ for line in open(os.path.join(SRC, 'parts_list_e.txt'), encoding='utf-8'):
 EDGE = {'skeleton': 2.5, 'muscle': 4.4, 'nervous': 2.0, 'heart': 2.4, 'arteries': 2.2, 'veins': 2.2, 'respiratory': 3.2,
         'digestive': 3.0, 'urinary': 2.4, 'endocrine': 2.0, 'reproductive': 2.4, 'skin': 6.0}
 MAXT = {'skin': 360000}
+# structures that are seen up close (heart scenario, brain) keep much more of the original detail: (name regex, edge mm, max tris)
+import re as _re
+EDGE_PART = [
+    (r'^wall of heart$', 1.15, 200000), (r'valve$', 0.7, 24000), (r'papillary', 1.0, 12000),
+    (r'coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches', 0.9, 12000),
+    (r'^(ascending aorta|arch of aorta|superior vena cava|inferior vena cava|brachiocephalic artery, nsn|.* brachiocephalic vein)$', 1.4, 30000),
+    (r'^(pulmonary artery|pulmonary vein)$', 1.6, 90000), (r'^cerebellum$', 1.3, 70000),
+]
+def part_edge(en, layer):
+    for rx, e, mt in EDGE_PART:
+        if _re.search(rx, en): return e, mt
+    return EDGE[layer], MAXT.get(layer, 60000)
 # body frame: x stays (left = +x), y = up (stl Z), z = anterior (-stl Y); metres; feet at y = 0
 OX, OY, OZ = 0.0, -96.5, -13.5
 
@@ -34,8 +46,8 @@ for fn in sorted(os.listdir(os.path.join(SRC, 'stl'))):
     F = F[(F[:, 0] != F[:, 1]) & (F[:, 1] != F[:, 2]) & (F[:, 0] != F[:, 2])]
     e1 = V[F[:, 1]] - V[F[:, 0]]; e2 = V[F[:, 2]] - V[F[:, 0]]
     area = 0.5 * np.linalg.norm(np.cross(e1, e2), axis=1).sum()
-    edge = EDGE[layer] / QUALITY ** 0.5
-    target = int(np.clip(area / (0.433 * edge * edge), 150, MAXT.get(layer, 60000)))
+    edge, maxt = part_edge(en, layer); edge /= QUALITY ** 0.5
+    target = int(np.clip(area / (0.433 * edge * edge), 150, maxt))
     if len(F) > target:
         s = pyfqmr.Simplify(); s.setMesh(V.astype(np.float64), F.astype(np.int32))
         s.simplify_mesh(target_count=target, aggressiveness=6, preserve_border=True, verbose=False)

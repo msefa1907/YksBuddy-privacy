@@ -8,6 +8,7 @@ buildPresetUI();
     await loadAll();
     setupAnimation();
     await setupCardio();
+    setPalette(LOOK.palette);
     buildLayerUI();
     applyPreset(currentPreset);
     setOpacity('skin', layerOpacity.skin);

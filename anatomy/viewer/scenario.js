@@ -104,7 +104,8 @@ const STEPS = [
 // ---------- entering / leaving ----------
 function enterScenario() {
   if (!CARDIO.ready) return;
-  SCN.prev = { layers: Object.fromEntries(LAYERS.map(l => [l.key, [l.on, layerOpacity[l.key]]])), split: state.split, cut: state.cut };
+  SCN.prev = { layers: Object.fromEntries(LAYERS.map(l => [l.key, [l.on, layerOpacity[l.key]]])), split: state.split, cut: state.cut, palette: LOOK.palette };
+  setPalette('atlas'); // oxygen-rich red / oxygen-poor blue is what the steps explain
   SCN.active = true; SCN.views = heartViews(); document.body.classList.add('scn'); document.body.classList.remove('show-layers');
   if (state.cut) $('tCut').click();
   setSplit(false); select(null);
@@ -116,7 +117,7 @@ function exitScenario() {
   setHeartCut(false); showFlow(null); CARDIO.fx.group.visible = false;
   Object.assign(CARDIO, { hold: null, playing: true, speed: 1, glow: 0, pulse: false });
   for (const l of LAYERS) { const [on, op] = SCN.prev.layers[l.key]; setLayer(l.key, on); setOpacity(l.key, op); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(op * 100); }
-  setSplit(SCN.prev.split);
+  setSplit(SCN.prev.split); setPalette(SCN.prev.palette);
   flyTo(HOME[0], HOME[1]);
   renderInfo();
 }

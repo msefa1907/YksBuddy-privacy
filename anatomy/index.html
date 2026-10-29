@@ -196,6 +196,12 @@ body.scn #searchBox, body.scn #info, body.scn #hint { display: none !important; 
 #dOut a.btn { text-decoration: none; }
 #dOut .key { margin: 8px 0 0; color: var(--text); }
 
+#looks { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 6px 10px; }
+#looks .seg { display: flex; border: 1px solid var(--rule); border-radius: 20px; overflow: hidden; }
+#looks .seg button { background: var(--ink-2); border: 0; padding: 4px 10px; font-size: 12px; color: var(--text-dim); }
+#looks .seg button.on { background: var(--bone); color: var(--ink-0); }
+body.light #stage { background: radial-gradient(120% 90% at 50% 38%, #f6f7f8 0%, #e4e7ea 55%, #c9ced3 100%); }
+
 #tools #mobileBar { display: none; }
 @media (max-width: 860px) {
   #leftCol { right: max(var(--gutter), env(safe-area-inset-right, 0px)); width: auto; bottom: auto; }
@@ -239,6 +245,11 @@ body.scn #searchBox, body.scn #info, body.scn #hint { display: none !important; 
 <nav id="layers" class="panel" aria-label="Katmanlar">
   <div class="sec-title"><span>Süreçler</span></div>
   <div id="procs"><button id="pHeart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.1 3 4.5 6.6 4.5c2.1 0 3.5 1.2 4.3 2.4.4.6 1.8.6 2.2 0 .8-1.2 2.2-2.4 4.3-2.4 3.6 0 5.7 3.6 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>Kalp döngüsü</button></div>
+  <div class="sec-title"><span>Görünüm</span></div>
+  <div id="looks">
+    <div class="seg"><button type="button" data-look="palette" data-v="natural" class="on" title="Damarlar vücuttaki gerçek renkleriyle">Doğal renk</button><button type="button" data-look="palette" data-v="atlas" title="Atardamarlar kırmızı, toplardamarlar mavi">Atlas rengi</button></div>
+    <div class="seg"><button type="button" data-look="stage" data-v="dark" class="on">Koyu</button><button type="button" data-look="stage" data-v="light">Açık</button></div>
+  </div>
   <div class="sec-title"><span>Hazır görünümler</span></div>
   <div id="presets"></div>
   <div class="sec-title"><span>Sistemler</span><button id="allOn" type="button">tümünü aç</button></div>
@@ -720,6 +731,10 @@ function describe(p) {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 // ===================== Corpus Atlas — real-anatomy viewer =====================
 // Geometry: BodyParts3D 3.0 (DBCLS, CC BY-SA 2.1 JP), decimated and packed by tools/build_pack.py.
@@ -805,6 +820,43 @@ const decor = [];
   scene.add(disc, ring, sh); decor.push(disc, ring, sh);
 }
 
+// stage backdrop drawn inside the scene (opaque), so translucent parts blend against it correctly in post-processing
+function stageTexture(stops) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 512; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(256, 195, 0, 256, 195, 420);
+  for (const [t, col] of stops) gr.addColorStop(t, col);
+  g.fillStyle = gr; g.fillRect(0, 0, 512, 512);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; return tex;
+}
+const STAGE_BG = {
+  dark: stageTexture([[0, '#142231'], [0.45, '#0b131b'], [1, '#070b0f']]),
+  light: stageTexture([[0, '#f6f7f8'], [0.55, '#e4e7ea'], [1, '#c9ced3']]),
+};
+scene.background = STAGE_BG.dark;
+
+// ---------- ambient occlusion (GTAO) on the depth of the beauty pass, so clipping and cut views stay correct ----------
+const POST = { on: strongDevice, composer: null, gtao: null, r: 0 };
+{
+  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4, depthTexture: new THREE.DepthTexture(1, 1) });
+  const composer = new EffectComposer(renderer, rt);
+  composer.addPass(new RenderPass(scene, camera));
+  const gtao = new GTAOPass(scene, camera, 1, 1);
+  gtao.updateGtaoMaterial({ radius: 0.02, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 12, distanceFallOff: 1.0 });
+  gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
+  gtao.blendIntensity = 0.85;
+  composer.addPass(gtao); composer.addPass(new OutputPass());
+  composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(innerWidth, innerHeight);
+  Object.assign(POST, { composer, gtao });
+}
+function renderScene() {
+  if (!POST.on) { renderer.render(scene, camera); return; }
+  // occlusion radius follows the zoom: millimetre creases up close, centimetre gaps for the whole body
+  const r = clamp(camera.position.distanceTo(controls.target) * 0.02, 0.003, 0.05);
+  if (Math.abs(r - POST.r) > POST.r * 0.04) { POST.gtao.updateGtaoMaterial({ radius: r }); POST.r = r; }
+  POST.gtao.setGBuffer(POST.composer.readBuffer.depthTexture);
+  POST.composer.render();
+}
+
 // ---------- surface shading ----------
 // Micro detail without textures: band-limited 3D noise in object space drives albedo and a bump on the
 // normal (fibre-aligned for muscle). Back faces are drawn as flat "cut surfaces" so clipped parts look solid.
@@ -827,6 +879,30 @@ float fbm(vec3 p, int oct) {
   for (int i = 0; i < 5; i++) { if (i >= oct) break; s += a * vnoise(p * f) * (1.0 - smoothstep(0.35, 0.8, fw * f)); f *= 2.07; a *= 0.5; }
   return s;
 }
+vec3 hash33(vec3 p) { p = fract(p * vec3(0.1031, 0.1030, 0.0973)); p += dot(p, p.yxz + 33.33); return fract((p.xxy + p.yxx) * p.zyx) * 2.0 - 1.0; }
+float gnoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p); vec3 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  return 1.6 * mix(mix(mix(dot(hash33(i), f), dot(hash33(i + vec3(1, 0, 0)), f - vec3(1, 0, 0)), u.x),
+                       mix(dot(hash33(i + vec3(0, 1, 0)), f - vec3(0, 1, 0)), dot(hash33(i + vec3(1, 1, 0)), f - vec3(1, 1, 0)), u.x), u.y),
+                   mix(mix(dot(hash33(i + vec3(0, 0, 1)), f - vec3(0, 0, 1)), dot(hash33(i + vec3(1, 0, 1)), f - vec3(1, 0, 1)), u.x),
+                       mix(dot(hash33(i + vec3(0, 1, 1)), f - vec3(0, 1, 1)), dot(hash33(i + vec3(1, 1, 1)), f - vec3(1, 1, 1)), u.x), u.y), u.z);
+}
+// thin meandering lines on the zero set of domain-warped gradient noise: small surface blood vessels.
+// Lines thinner than about a pixel fade out instead of aliasing.
+float vline(vec3 p, float width) {
+  vec3 w = p + 0.55 * vec3(gnoise(p * 0.45 + 3.1), gnoise(p * 0.45 + 7.7), gnoise(p * 0.45 + 1.3));
+  float n = gnoise(w); float fw = fwidth(n) + 1e-5;
+  return (1.0 - smoothstep(width, width + 1.5 * fw, abs(n))) * (1.0 - smoothstep(0.6, 1.6, fw / width));
+}
+// distances to the nearest and second-nearest feature points (cellular texture)
+vec2 worley(vec3 p) {
+  vec3 i = floor(p), f = fract(p); float d1 = 8.0, d2 = 8.0;
+  for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+    vec3 g = vec3(float(x), float(y), float(z)); vec3 r = g + hash33(i + g) * 0.42 + 0.5 - f; float d = dot(r, r);
+    if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+  }
+  return sqrt(vec2(d1, d2));
+}
 vec3 bumpN(vec3 pos, vec3 n, float h, float fd) {
   vec3 sx = dFdx(pos), sy = dFdy(pos); vec3 r1 = cross(sy, n), r2 = cross(n, sx);
   float det = dot(sx, r1) * fd; vec3 g = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
@@ -837,7 +913,8 @@ const GLSL_SURFACE = `
 float hgt = 0.0; float rMul = 1.0;
 #if SURF == 1
 { float m = fbm(vOP * 55.0, 3); float pr = fbm(vOP * 650.0, 3);
-  diffuseColor.rgb *= 1.0 + 0.10 * m - 0.07 * max(pr, 0.0);
+  float cav = smoothstep(0.18, 0.55, dot(vColor, vec3(0.3, 0.59, 0.11))); // baked occlusion: grooves and foramina are stained
+  diffuseColor.rgb *= mix(vec3(0.8, 0.7, 0.55), vec3(1.0), cav) * (1.0 + 0.10 * m - 0.07 * max(pr, 0.0));
   hgt = 0.00025 * m + 0.00006 * pr; }
 #elif SURF == 2
 { vec3 f = normalize(vFib.xyz + vec3(1e-4)); vec3 q = vOP - f * dot(vOP, f) * 0.93; float tn = vFib.w;
@@ -846,16 +923,48 @@ float hgt = 0.0; float rMul = 1.0;
   hgt = mix(0.00007, 0.00003, tn) * s + 0.00016 * b; rMul = mix(1.0, 0.62, tn); }
 #elif SURF == 3
 { float m = fbm(vOP * 34.0, 3); float d = fbm(vOP * 420.0, 3);
-  diffuseColor.rgb *= 1.0 + 0.11 * m + 0.05 * d; hgt = 0.0002 * m + 0.00004 * d; }
+  diffuseColor.rgb *= 1.0 + 0.11 * m + 0.05 * d; hgt = 0.0002 * m + 0.00004 * d;
+#ifdef FAT
+  // epicardial fat (baked as a yellow vertex tint): lobulated, paler in the middle of each lobule
+  float fatW = smoothstep(0.22, 0.5, vColor.g / max(vColor.r, 1e-3));
+  if (fatW > 0.01) { vec2 c = worley(vOP * 240.0); float lob = smoothstep(0.0, 0.3, c.y - c.x);
+    diffuseColor.rgb *= mix(vec3(1.0), mix(vec3(0.82, 0.6, 0.42), vec3(1.08, 1.04, 0.96), lob), fatW); hgt += fatW * 0.00016 * lob; }
+#endif
+#if VNET > 0
+  // small surface vessels: thin arterial (deep red) and venous (dark blue) branches broken into segments by a
+  // low-frequency mask so they read as separate vessels; on the brain they follow the sulci (baked occlusion)
+  float k = float(VNET) * 0.01;
+  float segA = smoothstep(0.05, 0.45, gnoise(vOP * 22.0 + 4.0)), segV = smoothstep(0.1, 0.5, gnoise(vOP * 18.0 + 9.0));
+  float va = vline(vOP * 95.0, 0.03) * segA, vv = vline(vOP * 75.0 + 19.0, 0.035) * segV;
+  float vc = vline(vOP * 300.0 + 5.0, 0.04) * 0.25 * smoothstep(-0.2, 0.4, gnoise(vOP * 40.0));
+#ifdef SULCI
+  float sul = 1.0 - smoothstep(0.25, 0.6, dot(vColor, vec3(0.3, 0.59, 0.11)));
+  va *= 0.3 + sul; vv *= 0.3 + sul;
+#endif
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.34, 0.045, 0.045), clamp(va * 0.6 + vc * 0.35, 0.0, 1.0) * k);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.15, 0.1, 0.24), vv * 0.5 * k);
+  hgt += (va + vv) * 0.00005 * k;
+#endif
+}
 #elif SURF == 4
-{ float m = fbm(vOP * 38.0, 3); float c = fbm(vOP * 300.0, 3); float sp = smoothstep(0.18, 0.42, fbm(vOP * 110.0 + 7.0, 3));
-  diffuseColor.rgb *= (1.0 + 0.14 * m + 0.10 * c) * (1.0 - 0.38 * sp); hgt = 0.00012 * c + 0.00022 * m; }
+{ // lung: pleura over polygonal lobules outlined by dark interlobular septa, mottled with pigment
+  float m = fbm(vOP * 38.0, 3); float c = fbm(vOP * 300.0, 3);
+  vec2 w = worley(vOP * 75.0); float septa = 1.0 - smoothstep(0.015, 0.07, w.y - w.x);
+  float sp = smoothstep(0.2, 0.45, fbm(vOP * 110.0 + 7.0, 3)); float alv = fbm(vOP * 1100.0, 2);
+  diffuseColor.rgb *= (1.0 + 0.14 * m + 0.08 * c + 0.06 * alv) * (1.0 - 0.3 * sp);
+  septa *= 0.55 + 0.45 * smoothstep(-0.3, 0.3, gnoise(vOP * 20.0 + 3.0));
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.2, 0.13, 0.14), septa * 0.38);
+  hgt = 0.00012 * c + 0.00022 * m - 0.00012 * septa + 0.00002 * alv; }
 #elif SURF == 5
 { float m = fbm(vOP * 16.0, 3); float pr = fbm(vOP * 1500.0, 2); float w = fbm(vOP * 260.0, 2);
   diffuseColor.rgb *= 1.0 + 0.07 * m; diffuseColor.r *= 1.0 + 0.035 * m; hgt = 0.000025 * pr + 0.00004 * w + 0.0001 * m; }
 #elif SURF == 6
 { float m = fbm(vOP * 60.0, 2); float d = fbm(vOP * 500.0, 2);
-  diffuseColor.rgb *= 1.0 + 0.07 * m; hgt = 0.00005 * m + 0.00002 * d; }
+  diffuseColor.rgb *= 1.0 + 0.07 * m; hgt = 0.00005 * m + 0.00002 * d;
+#if VNET > 0
+  float vv = vline(vOP * 260.0, 0.05); diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.55, 0.3, 0.32), vv * float(VNET) * 0.01);
+#endif
+}
 #elif SURF == 7
 { vec3 c = vec3(sign(vOP.x) * 0.0280, 1.5408, 0.0612); vec3 d = normalize(vOP - c);
   float a = dot(d, normalize(vec3(sign(vOP.x) * 0.06, 0.02, 1.0)));
@@ -902,7 +1011,7 @@ const GLSL_RIG_VERT = `
 }
 #endif
 `;
-function patchSurface(mat, kind, rigged = false) {
+function patchSurface(mat, kind, rigged = false, opts = {}) {
   const capU = mat.userData.capU || (mat.userData.capU = { value: 1 });
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uCap = capU;
@@ -912,7 +1021,7 @@ function patchSurface(mat, kind, rigged = false) {
       .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigDecl}\nvarying vec3 vOP;\n#if SURF == 2\nattribute vec4 fiber; varying vec4 vFib;\n#endif`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = transformed;\n#if SURF == 2\nvFib = fiber;\n#endif\n${GLSL_RIG_VERT}`);
     let fs = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n${rigged ? '#define RIG\nvarying float vAct; uniform float uCycleT, uGlow;' : ''}\n${GLSL_COMMON}`)
+      .replace('#include <common>', `#include <common>\n#define SURF ${kind}\n#define VNET ${Math.round((opts.vnet || 0) * 100)}\n${opts.fat ? '#define FAT' : ''}\n${opts.sulci ? '#define SULCI' : ''}\n${rigged ? '#define RIG\nvarying float vAct; uniform float uCycleT, uGlow;' : ''}\n${GLSL_COMMON}`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 #ifdef RIG
 if (vAct > -0.5 && uGlow > 0.0) { float e = (uCycleT - vAct - 0.018) / 0.02; totalEmissiveRadiance += vec3(1.0, 0.78, 0.3) * uGlow * exp(-e * e); }
@@ -927,51 +1036,60 @@ if (vAct > -0.5 && uGlow > 0.0) { float e = (uCycleT - vAct - 0.018) / 0.02; tot
         diffuseColor.a = clamp(diffuseColor.a * 0.45 + fres * 1.1 * diffuseColor.a + fres * 0.16, 0.0, 1.0);
         outgoingLight = mix(outgoingLight * 1.15, vec3(0.80, 0.88, 0.97), fres * 0.7);
       }` : '';
-    fs = fs.replace('#include <opaque_fragment>', `${glass}\n${GLSL_CAP}\n#include <opaque_fragment>`);
+    const sss = opts.sss ? `
+      { // light scattered under the surface: shadows of soft tissue turn warm and red, edges glow slightly
+        float lum = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
+        outgoingLight = mix(outgoingLight, outgoingLight * vec3(${opts.sss.map(v => v.toFixed(2)).join(', ')}), (1.0 - smoothstep(0.0, 0.5, lum)) * 0.55);
+        float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0);
+        outgoingLight += diffuseColor.rgb * rim * 0.14;
+      }` : '';
+    fs = fs.replace('#include <opaque_fragment>', `${glass}\n${sss}\n${GLSL_CAP}\n#include <opaque_fragment>`);
     sh.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => 'surf' + kind + (rigged ? 'r' : '');
-  mat.userData.surf = kind; mat.userData.rigged = rigged;
+  mat.customProgramCacheKey = () => 'surf' + kind + (rigged ? 'r' : '') + JSON.stringify(opts);
+  mat.userData.surf = kind; mat.userData.rigged = rigged; mat.userData.opts = opts;
   return mat;
 }
 
 // ---------- materials (one per layer × material kind, created on demand) ----------
 const WET = { roughness: 0.42, clearcoat: 0.6, clearcoatRoughness: 0.24 };
+const FLESH = [1.25, 0.84, 0.78]; // subsurface tint for soft tissue
 const MAT_DEFS = {
   bone: [SURF.bone, { roughness: 0.62, clearcoat: 0.05, clearcoatRoughness: 0.6 }],
   tooth: [SURF.bone, { roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.12 }],
   cartilage: [SURF.wet, { roughness: 0.3, clearcoat: 0.65, clearcoatRoughness: 0.22, sheen: 0.3, sheenColor: 0xdfeff0 }],
   disc: [SURF.wet, { roughness: 0.38, clearcoat: 0.45, clearcoatRoughness: 0.3 }],
   ligament: [SURF.wet, { roughness: 0.34, clearcoat: 0.5, clearcoatRoughness: 0.3, sheen: 0.5, sheenColor: 0xffffff }],
-  muscle: [SURF.muscle, { roughness: 0.52, clearcoat: 0.3, clearcoatRoughness: 0.3, sheen: 0.15, sheenColor: 0xff8a78, sheenRoughness: 0.5 }],
+  muscle: [SURF.muscle, { roughness: 0.52, clearcoat: 0.3, clearcoatRoughness: 0.3, sheen: 0.15, sheenColor: 0xff8a78, sheenRoughness: 0.5 }, { sss: FLESH }],
   tendon: [SURF.muscle, { roughness: 0.4, clearcoat: 0.5, clearcoatRoughness: 0.25, sheen: 0.6, sheenColor: 0xffffff }],
-  brain: [SURF.wet, { ...WET, roughness: 0.5, clearcoat: 0.32 }],
+  brain: [SURF.wet, { ...WET, roughness: 0.5, clearcoat: 0.32 }, { vnet: 0.7, sulci: true, sss: [1.2, 0.85, 0.8] }],
   brainstem: [SURF.wet, { ...WET, roughness: 0.5, clearcoat: 0.32 }],
   deepGray: [SURF.wet, { ...WET, roughness: 0.5, clearcoat: 0.32 }],
   whiteMatter: [SURF.wet, { ...WET, roughness: 0.5, clearcoat: 0.3 }],
   csf: [SURF.wet, { ...WET, roughness: 0.2, clearcoat: 0.9 }],
   eye: [SURF.eye, { roughness: 0.18, clearcoat: 1.0, clearcoatRoughness: 0.03 }],
   nerve: [SURF.vessel, { roughness: 0.42, clearcoat: 0.45, clearcoatRoughness: 0.3, sheen: 0.6, sheenColor: 0xfff0b0 }],
-  heart: [SURF.wet, { ...WET, sheen: 0.3, sheenColor: 0xff8a70 }],
+  heart: [SURF.wet, { ...WET, sheen: 0.3, sheenColor: 0xff8a70 }, { vnet: 0.9, fat: true, sss: FLESH }],
   valve: [SURF.wet, { ...WET, roughness: 0.35 }],
-  lung: [SURF.lung, { roughness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.3 }],
+  lung: [SURF.lung, { roughness: 0.55, clearcoat: 0.35, clearcoatRoughness: 0.3 }, { sss: [1.25, 0.82, 0.82] }],
   airway: [SURF.wet, { ...WET, roughness: 0.36 }],
-  organ: [SURF.wet, { ...WET }],
-  artery: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0xff6a6a }],
+  organ: [SURF.wet, { ...WET }, { vnet: 0.3, sss: FLESH }],
+  solidOrgan: [SURF.wet, { ...WET, roughness: 0.36, clearcoat: 0.7 }, { sss: [1.08, 0.88, 0.84] }],
+  artery: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0xff6a6a }, { vnet: 0.5 }],
   pulmArtery: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
   vein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
   pulmVein: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2 }],
   coronaryA: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0xff6a6a }],
   coronaryV: [SURF.vessel, { roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.2, sheen: 0.35, sheenColor: 0x7aa0ff }],
-  skin: [SURF.skin, { roughness: 0.52, clearcoat: 0.06, clearcoatRoughness: 0.45, sheen: 0.35, sheenColor: 0xffb89c, sheenRoughness: 0.55 }],
+  skin: [SURF.skin, { roughness: 0.52, clearcoat: 0.06, clearcoatRoughness: 0.45, sheen: 0.35, sheenColor: 0xffb89c, sheenRoughness: 0.55 }, { sss: [1.3, 0.82, 0.74] }],
 };
 const MATS = {};
 const layerMats = {};
 function getMat(layer, mat) {
   const k = layer + ':' + mat;
   if (MATS[k]) return MATS[k];
-  const [kind, params] = MAT_DEFS[mat] || MAT_DEFS.organ;
-  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind, RIG_LAYERS.has(layer));
+  const [kind, params, opts = {}] = MAT_DEFS[mat] || MAT_DEFS.organ;
+  const m = patchSurface(new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, side: THREE.DoubleSide, ...params }), kind, RIG_LAYERS.has(layer), opts);
   m.userData.layer = layer; m.userData.baseOpacity = 1;
   (layerMats[layer] ||= new Set()).add(m);
   if (state.split && (layer === 'muscle' || layer === 'skin')) m.clippingPlanes = [splitPlane];
@@ -981,7 +1099,7 @@ function getMat(layer, mat) {
 // ---------- colours ----------
 // sRGB tints by structure name; bone and muscle get a small per-part variation.
 const TINT = [
-  [/^liver/, 0x7b2f25], [/gallbladder/, 0x5f7c3e], [/^stomach/, 0xcf8474], [/esophagus/, 0xc77a6c],
+  [/^liver/, 0x643026], [/gallbladder/, 0x5f7c3e], [/^stomach/, 0xcf8474], [/esophagus/, 0xc77a6c],
   [/duodenum|jejunum|ileum/, 0xd99a87], [/taenia/, 0xe6cdb2], [/colon|appendix/, 0xcf9b80], [/rectum/, 0xc5836f],
   [/pancreatic duct/, 0xe8d59c], [/pancreas/, 0xe0b27e], [/spleen/, 0x74304a], [/labial part of mouth/, 0xbf6a64], [/gingiva/, 0xd88480],
   [/kidney/, 0x7e3128], [/ureter/, 0xdcb892], [/urinary bladder/, 0xd7a493], [/urethra/, 0xd8a08f],
@@ -1010,6 +1128,39 @@ function tintFor(p) {
   else c.multiplyScalar(1 + 0.05 * r);
   return [c.r, c.g, c.b];
 }
+
+// ---------- look: vessel palette and stage ----------
+// "atlas" paints arteries red and veins blue (as in textbooks); "natural" shows them as they look in the body:
+// pale pink arterial walls, dusky blue-purple veins.
+const LOOK = { palette: 'natural', stage: 'dark' };
+const NATURAL_VESSEL = [[/pulmonary vein/, 0x9a6680], [/vein|vena cava|coronary sinus|cardiac vein|veins of ventricle/, 0x6c709e], [/./, 0xdcab9e]];
+function vesselTint(m, palette) {
+  const atlas = tintFor({ id: m.userData.id, base: m.userData.base, mat: m.userData.mat });
+  if (palette === 'atlas') return atlas;
+  const hex = NATURAL_VESSEL.find(([re]) => re.test(m.userData.base))[1];
+  const c = new THREE.Color(hex).multiplyScalar(1 + 0.05 * (hash01(m.userData.id) - 0.5));
+  return [c.r, c.g, c.b];
+}
+function setPalette(palette) {
+  LOOK.palette = palette;
+  for (const m of PARTS_LIST) {
+    if (m.userData.layer !== 'arteries' && m.userData.layer !== 'veins') continue;
+    const col = m.geometry.attributes.color; if (!col) continue;
+    const src = m.geometry.userData.atlasColor ||= col.array.slice(); // colours as loaded (atlas tint × occlusion)
+    const a = tintFor({ id: m.userData.id, base: m.userData.base, mat: m.userData.mat }), t = vesselTint(m, palette);
+    const k = [t[0] / a[0], t[1] / a[1], t[2] / a[2]];
+    for (let i = 0; i < src.length; i++) col.array[i] = Math.min(65535, src[i] * k[i % 3]);
+    col.needsUpdate = true;
+  }
+  document.querySelectorAll('[data-look="palette"]').forEach(b => b.classList.toggle('on', b.dataset.v === palette));
+}
+function setStage(v) {
+  LOOK.stage = v; document.body.classList.toggle('light', v === 'light'); scene.background = STAGE_BG[v];
+  decor[0].visible = decor[1].visible = v === 'dark'; decor[2].material.opacity = v === 'dark' ? 0.32 : 0.22;
+  renderer.toneMappingExposure = v === 'dark' ? 1.0 : 1.06;
+  document.querySelectorAll('[data-look="stage"]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+}
+document.querySelectorAll('[data-look]').forEach(b => b.addEventListener('click', () => (b.dataset.look === 'palette' ? setPalette : setStage)(b.dataset.v)));
 
 // ---------- decoding (runs in workers; plain functions so they can be stringified) ----------
 async function gunzipBytes(u) {
@@ -1132,7 +1283,8 @@ function ingest(layer, meta, rec) {
   geo.setIndex(new THREE.BufferAttribute(rec.idx, 1));
   geo.computeBoundingSphere(); geo.computeBoundingBox();
   // coronary vessels get their own material so they can be cut together with the heart wall
-  const matKey = /coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches/.test(meta.base) ? (layer === 'arteries' ? 'coronaryA' : 'coronaryV') : meta.mat;
+  const matKey = /coronary|cardiac vein|veins of ventricle|coronary sinus|interventricular branch|marginal branch|circumflex|posterolateral|septal branches/.test(meta.base) ? (layer === 'arteries' ? 'coronaryA' : 'coronaryV')
+    : meta.mat === 'organ' && /^(liver|spleen|kidney|pancreas|adrenal gland|lobe of thymus|prostate|testis|gallbladder)/.test(meta.base) ? 'solidOrgan' : meta.mat;
   const mat = getMat(layer, matKey);
   const mesh = new THREE.Mesh(geo, state.isolate && state.selected ? ghostMat : mat);
   const small = geo.boundingSphere.radius < 0.015;
@@ -1280,7 +1432,7 @@ function pick(clientX, clientY) {
 const hlCache = new Map();
 function highlightMat(m) {
   if (!hlCache.has(m)) {
-    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf, m.userData.rigged);
+    const h = m.clone(); h.userData = { ...m.userData, hl: true }; patchSurface(h, m.userData.surf, m.userData.rigged, m.userData.opts);
     h.emissive = new THREE.Color(0x1f9fbf); h.emissiveIntensity = 0.28;
     hlCache.set(m, h);
   }
@@ -1510,7 +1662,8 @@ toggleBtn('tLabels', (on) => { state.labels = on; });
 $('tSplit').addEventListener('click', () => { setSplit(!state.split); clearPreset(); });
 toggleBtn('tSpin', (on) => { state.spin = on; controls.autoRotate = on; controls.autoRotateSpeed = 1.2; });
 if (!strongDevice) $('tShadow').classList.remove('on');
-toggleBtn('tShadow', (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; for (const h of hlCache.values()) h.needsUpdate = true; markShadows(); });
+// "Gölge" switches both the shadow map and ambient occlusion (the expensive parts on weak devices)
+toggleBtn('tShadow', (on) => { POST.on = on; renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; for (const h of hlCache.values()) h.needsUpdate = true; markShadows(); });
 $('mLayers').onclick = () => { document.body.classList.toggle('show-layers'); document.body.classList.remove('show-info'); };
 $('mInfo').onclick = () => { document.body.classList.toggle('show-info'); document.body.classList.remove('show-layers'); };
 
@@ -1650,13 +1803,13 @@ function animate() {
   }
   doHover();
   if (shadowDirty > 0) { renderer.shadowMap.needsUpdate = true; shadowDirty--; }
-  renderer.render(scene, camera);
+  renderScene();
   if (state.labels || labelEls.size || SCN.active) drawLabels();
   fpsEma = fpsEma * 0.95 + (1 / Math.max(dt, 1e-3)) * 0.05;
   if (t - fpsT > 0.5) { fpsT = t; $('stFps').textContent = Math.round(fpsEma); }
   requestAnimationFrame(animate);
 }
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); POST.composer.setSize(innerWidth, innerHeight); });
 
 const fmtK = (n) => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : String(n);
 window.__anatomy = {
@@ -1666,7 +1819,8 @@ window.__anatomy = {
   setLayer, setOpacity, setSplit, applyPreset, select: (en) => select(byEn.get(en) || byId.get(en) || null), pick,
   setCut: (on, axis = 'z', pos = 0.52) => { state.cut = on; state.cutAxis = axis; state.cutPos = pos; applyCut(); },
   stats: () => ({ parts: PARTS_LIST.length, tris: Math.round(triTotal), loadMs: Math.round(STATS.loadMs), workers: STATS.workers, errors: loadErrors }),
-  render: () => { controls.update(); updateRig(); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camera); drawLabels(); },
+  render: () => { controls.update(); updateRig(); renderer.shadowMap.needsUpdate = true; renderScene(); drawLabels(); },
+  ao: (on) => { POST.on = on; }, setPalette: (p) => setPalette(p), setStage: (v) => setStage(v),
   pause: (p = true) => { state.paused = p; },
   shadows: (on) => { renderer.shadowMap.enabled = on; for (const m of Object.values(MATS)) m.needsUpdate = true; markShadows(); },
 };
@@ -1845,7 +1999,7 @@ function bakeHeartColours(F, wall) {
     const toC = _q.copy(best.c).sub(p).normalize();
     const innerW = sstep(0.15, 0.5, n.dot(toC)) * (1 - sstep(best.r * 1.6, best.r * 2.4, bd));
     const outerW = sstep(0.0, 0.3, n.dot(_r.copy(p).sub(F.center).normalize()));
-    const fw = sstep(0.0052, 0.0018, cor.nearest(p.x, p.y, p.z, 0.008)[0]) * outerW * 0.55;
+    const fw = sstep(0.0048, 0.0016, cor.nearest(p.x, p.y, p.z, 0.008)[0]) * outerW * 0.42;
     let r = base[0], g = base[1], b = base[2];
     r += (endo.r - r) * innerW * 0.6; g += (endo.g - g) * innerW * 0.6; b += (endo.b - b) * innerW * 0.6;
     r += (fat.r - r) * fw; g += (fat.g - g) * fw; b += (fat.b - b) * fw;
@@ -2236,7 +2390,8 @@ const STEPS = [
 // ---------- entering / leaving ----------
 function enterScenario() {
   if (!CARDIO.ready) return;
-  SCN.prev = { layers: Object.fromEntries(LAYERS.map(l => [l.key, [l.on, layerOpacity[l.key]]])), split: state.split, cut: state.cut };
+  SCN.prev = { layers: Object.fromEntries(LAYERS.map(l => [l.key, [l.on, layerOpacity[l.key]]])), split: state.split, cut: state.cut, palette: LOOK.palette };
+  setPalette('atlas'); // oxygen-rich red / oxygen-poor blue is what the steps explain
   SCN.active = true; SCN.views = heartViews(); document.body.classList.add('scn'); document.body.classList.remove('show-layers');
   if (state.cut) $('tCut').click();
   setSplit(false); select(null);
@@ -2248,7 +2403,7 @@ function exitScenario() {
   setHeartCut(false); showFlow(null); CARDIO.fx.group.visible = false;
   Object.assign(CARDIO, { hold: null, playing: true, speed: 1, glow: 0, pulse: false });
   for (const l of LAYERS) { const [on, op] = SCN.prev.layers[l.key]; setLayer(l.key, on); setOpacity(l.key, op); const sl = $('op_' + l.key); if (sl) sl.value = Math.round(op * 100); }
-  setSplit(SCN.prev.split);
+  setSplit(SCN.prev.split); setPalette(SCN.prev.palette);
   flyTo(HOME[0], HOME[1]);
   renderInfo();
 }
@@ -2387,14 +2542,16 @@ THEMES.transparent = THEMES.white;
 
 // render the scene into a width×height buffer (page layout untouched); returns a restore function
 function beginExportView(width, height) {
-  const prev = { pr: renderer.getPixelRatio(), aspect: camera.aspect, decor: decor.map(d => d.visible) };
-  decor.forEach(d => (d.visible = false));
+  const prev = { pr: renderer.getPixelRatio(), aspect: camera.aspect, decor: decor.map(d => d.visible), bg: scene.background };
+  decor.forEach(d => (d.visible = false)); scene.background = null; // exports paint their own background
   renderer.setPixelRatio(1); renderer.setSize(width, height, false);
+  POST.composer.setPixelRatio(1); POST.composer.setSize(width, height);
   camera.aspect = width / height; camera.updateProjectionMatrix();
   for (const f of Object.values(CARDIO.flows)) f.mat.uniforms.uScale.value = height / (2 * Math.tan(camera.fov * Math.PI / 360));
   return () => {
-    decor.forEach((d, i) => (d.visible = prev.decor[i]));
+    decor.forEach((d, i) => (d.visible = prev.decor[i])); scene.background = prev.bg;
     renderer.setPixelRatio(prev.pr); renderer.setSize(innerWidth, innerHeight);
+    POST.composer.setPixelRatio(prev.pr); POST.composer.setSize(innerWidth, innerHeight);
     camera.aspect = prev.aspect; camera.updateProjectionMatrix();
   };
 }
@@ -2436,7 +2593,7 @@ function paintCredit(ctx, w, h, k, th) {
 }
 function renderFrame() {
   renderer.shadowMap.needsUpdate = renderer.shadowMap.enabled;
-  renderer.render(scene, camera);
+  renderScene();
 }
 
 async function exportPNG() {
@@ -2599,6 +2756,7 @@ buildPresetUI();
     await loadAll();
     setupAnimation();
     await setupCardio();
+    setPalette(LOOK.palette);
     buildLayerUI();
     applyPreset(currentPreset);
     setOpacity('skin', layerOpacity.skin);

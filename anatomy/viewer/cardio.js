@@ -170,7 +170,7 @@ function bakeHeartColours(F, wall) {
     const toC = _q.copy(best.c).sub(p).normalize();
     const innerW = sstep(0.15, 0.5, n.dot(toC)) * (1 - sstep(best.r * 1.6, best.r * 2.4, bd));
     const outerW = sstep(0.0, 0.3, n.dot(_r.copy(p).sub(F.center).normalize()));
-    const fw = sstep(0.0052, 0.0018, cor.nearest(p.x, p.y, p.z, 0.008)[0]) * outerW * 0.55;
+    const fw = sstep(0.0048, 0.0016, cor.nearest(p.x, p.y, p.z, 0.008)[0]) * outerW * 0.42;
     let r = base[0], g = base[1], b = base[2];
     r += (endo.r - r) * innerW * 0.6; g += (endo.g - g) * innerW * 0.6; b += (endo.b - b) * innerW * 0.6;
     r += (fat.r - r) * fw; g += (fat.g - g) * fw; b += (fat.b - b) * fw;

@@ -4,7 +4,7 @@
 
 | Sayfa | Ne |
 | --- | --- |
-| `index.html` | **Gerçekçi atlas.** Gerçek bir insan vücudundan elde edilmiş BodyParts3D verisinden 931 yapı, 2,44 milyon üçgen (~13,6 MB). |
+| `index.html` | **Gerçekçi atlas.** Gerçek bir insan vücudundan elde edilmiş BodyParts3D verisinden 931 yapı, 2,71 milyon üçgen (~14,9 MB). |
 | `prosedurel.html` | İlk sürüm: hiçbir model dosyası kullanmadan 462 yapıyı (~3,8 milyon üçgen) kodla, sayfa açılırken üretir. |
 
 ## Açmak
@@ -32,7 +32,12 @@ three.js CDN'den yüklendiği için internet bağlantısı gerekir.
 
 Her yapı tıklanabilir; Türkçe adı, Latince adı ve YKS düzeyinde kısa bir açıklaması gösterilir. Hazır görünümler, katman başına opaklık, arama (Türkçe karakterlere duyarsız), kesit düzlemi (kesilen yapıların içi dolu görünür), yarı kesit, ayrıştırma, etiketler, kalp atışı ve solunum animasyonu bulunur.
 
-Bütün yüzey ayrıntısı (kas lifleri, kemik dokusu, organ ıslaklığı, akciğer dokusu, deri gözenekleri, göz bebeği) doku dosyası olmadan, gölgelendiricide üretilir.
+Bütün yüzey ayrıntısı (kas lifleri, kemik dokusu, organ ıslaklığı, kalp yüzeyindeki küçük damarlar ve yağ dokusu, akciğer lobülleri, deri gözenekleri, göz bebeği) doku dosyası olmadan, gölgelendiricide üretilir. Yumuşak dokular ışığı içten hafifçe geçirir (sıcak kenar tonu); güçlü cihazlarda ekran uzayı ortam gölgesi (GTAO) yapıların birleştiği yerleri koyulaştırır. Araç çubuğundaki **Gölge** ikisini birlikte açıp kapatır.
+
+Sol paneldeki **Görünüm** bölümünde:
+
+- **Doğal renk / Atlas rengi** — doğal renkte damarlar gerçek dokudaki gibi soluk pembe (atardamar) ve mor-mavi (toplardamar) görünür; atlas renginde ders kitabındaki gibi kırmızı-mavi boyanır. Kalp döngüsü süreci açılınca otomatik olarak atlas rengine geçer, çıkınca önceki seçime döner.
+- **Koyu / Açık** — koyu sahne ya da açık gri stüdyo zemini.
 
 ## Süreçler: Kalp döngüsü
 

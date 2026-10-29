@@ -10,14 +10,16 @@ THEMES.transparent = THEMES.white;
 
 // render the scene into a width×height buffer (page layout untouched); returns a restore function
 function beginExportView(width, height) {
-  const prev = { pr: renderer.getPixelRatio(), aspect: camera.aspect, decor: decor.map(d => d.visible) };
-  decor.forEach(d => (d.visible = false));
+  const prev = { pr: renderer.getPixelRatio(), aspect: camera.aspect, decor: decor.map(d => d.visible), bg: scene.background };
+  decor.forEach(d => (d.visible = false)); scene.background = null; // exports paint their own background
   renderer.setPixelRatio(1); renderer.setSize(width, height, false);
+  POST.composer.setPixelRatio(1); POST.composer.setSize(width, height);
   camera.aspect = width / height; camera.updateProjectionMatrix();
   for (const f of Object.values(CARDIO.flows)) f.mat.uniforms.uScale.value = height / (2 * Math.tan(camera.fov * Math.PI / 360));
   return () => {
-    decor.forEach((d, i) => (d.visible = prev.decor[i]));
+    decor.forEach((d, i) => (d.visible = prev.decor[i])); scene.background = prev.bg;
     renderer.setPixelRatio(prev.pr); renderer.setSize(innerWidth, innerHeight);
+    POST.composer.setPixelRatio(prev.pr); POST.composer.setSize(innerWidth, innerHeight);
     camera.aspect = prev.aspect; camera.updateProjectionMatrix();
   };
 }
@@ -59,7 +61,7 @@ function paintCredit(ctx, w, h, k, th) {
 }
 function renderFrame() {
   renderer.shadowMap.needsUpdate = renderer.shadowMap.enabled;
-  renderer.render(scene, camera);
+  renderScene();
 }
 
 async function exportPNG() {
